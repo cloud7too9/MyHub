@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060709">
+<meta name="hefter-untertitel" content="Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban">
+<meta name="hefter-stichworte" content="ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port">
 <title>Server-Erst-Einrichtung (Ubuntu 24.04) · Hefter</title>
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
@@ -45,14 +47,21 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
       <div><div class="label">Reihenfolge zählt</div><div class="txt">Die Schritte 1–5 laufen bewusst <b>vor</b> dem Absichern in Schritt 6. Wer root sperrt, bevor der neue Zugang getestet ist, sperrt sich selbst aus.</div></div>
     </div>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur Pflichtschritte</button>
+    </div>
+    <p class="stufen-hinweis">Die einmaligen Schritte sind ausgeblendet — sichtbar bleibt der Weg, den du jedes Mal gehst.</p>
   </header>
 
   <main>
 
     <!-- Schritt 1 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">1</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Als root einloggen und System aktualisieren</h2>
         <p>Beim Erstellen des Servers hast du deinen SSH-Schlüssel hinterlegt — damit kommst du direkt als <code>root</code> rein. Erste Amtshandlung: alles auf aktuellen Stand bringen.</p>
         <div class="codebox">
@@ -66,7 +75,7 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
 <span class="tok-c"># Neustart nötig? Datei existiert nur, wenn ja</span>
 [ -f /var/run/reboot-required ] <span class="tok-k">&amp;&amp;</span> reboot</pre>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="system-update">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -74,9 +83,10 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
     </section>
 
     <!-- Schritt 2 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">2</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Hostname und Zeitzone setzen</h2>
         <p>Kleinigkeit, die später beim Lesen von Logs viel wert ist — Zeitstempel in lokaler Zeit und ein Name, den du wiedererkennst.</p>
         <div class="codebox">
@@ -87,7 +97,7 @@ timedatectl set-timezone Europe/Berlin
 <span class="tok-c"># Hostname zusätzlich in der Hosts-Datei ergänzen</span>
 echo <span class="tok-s">"127.0.1.1 web01"</span> &gt;&gt; /etc/hosts</pre>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="hostname-zeit">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -95,9 +105,10 @@ echo <span class="tok-s">"127.0.1.1 web01"</span> &gt;&gt; /etc/hosts</pre>
     </section>
 
     <!-- Schritt 3 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">3</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Benutzer anlegen und sudo-Rechte geben</h2>
         <p>Ab jetzt arbeitest du nicht mehr als root. Der neue Benutzer bekommt über die Gruppe <code>sudo</code> die Rechte, die er punktuell braucht.</p>
         <div class="codebox">
@@ -112,7 +123,7 @@ usermod -aG sudo max</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Warum ein Passwort</div><div class="txt">Der SSH-Login läuft gleich rein über den Schlüssel. Das Passwort brauchst du nur noch für <code>sudo</code> auf dem Server selbst — das ist die gewünschte Bremse vor Systemänderungen.</div></div>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="benutzer">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -120,9 +131,10 @@ usermod -aG sudo max</pre>
     </section>
 
     <!-- Schritt 4 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">4</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>SSH-Schlüssel für den neuen Benutzer hinterlegen</h2>
         <p>Der Schlüssel liegt bisher nur bei root. Kopiere das komplette <code>.ssh</code>-Verzeichnis inklusive Besitzrechten zum neuen Benutzer.</p>
         <div class="codebox">
@@ -138,7 +150,7 @@ usermod -aG sudo max</pre>
           <pre>ls -ld /home/max/.ssh
 ls -l /home/max/.ssh/authorized_keys</pre>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="ssh-schluessel">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -146,9 +158,10 @@ ls -l /home/max/.ssh/authorized_keys</pre>
     </section>
 
     <!-- Schritt 5 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">5</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Neuen Zugang testen — root-Sitzung offen lassen</h2>
         <p>Das ist der wichtigste Schritt der ganzen Anleitung. Öffne ein <b>zweites</b> Terminal-Fenster und logge dich als neuer Benutzer ein. Die root-Sitzung bleibt als Rettungsleine offen.</p>
         <div class="codebox">
@@ -162,7 +175,7 @@ sudo whoami</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Erst weiter, wenn beides klappt</div><div class="txt">Login per Schlüssel <b>und</b> <code>sudo whoami</code> müssen funktionieren. Sonst zurück zu Schritt 4 — die root-Sitzung ist noch offen und rettet dich.</div></div>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="zugang-test">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -170,9 +183,10 @@ sudo whoami</pre>
     </section>
 
     <!-- Schritt 6 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">6</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>SSH härten: root-Login und Passwörter sperren</h2>
         <p>Jetzt wird zugemacht. Die Einstellungen kommen in eine eigene Datei unter <code>/etc/ssh/sshd_config.d/</code> — nicht in die <code>sshd_config</code> selbst.</p>
         <div class="callout gefahr">
@@ -215,7 +229,7 @@ sudo systemctl restart ssh</pre>
           <div><div class="label">Socket-Aktivierung</div><div class="txt">Ubuntu startet <code>sshd</code> seit 22.10 pro Verbindung über <code>ssh.socket</code>. Für Optionen wie diese reicht der Neustart oben — nur beim <b>Port</b> muss zusätzlich der Socket angefasst werden (Schritt 10).</div></div>
         </div>
         <p><b>Test vor dem Schließen der root-Sitzung:</b> ein drittes Fenster öffnen, <code>ssh max@&lt;SERVER-IP&gt;</code> muss laufen, <code>ssh root@&lt;SERVER-IP&gt;</code> muss abgewiesen werden.</p>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="ssh-haertung">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -223,9 +237,10 @@ sudo systemctl restart ssh</pre>
     </section>
 
     <!-- Schritt 7 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">7</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Firewall einrichten (UFW)</h2>
         <p>Alles dicht, außer was du ausdrücklich öffnest. <b>Zuerst</b> SSH freigeben, <b>dann</b> einschalten — sonst kappt die Firewall die laufende Sitzung.</p>
         <div class="codebox">
@@ -246,7 +261,7 @@ sudo ufw status verbose</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Zweite Ebene</div><div class="txt">Die Cloud-Firewall bei Hetzner arbeitet <b>vor</b> dem Server und kostet nichts. Beide zu nutzen ist sinnvoll — aber dann Regeln an beiden Stellen pflegen, sonst suchst du Fehler an der falschen Stelle.</div></div>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="ufw">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -254,9 +269,10 @@ sudo ufw status verbose</pre>
     </section>
 
     <!-- Schritt 8 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">8</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Brute-Force-Schutz mit fail2ban</h2>
         <p>fail2ban liest die Logs mit und sperrt IPs, die es wiederholt falsch versuchen. Eigene Einstellungen kommen in <code>jail.local</code> — <code>jail.conf</code> wird bei Updates überschrieben.</p>
         <div class="codebox">
@@ -290,7 +306,7 @@ sudo fail2ban-client status sshd</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Einordnung</div><div class="txt">Der große Sicherheitsgewinn kam schon in Schritt 6 — ohne Passwort-Login läuft ein Rateangriff ins Leere. fail2ban hält zusätzlich die Logs sauber und bremst Dauerscanner aus.</div></div>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="fail2ban">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -298,9 +314,10 @@ sudo fail2ban-client status sshd</pre>
     </section>
 
     <!-- Schritt 9 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">9</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Automatische Sicherheitsupdates</h2>
         <p>Damit der Server nicht dadurch unsicher wird, dass du wochenlang nicht hinschaust.</p>
         <div class="codebox">
@@ -314,7 +331,7 @@ cat /etc/apt/apt.conf.d/20auto-upgrades
 <span class="tok-c"># Trockenlauf</span>
 sudo unattended-upgrades --dry-run --debug</pre>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="auto-updates">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -322,9 +339,10 @@ sudo unattended-upgrades --dry-run --debug</pre>
     </section>
 
     <!-- Schritt 10 -->
-    <section class="step">
+    <section class="step einmalig">
       <div class="rail"><div class="step-num">10</div></div>
       <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Optional</span>
         <h2>Optional: SSH-Port verlegen</h2>
         <p>Bringt keine echte Sicherheit, aber deutlich weniger Rauschen in den Logs. Unter Ubuntu 24.04 reicht der Eintrag in der Konfiguration <b>nicht</b> — der Socket lauscht sonst weiter auf 22.</p>
         <div class="codebox">
@@ -356,7 +374,7 @@ sudo ss -tuln | grep 2222</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Sitzung offen lassen</div><div class="txt">Erst mit <code>ssh -p 2222 max@&lt;SERVER-IP&gt;</code> aus einem zweiten Fenster testen. Klappt es, kann die alte Regel weg: <code>sudo ufw delete allow OpenSSH</code>. Klappt es nicht, hilft die Konsole im Hetzner-Cloud-Panel.</div></div>
         </div>
-        <div class="fotozone">
+        <div class="fotozone" data-schritt="ssh-port">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -371,14 +389,14 @@ sudo ss -tuln | grep 2222</pre>
       <h2>Abschluss-Checkliste</h2>
       <span class="fortschritt" id="chkStand">0 / 8</span>
     </header>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">System aktualisiert, Hostname und Zeitzone gesetzt</span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Benutzer angelegt und in der Gruppe <code>sudo</code></span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">SSH-Schlüssel beim Benutzer, Rechte 700/600</span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Login als Benutzer und <code>sudo whoami</code> getestet</span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>sshd -T</code> zeigt root- und Passwort-Login als <code>no</code></span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">UFW aktiv, SSH freigegeben</span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">fail2ban läuft, <code>status sshd</code> geprüft</span></div>
-    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Sicherheitsupdates aktiv</span></div>
+    <div class="check" data-check="basis"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">System aktualisiert, Hostname und Zeitzone gesetzt</span></div>
+    <div class="check" data-check="benutzer-sudo"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Benutzer angelegt und in der Gruppe <code>sudo</code></span></div>
+    <div class="check" data-check="schluessel-rechte"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">SSH-Schlüssel beim Benutzer, Rechte 700/600</span></div>
+    <div class="check" data-check="login-test"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Login als Benutzer und <code>sudo whoami</code> getestet</span></div>
+    <div class="check" data-check="sshd-gehaertet"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>sshd -T</code> zeigt root- und Passwort-Login als <code>no</code></span></div>
+    <div class="check" data-check="ufw-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">UFW aktiv, SSH freigegeben</span></div>
+    <div class="check" data-check="fail2ban-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">fail2ban läuft, <code>status sshd</code> geprüft</span></div>
+    <div class="check" data-check="auto-updates-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Sicherheitsupdates aktiv</span></div>
   </div>
 
   <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>

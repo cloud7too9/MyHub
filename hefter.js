@@ -4,25 +4,39 @@
    in /anleitungen anlegen (vorlage kopieren).
    ============================================================ */
 
-/* ---------- Register aller Anleitungen ---------- */
+/* ---------- Register aller Anleitungen ----------
+   GENERIERT aus den Anleitungs-HTMLs — nicht von Hand pflegen.
+   Quelle je Seite: <h1> (Titel), .chip (Kategorie),
+   meta hefter-untertitel, meta hefter-stichworte.
+   Nach Änderungen: node bauen.mjs ausführen. */
+/* REGISTER-START */
 const REGISTER = [
   {
-    id: "hetzner-deploy",
-    titel: "Automatisches Deploy auf Hetzner per GitHub Actions",
-    untertitel: "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
-    kategorie: "Deployment",
-    datei: "anleitungen/hetzner-deploy.html",
-    stichworte: "ssh github actions hetzner deploy key secrets workflow ci cd"
+    "id": "hetzner-deploy",
+    "titel": "Automatisches Deploy auf Hetzner per GitHub Actions",
+    "untertitel": "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
+    "kategorie": "Deployment",
+    "datei": "anleitungen/hetzner-deploy.html",
+    "stichworte": "ssh github actions hetzner deploy key secrets workflow ci cd"
   },
   {
-    id: "server-ersteinrichtung",
-    titel: "Server-Erst-Einrichtung & Absicherung",
-    untertitel: "Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban",
-    kategorie: "Server",
-    datei: "anleitungen/server-ersteinrichtung.html",
-    stichworte: "ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port"
+    "id": "docker-einrichtung",
+    "titel": "Docker einrichten &amp; pro Repository integrieren",
+    "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
+    "kategorie": "Server",
+    "datei": "anleitungen/docker-einrichtung.html",
+    "stichworte": "docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx"
+  },
+  {
+    "id": "server-ersteinrichtung",
+    "titel": "Server-Erst-Einrichtung &amp; Absicherung",
+    "untertitel": "Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban",
+    "kategorie": "Server",
+    "datei": "anleitungen/server-ersteinrichtung.html",
+    "stichworte": "ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port"
   }
 ];
+/* REGISTER-ENDE */
 
 /* ---------- Icon-Katalog ---------- */
 const ICONS = [
@@ -42,8 +56,13 @@ const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
   checks: id => "hefter:checks:" + id,
-  fotos: id => "hefter:fotos:" + id
+  fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
+
+function neueId() {
+  try { return crypto.randomUUID(); }
+  catch { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2); }
+}
 
 /* ============================================================
    THEME
@@ -73,38 +92,26 @@ document.querySelectorAll("[data-themebtn]").forEach(btn =>
     themeSetzen(document.documentElement.dataset.theme === "hell" ? "dunkel" : "hell")));
 
 /* ============================================================
-   APP-ICON  (Favicon + dynamisches Manifest)
-   Hinweis: Der Homescreen installierter PWAs übernimmt einen
-   Wechsel nicht zuverlässig (iOS: nie ohne Neu-Installation).
+   APP-ICON
+   Je Icon liegt eine statische Manifest-Datei bereit — der
+   Wechsel hängt nur das href um. Hinweis: Der Homescreen
+   installierter PWAs übernimmt einen Wechsel nicht zuverlässig
+   (iOS: nie ohne Neu-Installation).
    ============================================================ */
 function iconAktiv() {
   try { return localStorage.getItem(KEY.icon) || ICON_STANDARD; } catch { return ICON_STANDARD; }
 }
-async function iconAnwenden(id, speichern = true) {
+function iconAnwenden(id, speichern = true) {
   if (speichern) { try { localStorage.setItem(KEY.icon, id); } catch {} }
-  /* Favicon + Marke im Kopf */
   const fav = document.querySelector("link[rel=icon]");
   if (fav) fav.href = BASIS + "icons/" + id + ".svg";
+  const apfel = document.querySelector("link[rel=apple-touch-icon]");
+  if (apfel) apfel.href = BASIS + "icons/png/" + id + "-192.png";
+  const manifest = document.querySelector("link[rel=manifest]");
+  if (manifest) manifest.href = BASIS + "manifest-" + id + ".webmanifest";
   document.querySelectorAll("[data-appicon]").forEach(img => {
     img.src = BASIS + "icons/" + id + ".svg";
   });
-  /* Manifest dynamisch mit dem gewählten Icon neu erzeugen */
-  const link = document.querySelector("link[rel=manifest]");
-  if (link) {
-    try {
-      const antwort = await fetch(BASIS + "manifest.webmanifest");
-      const mf = await antwort.json();
-      const abs = p => new URL(BASIS + p, location.href).href;
-      mf.start_url = abs("index.html");
-      mf.scope = abs("");
-      mf.icons = [
-        { src: abs("icons/png/" + id + "-192.png"), sizes: "192x192", type: "image/png" },
-        { src: abs("icons/png/" + id + "-512.png"), sizes: "512x512", type: "image/png" },
-        { src: abs("icons/png/" + id + "-512-maskable.png"), sizes: "512x512", type: "image/png", purpose: "maskable" }
-      ];
-      link.href = URL.createObjectURL(new Blob([JSON.stringify(mf)], { type: "application/json" }));
-    } catch {}
-  }
   document.querySelectorAll(".iconkarte").forEach(k =>
     k.classList.toggle("aktiv", k.dataset.icon === id));
 }
@@ -165,20 +172,28 @@ function kopierenAktivieren() {
 }
 
 /* ============================================================
-   CHECKLISTE  (Fortschritt je Seite in localStorage)
+   CHECKLISTE
+   Fortschritt hängt an data-check-IDs — Umsortieren oder
+   Einfügen von Punkten verschiebt keine Haken mehr.
    ============================================================ */
 function checklisteAktivieren() {
   const seite = document.body.dataset.seite;
   const checks = [...document.querySelectorAll(".check")];
   if (!checks.length) return;
   const stand = document.getElementById("chkStand");
+
   let gespeichert = [];
   if (seite) { try { gespeichert = JSON.parse(localStorage.getItem(KEY.checks(seite)) || "[]"); } catch {} }
-  checks.forEach((c, i) => { if (gespeichert.includes(i)) c.classList.add("done"); });
+  /* Altbestand: früher wurden Positions-Indizes gespeichert — einmalig auf IDs heben */
+  if (gespeichert.some(x => typeof x === "number")) {
+    gespeichert = gespeichert.map(i => checks[i]?.dataset.check).filter(Boolean);
+  }
+  checks.forEach(c => { if (gespeichert.includes(c.dataset.check)) c.classList.add("done"); });
+
   const aktualisieren = () => {
     if (stand) stand.textContent = checks.filter(c => c.classList.contains("done")).length + " / " + checks.length;
     if (seite) {
-      const done = checks.map((c, i) => c.classList.contains("done") ? i : -1).filter(i => i >= 0);
+      const done = checks.filter(c => c.classList.contains("done")).map(c => c.dataset.check).filter(Boolean);
       try { localStorage.setItem(KEY.checks(seite), JSON.stringify(done)); } catch {}
     }
   };
@@ -187,14 +202,45 @@ function checklisteAktivieren() {
 }
 
 /* ============================================================
-   FOTO ANFÜGEN  (16:9-Editor, Bilder je Seite in localStorage)
+   FOTO ANFÜGEN
+   16:9-Editor · Ablage in IndexedDB als Blob (kein 5-MB-Limit,
+   kein base64-Aufschlag) · Zuordnung über data-schritt-IDs.
+   Altbestände aus localStorage werden einmalig übernommen.
    ============================================================ */
 function fotosAktivieren() {
   const zonen = [...document.querySelectorAll(".fotozone")];
   if (!zonen.length) return;
   const seite = document.body.dataset.seite;
+  const zonenNachSchritt = {};
+  zonen.forEach(z => { if (z.dataset.schritt) zonenNachSchritt[z.dataset.schritt] = z; });
 
-  /* Editor-Overlay einmalig einhängen */
+  /* ---------- IndexedDB ---------- */
+  const dbBereit = new Promise((res, rej) => {
+    const r = indexedDB.open("hefter", 1);
+    r.onupgradeneeded = () => {
+      const store = r.result.createObjectStore("fotos", { keyPath: "id" });
+      store.createIndex("seite", "seite");
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+  const dbAblegen = rec => dbBereit.then(db => new Promise((res, rej) => {
+    const t = db.transaction("fotos", "readwrite");
+    t.objectStore("fotos").put(rec);
+    t.oncomplete = res; t.onerror = () => rej(t.error);
+  }));
+  const dbLoeschen = id => dbBereit.then(db => new Promise((res, rej) => {
+    const t = db.transaction("fotos", "readwrite");
+    t.objectStore("fotos").delete(id);
+    t.oncomplete = res; t.onerror = () => rej(t.error);
+  }));
+  const dbAlle = () => dbBereit.then(db => new Promise((res, rej) => {
+    const anfrage = db.transaction("fotos").objectStore("fotos").index("seite").getAll(seite);
+    anfrage.onsuccess = () => res(anfrage.result || []);
+    anfrage.onerror = () => rej(anfrage.error);
+  }));
+
+  /* ---------- Editor-Overlay einmalig einhängen ---------- */
   document.body.insertAdjacentHTML("beforeend", `
     <div class="editor-back" id="editorBack">
       <div class="editor">
@@ -216,32 +262,56 @@ function fotosAktivieren() {
   const back = document.getElementById("editorBack"), stage = document.getElementById("stage");
   const stageImg = document.getElementById("stageImg"), zoom = document.getElementById("zoom");
   const datei = document.getElementById("fotoDatei");
-  let zielZone = null, nat = { w: 0, h: 0 }, cover = 1, scale = 1, pos = { x: 0, y: 0 }, frame = { w: 0, h: 0 };
+  let zielSchritt = null, nat = { w: 0, h: 0 }, cover = 1, scale = 1, pos = { x: 0, y: 0 }, frame = { w: 0, h: 0 };
 
-  const laden = () => { if (!seite) return {}; try { return JSON.parse(localStorage.getItem(KEY.fotos(seite)) || "{}"); } catch { return {}; } };
-  const speichern = daten => { if (!seite) return true; try { localStorage.setItem(KEY.fotos(seite), JSON.stringify(daten)); return true; } catch { return false; } };
-
-  function fotoEinhaengen(zone, zi, data) {
+  function fotoEinhaengen(zone, rec) {
     const fig = document.createElement("div"); fig.className = "foto";
-    const img = document.createElement("img"); img.src = data; img.alt = "Angehängtes Foto";
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(rec.blob); img.alt = "Angehängtes Foto";
     const rm = document.createElement("button"); rm.className = "rm"; rm.setAttribute("aria-label", "Foto entfernen");
     rm.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
     rm.addEventListener("click", () => {
+      dbLoeschen(rec.id).catch(() => {});
+      URL.revokeObjectURL(img.src);
       fig.remove();
-      const alle = laden();
-      alle[zi] = (alle[zi] || []).filter(d => d !== data);
-      speichern(alle);
     });
     fig.append(img, rm);
     zone.querySelector(".fotos").appendChild(fig);
   }
 
-  /* Gespeicherte Fotos wiederherstellen */
-  const alle = laden();
-  zonen.forEach((zone, zi) => {
-    (alle[zi] || []).forEach(data => fotoEinhaengen(zone, zi, data));
+  /* Altbestand aus localStorage (base64, Positions-Index) einmalig übernehmen */
+  async function altbestandUebernehmen() {
+    if (!seite) return;
+    let alt = null;
+    try { alt = JSON.parse(localStorage.getItem(KEY.fotos(seite)) || "null"); } catch {}
+    if (!alt) return;
+    for (const [index, liste] of Object.entries(alt)) {
+      const schritt = zonen[+index]?.dataset.schritt;
+      if (!schritt) continue;
+      for (const dataURL of liste) {
+        try {
+          const blob = await (await fetch(dataURL)).blob();
+          await dbAblegen({ id: neueId(), seite, schritt, zeit: Date.now(), blob });
+        } catch {}
+      }
+    }
+    try { localStorage.removeItem(KEY.fotos(seite)); } catch {}
+  }
+
+  /* Gespeicherte Fotos laden und einhängen */
+  (async () => {
+    await altbestandUebernehmen();
+    const alle = await dbAlle();
+    alle.sort((a, b) => a.zeit - b.zeit).forEach(rec => {
+      const zone = zonenNachSchritt[rec.schritt];
+      if (zone) fotoEinhaengen(zone, rec);
+    });
+  })().catch(() => {});
+
+  zonen.forEach(zone => {
     zone.querySelector(".addfoto").addEventListener("click", () => {
-      zielZone = zi; datei.value = ""; datei.click();
+      zielSchritt = zone.dataset.schritt;
+      datei.value = ""; datei.click();
     });
   });
 
@@ -286,15 +356,39 @@ function fotosAktivieren() {
     const OUT_W = 1280, ratio = OUT_W / frame.w;
     const cv = document.createElement("canvas"); cv.width = OUT_W; cv.height = 720;
     cv.getContext("2d").drawImage(stageImg, pos.x * ratio, pos.y * ratio, nat.w * scale * ratio, nat.h * scale * ratio);
-    const data = cv.toDataURL("image/jpeg", 0.85);
-    const alleAktuell = laden();
-    (alleAktuell[zielZone] = alleAktuell[zielZone] || []).push(data);
-    if (!speichern(alleAktuell)) {
-      alert("Speicher voll — das Foto wird angezeigt, aber nicht dauerhaft gesichert.");
-    }
-    fotoEinhaengen(zonen[zielZone], zielZone, data);
-    back.classList.remove("open");
+    cv.toBlob(async blob => {
+      const rec = { id: neueId(), seite, schritt: zielSchritt, zeit: Date.now(), blob };
+      try { await dbAblegen(rec); }
+      catch { alert("Foto konnte nicht dauerhaft gespeichert werden — es bleibt nur bis zum Neuladen sichtbar."); }
+      const zone = zonenNachSchritt[zielSchritt];
+      if (zone) fotoEinhaengen(zone, rec);
+      back.classList.remove("open");
+    }, "image/jpeg", 0.85);
   });
+}
+
+/* ============================================================
+   SCHRITT-STUFEN  (einmalig ausblenden, Wahl je Seite merken)
+   ============================================================ */
+function stufenfilterAktivieren() {
+  const filter = document.querySelector(".stufenfilter");
+  if (!filter) return;
+  const seite = document.body.dataset.seite;
+  const schluessel = "hefter:stufe:" + seite;
+
+  const setzen = (modus, speichern = true) => {
+    document.body.classList.toggle("nur-wiederkehrend", modus === "wiederkehrend");
+    filter.querySelectorAll("button").forEach(b =>
+      b.classList.toggle("aktiv", b.dataset.filter === modus));
+    if (speichern && seite) { try { localStorage.setItem(schluessel, modus); } catch {} }
+  };
+
+  filter.querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", () => setzen(b.dataset.filter)));
+
+  let start = "alle";
+  if (seite) { try { start = localStorage.getItem(schluessel) || "alle"; } catch {} }
+  setzen(start, false);
 }
 
 /* ============================================================
@@ -325,9 +419,46 @@ iconAnwenden(iconAktiv(), false);
 registerAufbauen();
 einstellungenAufbauen();
 kopierenAktivieren();
+stufenfilterAktivieren();
 checklisteAktivieren();
 fotosAktivieren();
 
+/* ============================================================
+   UPDATE-FLUSS
+   Die neue Service-Worker-Version wartet, statt sofort zu
+   übernehmen — kein Mischzustand aus alten und neuen Dateien.
+   Ein Hinweis bietet die Aktualisierung an; erst der Klick
+   aktiviert (skipWaiting) und lädt die Seite neu.
+   ============================================================ */
+function updateAnbieten(wartender) {
+  if (document.getElementById("updateHinweis")) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="update-hinweis" id="updateHinweis" role="status">
+      <span>Neue Version verfügbar</span>
+      <button class="iconbtn primary" id="updateJetzt">Aktualisieren</button>
+    </div>`);
+  document.getElementById("updateJetzt").addEventListener("click", () => {
+    wartender.postMessage("aktivieren");
+  });
+}
+
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register(BASIS + "sw.js").catch(() => {});
+  navigator.serviceWorker.register(BASIS + "sw.js").then(reg => {
+    if (reg.waiting) updateAnbieten(reg.waiting);
+    reg.addEventListener("updatefound", () => {
+      const neu = reg.installing;
+      if (!neu) return;
+      neu.addEventListener("statechange", () => {
+        /* "installed" + bestehender Controller = Update (kein Erstbesuch) */
+        if (neu.state === "installed" && navigator.serviceWorker.controller) updateAnbieten(neu);
+      });
+    });
+  }).catch(() => {});
+
+  let laedtNeu = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (laedtNeu) return;
+    laedtNeu = true;
+    location.reload();
+  });
 }
