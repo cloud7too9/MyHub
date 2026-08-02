@@ -15,12 +15,25 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { createHash } from "crypto";
 import { join, relative } from "path";
+import { fileURLToPath } from "url";
 
-const WURZEL = new URL(".", import.meta.url).pathname;
+/* fileURLToPath statt .pathname — sonst kommt unter Windows "/C:/…" heraus
+   und Leerzeichen oder Umlaute im Pfad bleiben prozent-kodiert. */
+const WURZEL = fileURLToPath(new URL(".", import.meta.url));
 
 /* ---------- 1. Register aus den Anleitungen ---------- */
 const anleitungsDateien = readdirSync(join(WURZEL, "anleitungen"))
   .filter(f => f.endsWith(".html")).sort();
+
+/* Checklisten-Fortschritt und Fotos werden über diese IDs zugeordnet.
+   Ein Duplikat legt zwei Häkchen bzw. zwei Fotozonen still zusammen —
+   im Browser praktisch nicht zu bemerken, deshalb hier hart abbrechen. */
+function eindeutigPruefen(html, datei, attribut) {
+  const werte = [...html.matchAll(new RegExp(`${attribut}="([^"]*)"`, "g"))].map(m => m[1]);
+  const doppelt = [...new Set(werte.filter((w, i) => werte.indexOf(w) !== i))];
+  if (doppelt.length)
+    throw new Error(`${datei}: ${attribut} mehrfach vergeben — ${doppelt.join(", ")}`);
+}
 
 const register = anleitungsDateien.map(f => {
   const h = readFileSync(join(WURZEL, "anleitungen", f), "utf8");
@@ -29,6 +42,8 @@ const register = anleitungsDateien.map(f => {
     if (!m) throw new Error(`${f}: ${was} nicht gefunden`);
     return m[1].trim();
   };
+  eindeutigPruefen(h, f, "data-check");
+  eindeutigPruefen(h, f, "data-schritt");
   return {
     id: f.replace(/\.html$/, ""),
     titel: greifen(/<h1>([\s\S]*?)<\/h1>/, "<h1>"),

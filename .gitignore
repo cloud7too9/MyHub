@@ -1,0 +1,15 @@
+# Abhängigkeiten (das Projekt kommt ohne aus — falls doch mal npm im Spiel ist)
+node_modules/
+
+# Archive gehören nicht ins Repo — der Stand steht in Git
+*.zip
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Editoren
+.vscode/
+.idea/
+*.swp
+*~

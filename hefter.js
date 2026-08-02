@@ -72,12 +72,18 @@ function themeSetzen(t, speichern = true) {
   if (speichern) { try { localStorage.setItem(KEY.theme, t); } catch {} }
   const meta = document.querySelector("meta[name=theme-color]");
   if (meta) meta.content = t === "hell" ? "#f4f6fa" : "#060709";
+  /* Knopf benennt den aktiven Zustand, nicht das Ziel — deckt sich mit
+     der aktiven Karte in den Einstellungen. Die Aktion steckt im
+     aria-label, weil dieses den sichtbaren Text überschreibt. */
   document.querySelectorAll("[data-themebtn]").forEach(btn => {
     const lbl = btn.querySelector(".lbl"), ico = btn.querySelector("svg");
-    if (lbl) lbl.textContent = t === "hell" ? "Dunkel" : "Hell";
+    if (lbl) lbl.textContent = t === "hell" ? "Hell" : "Dunkel";
     if (ico) ico.innerHTML = t === "hell"
-      ? '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'
-      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>';
+      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>'
+      : '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+    btn.setAttribute("aria-label", t === "hell"
+      ? "Design wechseln — aktuell Hell"
+      : "Design wechseln — aktuell Dunkel");
   });
   document.querySelectorAll(".themewahl button").forEach(b =>
     b.classList.toggle("aktiv", b.dataset.t === t));

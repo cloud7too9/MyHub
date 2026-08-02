@@ -1,6 +1,6 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-f6ac525f1c";
+const VERSION = "hefter-93ba7a5725";
 const SHELL = [
   "anleitungen/docker-einrichtung.html",
   "anleitungen/hetzner-deploy.html",
