@@ -1,9 +1,10 @@
 /* HEFTER Service Worker — bei jeder Inhaltsänderung VERSION hochzählen */
-const VERSION = "hefter-v1";
+const VERSION = "hefter-v2";
 const SHELL = [
   "index.html",
   "einstellungen.html",
   "anleitungen/hetzner-deploy.html",
+  "anleitungen/server-ersteinrichtung.html",
   "style.css",
   "hefter.js",
   "manifest.webmanifest",

@@ -13,6 +13,14 @@ const REGISTER = [
     kategorie: "Deployment",
     datei: "anleitungen/hetzner-deploy.html",
     stichworte: "ssh github actions hetzner deploy key secrets workflow ci cd"
+  },
+  {
+    id: "server-ersteinrichtung",
+    titel: "Server-Erst-Einrichtung & Absicherung",
+    untertitel: "Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban",
+    kategorie: "Server",
+    datei: "anleitungen/server-ersteinrichtung.html",
+    stichworte: "ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port"
   }
 ];
 
