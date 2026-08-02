@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<title>GitHub-Actions-Deploy auf Hetzner · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="hetzner-deploy" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Hell</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Deployment</span>
+    <h1>Automatisches Deploy auf Hetzner per GitHub Actions</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 20 Min</b></span>
+      <span>Aktualisiert <b>02.08.2026</b></span>
+      <span>Server <span class="mono">Hetzner CX</span></span>
+    </div>
+    <p class="lead">Schritt-für-Schritt, wie ein Push auf <code>main</code> automatisch auf deinen Server ausrollt — sicher konfiguriert mit einem separaten Deploy-Key.</p>
+  </header>
+
+  <main>
+
+    <!-- Schritt 1 -->
+    <section class="step">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <h2>SSH-Schlüsselpaar generieren</h2>
+        <p>Erstelle einen Schlüssel, der <b>ausschließlich</b> für dieses Deployment gedacht ist. Setze <b>keine Passphrase</b> — GitHub kann den Vorgang sonst nicht automatisieren.</p>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Sicherheit</div><div class="txt">Nie deinen privaten Alltags-Key wiederverwenden. Ein eigener Key pro Zweck lässt sich jederzeit einzeln zurückziehen.</div></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Ed25519-Key ohne Passphrase, eigener Dateiname</span>
+ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <span class="tok-s">"github-deploy"</span> <span class="tok-k">-f</span> ~/.ssh/github_deploy_key <span class="tok-k">-N</span> <span class="tok-s">""</span></pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Zwei Dateien entstehen: <code>github_deploy_key</code> (privat → kommt zu GitHub) und <code>github_deploy_key.pub</code> (öffentlich → kommt auf den Server).</div></div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <h2>Öffentlichen Schlüssel auf dem Hetzner-Server hinterlegen</h2>
+        <p>Zeige den öffentlichen Schlüssel an, kopiere ihn und trage ihn auf dem Server in die <code>authorized_keys</code> deines Deploy-Benutzers ein.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Öffentlichen Schlüssel anzeigen und kopieren</span>
+cat ~/.ssh/github_deploy_key.pub</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server (per SSH)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Inhalt der .pub-Datei ans Ende anhängen</span>
+echo <span class="tok-s">"&lt;dein-öffentlicher-Schlüssel&gt;"</span> &gt;&gt; ~/.ssh/authorized_keys</pre>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <h2>GitHub Secrets konfigurieren</h2>
+        <p>Im Repository unter <b>Settings → Secrets and variables → Actions</b> auf <b>New repository secret</b>. Lege drei Secrets an:</p>
+        <ul>
+          <li><code>SERVER_HOST</code> — IP-Adresse deines Hetzner-Servers</li>
+          <li><code>SERVER_USERNAME</code> — Benutzername auf dem Server (z. B. <code>deploy</code>)</li>
+          <li><code>SSH_PRIVATE_KEY</code> — kompletter Inhalt von <code>github_deploy_key</code>, inkl. der <code>BEGIN</code>/<code>END</code>-Zeilen</li>
+        </ul>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Privaten Schlüssel vollständig anzeigen (für SSH_PRIVATE_KEY)</span>
+cat ~/.ssh/github_deploy_key</pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Privat halten</div><div class="txt">Der private Schlüssel gehört <b>nur</b> in das GitHub-Secret — niemals ins Repo committen oder weitergeben.</div></div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 4 -->
+    <section class="step">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <h2>GitHub-Actions-Workflow erstellen</h2>
+        <p>Lege im Repo die Datei <code>.github/workflows/deploy.yml</code> an. Bei jedem Push auf <code>main</code> startet die Action und rollt aus.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">.github/workflows/deploy.yml</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">name</span>: Deploy
+<span class="tok-k">on</span>:
+  <span class="tok-k">push</span>:
+    <span class="tok-k">branches</span>: [ main ]
+<span class="tok-k">jobs</span>:
+  <span class="tok-k">deploy</span>:
+    <span class="tok-k">runs-on</span>: ubuntu-latest
+    <span class="tok-k">steps</span>:
+      - <span class="tok-k">name</span>: Per SSH ausrollen
+        <span class="tok-k">uses</span>: appleboy/ssh-action@v1.0.3
+        <span class="tok-k">with</span>:
+          <span class="tok-k">host</span>: ${{ secrets.SERVER_HOST }}
+          <span class="tok-k">username</span>: ${{ secrets.SERVER_USERNAME }}
+          <span class="tok-k">key</span>: ${{ secrets.SSH_PRIVATE_KEY }}
+          <span class="tok-k">script</span>: |
+            cd /var/www/mein-projekt
+            git pull origin main</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Vorab-Check auf dem Server</div><div class="txt">Damit <code>git pull</code> funktioniert, muss das Repo einmalig manuell in den Zielordner (z. B. <code>/var/www/mein-projekt</code>) geklont sein.</div></div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 5</span>
+    </header>
+    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Deploy-Key ohne Passphrase erzeugt</span></div>
+    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Öffentlicher Schlüssel in <code>authorized_keys</code></span></div>
+    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Drei GitHub-Secrets angelegt</span></div>
+    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>deploy.yml</code> im <code>main</code>-Branch</span></div>
+    <div class="check"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Repo einmalig auf den Server geklont</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

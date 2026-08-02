@@ -1,0 +1,42 @@
+/* HEFTER Service Worker — bei jeder Inhaltsänderung VERSION hochzählen */
+const VERSION = "hefter-v1";
+const SHELL = [
+  "index.html",
+  "einstellungen.html",
+  "anleitungen/hetzner-deploy.html",
+  "style.css",
+  "hefter.js",
+  "manifest.webmanifest",
+  "icons/01-ringe.svg","icons/02-register.svg","icons/03-rail.svg",
+  "icons/04-haken.svg","icons/05-lochung.svg","icons/06-klammer.svg",
+  "icons/png/01-ringe-192.png","icons/png/01-ringe-512.png","icons/png/01-ringe-512-maskable.png",
+  "icons/png/02-register-192.png","icons/png/02-register-512.png","icons/png/02-register-512-maskable.png",
+  "icons/png/03-rail-192.png","icons/png/03-rail-512.png","icons/png/03-rail-512-maskable.png",
+  "icons/png/04-haken-192.png","icons/png/04-haken-512.png","icons/png/04-haken-512-maskable.png",
+  "icons/png/05-lochung-192.png","icons/png/05-lochung-512.png","icons/png/05-lochung-512-maskable.png",
+  "icons/png/06-klammer-192.png","icons/png/06-klammer-512.png","icons/png/06-klammer-512-maskable.png"
+];
+
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+/* Stale-while-revalidate: sofort aus dem Cache, im Hintergrund aktualisieren */
+self.addEventListener("fetch", e => {
+  if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      const netz = fetch(e.request).then(antwort => {
+        if (antwort.ok) caches.open(VERSION).then(c => c.put(e.request, antwort.clone()));
+        return antwort;
+      }).catch(() => cached);
+      return cached || netz;
+    })
+  );
+});
