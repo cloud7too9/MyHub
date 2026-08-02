@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="hefter-untertitel" content="Engine, Compose, Dockerfile, Deploy-Anbindung">
+<meta name="hefter-stichworte" content="docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx">
+<title>Docker einrichten &amp; pro Repo integrieren · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="docker-einrichtung" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Hell</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Server</span>
+    <h1>Docker einrichten &amp; pro Repository integrieren</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 40 Min</b></span>
+      <span>Aktualisiert <b>02.08.2026</b></span>
+      <span><span class="mono">Ubuntu 24.04 LTS</span> · Docker Engine</span>
+    </div>
+    <p class="lead">Einmalig Docker auf dem Server aufsetzen — danach jedes Projekt nach demselben Muster containerisieren und über die bestehende GitHub-Action ausrollen.</p>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur pro Projekt</button>
+    </div>
+    <p class="stufen-hinweis">Die einmaligen Server-Schritte sind ausgeblendet — sichtbar bleibt der Weg, den du für jedes neue Projekt gehst.</p>
+  </header>
+
+  <main>
+
+    <!-- ============ EINMALIG: Server ============ -->
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Alte Pakete entfernen und Docker-Repository einrichten</h2>
+        <p>Das <code>docker.io</code>-Paket aus den Ubuntu-Quellen ist meist veraltet und bringt kein Compose-Plugin mit. Deshalb direkt von Docker.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Altlasten entfernen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">for</span> pkg <span class="tok-k">in</span> docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; <span class="tok-k">do</span>
+  sudo apt remove -y $pkg 2&gt;/dev/null
+<span class="tok-k">done</span></pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Schlüssel und Quelle eintragen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>sudo apt update
+sudo apt install -y ca-certificates curl
+
+<span class="tok-c"># GPG-Schlüssel ablegen</span>
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+<span class="tok-c"># Paketquelle im aktuellen .sources-Format</span>
+sudo tee /etc/apt/sources.list.d/docker.sources &gt; /dev/null &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release <span class="tok-k">&amp;&amp;</span> echo <span class="tok-s">"${UBUNTU_CODENAME:-$VERSION_CODENAME}"</span>)
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+sudo apt update</pre>
+        </div>
+        <div class="fotozone" data-schritt="docker-repo">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Docker Engine und Compose installieren</h2>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>sudo apt install -y docker-ce docker-ce-cli containerd.io \
+  docker-buildx-plugin docker-compose-plugin
+
+<span class="tok-c"># Läuft alles?</span>
+sudo systemctl enable --now docker
+sudo docker run --rm hello-world
+docker compose version</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Compose V2</div><div class="txt">Der Befehl heißt <code>docker compose</code> (mit Leerzeichen). Das alte <code>docker-compose</code> mit Bindestrich ist die abgelöste V1 — Anleitungen im Netz mischen das gern.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="engine-install">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Benutzer in die docker-Gruppe aufnehmen</h2>
+        <p>Damit du Docker ohne <code>sudo</code> bedienen kannst — und damit die GitHub-Action als dein Deploy-Benutzer arbeiten kann.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>sudo usermod -aG docker $USER
+
+<span class="tok-c"># Neu anmelden, damit die Gruppe greift — dann testen</span>
+docker ps</pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Das ist faktisch root</div><div class="txt">Wer in der Gruppe <code>docker</code> ist, kann das Dateisystem des Hosts in einen Container einhängen und damit alles tun. Nimm dort <b>nur</b> Benutzer auf, denen du volle Rechte geben würdest.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="docker-gruppe">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 4 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Die UFW-Falle verstehen</h2>
+        <p>Wichtigster Punkt dieser Anleitung: Docker schreibt eigene iptables-Regeln und hängt sich <b>vor</b> UFW. Ein veröffentlichter Port ist damit offen im Internet — auch wenn <code>ufw status</code> das Gegenteil suggeriert.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Regel für alle Projekte</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Offen im Netz, UFW greift NICHT:</span>
+<span class="tok-c">#   ports: - "8000:8000"</span>
+
+<span class="tok-c"># Nur lokal erreichbar, davor ein Reverse-Proxy:</span>
+<span class="tok-c">#   ports: - "127.0.0.1:8000:8000"</span></pre>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Muster</div><div class="txt">Container binden immer an <code>127.0.0.1</code>. Nach außen zeigt nur ein Reverse-Proxy (Caddy, nginx, Traefik) auf 80/443 — und genau die beiden Ports gibst du in UFW frei.</div></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — prüfen, was wirklich lauscht</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Alles mit 0.0.0.0 ist von außen erreichbar</span>
+sudo ss -tulnp | grep docker</pre>
+        </div>
+        <div class="fotozone" data-schritt="ufw-falle">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WIEDERKEHREND: pro Projekt ============ -->
+
+    <!-- Schritt 5 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Dateien im Repository anlegen</h2>
+        <p>Vier Dateien reichen. Sie liegen im Wurzelverzeichnis des Repos und kommen mit ins Git — bis auf die <code>.env</code>.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Aufbau</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>mein-projekt/
+├── Dockerfile          <span class="tok-c"># wie das Abbild gebaut wird</span>
+├── .dockerignore       <span class="tok-c"># was NICHT ins Abbild darf</span>
+├── compose.yaml        <span class="tok-c"># wie der Container läuft</span>
+├── .env                <span class="tok-c"># Geheimnisse — NICHT committen</span>
+└── .env.beispiel       <span class="tok-c"># Vorlage — kommt ins Git</span></pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Zuerst absichern</div><div class="txt"><code>.env</code> sofort in die <code>.gitignore</code> eintragen — bevor der erste Commit läuft. Einmal gepusht, bleibt ein Geheimnis für immer in der Git-Historie.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="repo-dateien">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 6 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">6</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Dockerfile schreiben</h2>
+        <p>Beispiel für eine Python-/FastAPI-Anwendung. Die Reihenfolge der Zeilen ist kein Zufall — sie entscheidet über die Bauzeit.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Dockerfile</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">FROM</span> python:3.12-slim
+
+<span class="tok-k">ENV</span> PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+<span class="tok-k">WORKDIR</span> /app
+
+<span class="tok-c"># Erst die Abhängigkeiten — diese Schicht bleibt im Cache,</span>
+<span class="tok-c"># solange requirements.txt sich nicht ändert</span>
+<span class="tok-k">COPY</span> requirements.txt .
+<span class="tok-k">RUN</span> pip install --no-cache-dir -r requirements.txt
+
+<span class="tok-c"># Dann erst der Code — ändert sich bei jedem Commit</span>
+<span class="tok-k">COPY</span> . .
+
+<span class="tok-c"># Nicht als root laufen lassen</span>
+<span class="tok-k">RUN</span> adduser --system --group --no-create-home app \
+ <span class="tok-k">&amp;&amp;</span> chown -R app:app /app
+<span class="tok-k">USER</span> app
+
+<span class="tok-k">EXPOSE</span> 8000
+<span class="tok-k">CMD</span> [<span class="tok-s">"uvicorn"</span>, <span class="tok-s">"main:app"</span>, <span class="tok-s">"--host"</span>, <span class="tok-s">"0.0.0.0"</span>, <span class="tok-s">"--port"</span>, <span class="tok-s">"8000"</span>]</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Warum die Reihenfolge</div><div class="txt">Docker baut in Schichten und verwirft ab der ersten Änderung alles Folgende. Kämen <code>COPY . .</code> zuerst, würde jeder Commit die Installation aller Pakete neu auslösen.</div></div>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Innen 0.0.0.0, außen 127.0.0.1</div><div class="txt">Im Container muss die Anwendung auf <code>0.0.0.0</code> lauschen, sonst erreicht Docker sie nicht. Die Begrenzung passiert erst beim Veröffentlichen des Ports in Schritt 8.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="dockerfile">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 7 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">7</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>.dockerignore anlegen</h2>
+        <p>Hält das Abbild klein und verhindert, dass Geheimnisse mit hineinwandern.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">.dockerignore</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>.git
+.gitignore
+.env
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+*.md
+Dockerfile
+compose.yaml</pre>
+        </div>
+        <div class="fotozone" data-schritt="dockerignore">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 8 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">8</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>compose.yaml schreiben</h2>
+        <p>Hier steht, wie der Container betrieben wird: Neustartverhalten, Port-Bindung, Umgebungsvariablen, dauerhafte Daten.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">compose.yaml</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">services</span>:
+  <span class="tok-k">api</span>:
+    <span class="tok-k">build</span>: .
+    <span class="tok-k">image</span>: mein-projekt:latest
+    <span class="tok-k">container_name</span>: mein-projekt-api
+    <span class="tok-c"># Startet nach Reboot und nach Absturz wieder</span>
+    <span class="tok-k">restart</span>: unless-stopped
+    <span class="tok-k">env_file</span>: .env
+    <span class="tok-k">ports</span>:
+      <span class="tok-c"># Nur lokal — siehe Schritt 4</span>
+      - <span class="tok-s">"127.0.0.1:8000:8000"</span>
+    <span class="tok-k">volumes</span>:
+      - daten:/app/daten
+    <span class="tok-k">healthcheck</span>:
+      <span class="tok-k">test</span>: [<span class="tok-s">"CMD-SHELL"</span>, <span class="tok-s">"python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")'"</span>]
+      <span class="tok-k">interval</span>: 30s
+      <span class="tok-k">timeout</span>: 5s
+      <span class="tok-k">retries</span>: 3
+    <span class="tok-k">logging</span>:
+      <span class="tok-k">driver</span>: json-file
+      <span class="tok-k">options</span>:
+        <span class="tok-k">max-size</span>: <span class="tok-s">"10m"</span>
+        <span class="tok-k">max-file</span>: <span class="tok-s">"3"</span>
+
+<span class="tok-k">volumes</span>:
+  <span class="tok-k">daten</span>:</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Zwei Details</div><div class="txt">Die Zeile <code>version:</code> ganz oben ist überholt und wird nur noch ignoriert. Und ohne <code>logging</code>-Begrenzung wachsen Logdateien unbemerkt, bis die Platte voll ist.</div></div>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Dauerhafte Daten</div><div class="txt">Alles, was nicht in einem <code>volume</code> liegt, ist beim nächsten Neubau weg. Datenbanken, Uploads und erzeugte Dateien gehören dort hinein.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="compose">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 9 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">9</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Lokal bauen und testen</h2>
+        <p>Erst lokal grün, dann auf den Server. Spart viel Fehlersuche über SSH.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Bauen und im Vordergrund starten — Logs direkt sichtbar</span>
+docker compose up --build
+
+<span class="tok-c"># In einem zweiten Fenster: Zustand und Zugriff</span>
+docker compose ps
+curl http://localhost:8000/health
+
+<span class="tok-c"># In den Container hineinschauen</span>
+docker compose exec api sh
+
+<span class="tok-c"># Beenden</span>
+docker compose down</pre>
+        </div>
+        <div class="fotozone" data-schritt="lokal-test">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 10 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">10</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Erstmalig auf dem Server ausrollen</h2>
+        <p>Einmal von Hand — danach übernimmt die Action. Das ist derselbe Vorab-Klon, den auch die Deploy-Anleitung verlangt.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>cd /var/www
+git clone git@github.com:benutzer/mein-projekt.git
+cd mein-projekt
+
+<span class="tok-c"># .env aus der Vorlage anlegen und ausfüllen</span>
+cp .env.beispiel .env
+nano .env
+
+<span class="tok-c"># Bauen und im Hintergrund starten</span>
+docker compose up -d --build
+docker compose ps</pre>
+        </div>
+        <div class="fotozone" data-schritt="erstes-deploy">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 11 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">11</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>GitHub-Action auf Docker umstellen</h2>
+        <p>In der bestehenden <code>deploy.yml</code> wird nur der <code>script</code>-Block erweitert — der Rest bleibt, wie er ist.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">.github/workflows/deploy.yml (Ausschnitt)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>          <span class="tok-k">script</span>: |
+            cd /var/www/mein-projekt
+            git pull origin main
+            docker compose up -d --build
+            <span class="tok-c"># Alte, unbenutzte Abbilder aufräumen</span>
+            docker image prune -f</pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Push auf <code>main</code> → Action baut das Abbild auf dem Server neu und tauscht den Container. <code>--build</code> ist entscheidend, sonst läuft der alte Stand weiter.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Verwandte Anleitung</div><div class="txt">Deploy-Key, Secrets und Grundgerüst der Action stehen in <a href="hetzner-deploy.html">Automatisches Deploy auf Hetzner per GitHub Actions</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="action-docker">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 12 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">12</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Betrieb und Wartung</h2>
+        <p>Die Handvoll Befehle, die du danach wirklich brauchst.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Alltag</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>docker compose ps                      <span class="tok-c"># Zustand</span>
+docker compose logs -f --tail 100 api  <span class="tok-c"># Logs mitlesen</span>
+docker compose restart api             <span class="tok-c"># Neustart</span>
+docker compose down                    <span class="tok-c"># Stoppen (Volumes bleiben)</span>
+docker system df                       <span class="tok-c"># Platzverbrauch</span></pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Beim Aufräumen aufpassen</div><div class="txt">Zum Platzschaffen <code>docker image prune -af</code> nutzen. Der oft empfohlene Zusatz <code>--volumes</code> löscht auch deine Daten-Volumes — also Datenbank und Uploads.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="betrieb">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 8</span>
+    </header>
+    <div class="check" data-check="engine"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Docker Engine und Compose-Plugin installiert</span></div>
+    <div class="check" data-check="gruppe"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Benutzer in der Gruppe <code>docker</code>, <code>docker ps</code> läuft</span></div>
+    <div class="check" data-check="ports-lokal"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Ports an <code>127.0.0.1</code> gebunden, per <code>ss</code> geprüft</span></div>
+    <div class="check" data-check="env-geschuetzt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>.env</code> in der <code>.gitignore</code>, Vorlage im Repo</span></div>
+    <div class="check" data-check="dateien"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Dockerfile, .dockerignore und compose.yaml angelegt</span></div>
+    <div class="check" data-check="lokal-getestet"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Lokal gebaut und getestet</span></div>
+    <div class="check" data-check="server-erstdeploy"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Repo auf dem Server geklont, <code>.env</code> ausgefüllt</span></div>
+    <div class="check" data-check="action-build"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Action rollt per <code>compose up -d --build</code> aus</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>
