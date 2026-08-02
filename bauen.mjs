@@ -35,12 +35,21 @@ function eindeutigPruefen(html, datei, attribut) {
     throw new Error(`${datei}: ${attribut} mehrfach vergeben — ${doppelt.join(", ")}`);
 }
 
+/* HTML-Entities aus den Quelldateien auflösen — ins Register gehört
+   Klartext, sonst landet "&amp;" im Suchindex und die Suche nach "&"
+   geht leer aus. Escaped wird erst wieder beim Rendern (hefter.js).
+   &amp; zuletzt, damit doppelt kodierte Zeichen korrekt eine Stufe heben. */
+const entitaetenAufloesen = s => s
+  .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+  .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+  .replace(/&amp;/g, "&");
+
 const register = anleitungsDateien.map(f => {
   const h = readFileSync(join(WURZEL, "anleitungen", f), "utf8");
   const greifen = (re, was) => {
     const m = h.match(re);
     if (!m) throw new Error(`${f}: ${was} nicht gefunden`);
-    return m[1].trim();
+    return entitaetenAufloesen(m[1].trim());
   };
   eindeutigPruefen(h, f, "data-check");
   eindeutigPruefen(h, f, "data-schritt");
@@ -65,7 +74,7 @@ writeFileSync(join(WURZEL, "hefter.js"), js);
 console.log(`Register: ${register.length} Anleitungen aus /anleitungen übernommen`);
 
 /* ---------- 2. Precache-Liste per Scan ---------- */
-const ENDUNGEN = /\.(html|css|js|webmanifest|svg|png)$/;
+const ENDUNGEN = /\.(html|css|js|webmanifest|svg|png|woff2)$/;
 const AUSSCHLUSS = new Set(["sw.js", "bauen.mjs"]);
 
 function sammeln(ordner) {
@@ -120,7 +129,9 @@ self.addEventListener("fetch", e => {
       const netz = fetch(e.request).then(antwort => {
         if (antwort.ok) caches.open(VERSION).then(c => c.put(e.request, antwort.clone()));
         return antwort;
-      }).catch(() => cached);
+      }).catch(() => cached || new Response("Offline — Seite nicht im Cache.", {
+        status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" }
+      }));
       return cached || netz;
     })
   );

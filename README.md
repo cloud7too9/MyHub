@@ -20,6 +20,7 @@ hefter/
 ├── sw.js                       GENERIERT — nie von Hand bearbeiten
 ├── manifest.webmanifest        Standard-Manifest (Icon 01)
 ├── manifest-XX-….webmanifest   je Icon ein statisches Manifest
+├── schriften/                  DM Sans + JetBrains Mono (woff2, selbst gehostet)
 └── icons/                      6 SVG-Entwürfe + PNGs (192/512/maskable)
 ```
 

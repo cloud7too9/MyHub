@@ -1,6 +1,6 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-93ba7a5725";
+const VERSION = "hefter-4d5acdf143";
 const SHELL = [
   "anleitungen/docker-einrichtung.html",
   "anleitungen/hetzner-deploy.html",
@@ -39,6 +39,10 @@ const SHELL = [
   "manifest-05-lochung.webmanifest",
   "manifest-06-klammer.webmanifest",
   "manifest.webmanifest",
+  "schriften/dm-sans-latin-ext.woff2",
+  "schriften/dm-sans-latin.woff2",
+  "schriften/jetbrains-mono-latin-ext.woff2",
+  "schriften/jetbrains-mono-latin.woff2",
   "style.css"
 ];
 
@@ -68,7 +72,9 @@ self.addEventListener("fetch", e => {
       const netz = fetch(e.request).then(antwort => {
         if (antwort.ok) caches.open(VERSION).then(c => c.put(e.request, antwort.clone()));
         return antwort;
-      }).catch(() => cached);
+      }).catch(() => cached || new Response("Offline — Seite nicht im Cache.", {
+        status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" }
+      }));
       return cached || netz;
     })
   );
