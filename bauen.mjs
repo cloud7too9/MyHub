@@ -14,7 +14,7 @@
    ============================================================ */
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { createHash } from "crypto";
-import { join, relative } from "path";
+import { join, relative, sep } from "path";
 import { fileURLToPath } from "url";
 
 /* fileURLToPath statt .pathname — sonst kommt unter Windows "/C:/…" heraus
@@ -84,7 +84,11 @@ function sammeln(ordner) {
     const pfad = join(ordner, eintrag);
     if (statSync(pfad).isDirectory()) liste.push(...sammeln(pfad));
     else {
-      const rel = relative(WURZEL, pfad);
+      /* Die Liste landet als URL im Service Worker — dort gilt immer "/".
+         Unter Windows liefert relative() aber "\", und cache.addAll() bricht
+         mit einem einzigen 404 komplett ab: der SW installiert sich dann gar
+         nicht. Deshalb hier auf Schrägstriche normalisieren. */
+      const rel = relative(WURZEL, pfad).split(sep).join("/");
       if (ENDUNGEN.test(rel) && !AUSSCHLUSS.has(rel)) liste.push(rel);
     }
   }

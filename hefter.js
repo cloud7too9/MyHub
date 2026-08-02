@@ -34,6 +34,14 @@ const REGISTER = [
     "kategorie": "Server",
     "datei": "anleitungen/server-ersteinrichtung.html",
     "stichworte": "ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port"
+  },
+  {
+    "id": "vscode-remote-ssh",
+    "titel": "VS Code mit dem Hetzner-Server verbinden",
+    "untertitel": "Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche",
+    "kategorie": "Werkzeuge",
+    "datei": "anleitungen/vscode-remote-ssh.html",
+    "stichworte": "vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban"
   }
 ];
 /* REGISTER-ENDE */
