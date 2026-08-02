@@ -15,20 +15,44 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { createHash } from "crypto";
 import { join, relative } from "path";
+import { fileURLToPath } from "url";
 
-const WURZEL = new URL(".", import.meta.url).pathname;
+/* fileURLToPath statt .pathname — sonst kommt unter Windows "/C:/…" heraus
+   und Leerzeichen oder Umlaute im Pfad bleiben prozent-kodiert. */
+const WURZEL = fileURLToPath(new URL(".", import.meta.url));
 
 /* ---------- 1. Register aus den Anleitungen ---------- */
 const anleitungsDateien = readdirSync(join(WURZEL, "anleitungen"))
   .filter(f => f.endsWith(".html")).sort();
+
+/* Checklisten-Fortschritt und Fotos werden über diese IDs zugeordnet.
+   Ein Duplikat legt zwei Häkchen bzw. zwei Fotozonen still zusammen —
+   im Browser praktisch nicht zu bemerken, deshalb hier hart abbrechen. */
+function eindeutigPruefen(html, datei, attribut) {
+  const werte = [...html.matchAll(new RegExp(`${attribut}="([^"]*)"`, "g"))].map(m => m[1]);
+  const doppelt = [...new Set(werte.filter((w, i) => werte.indexOf(w) !== i))];
+  if (doppelt.length)
+    throw new Error(`${datei}: ${attribut} mehrfach vergeben — ${doppelt.join(", ")}`);
+}
+
+/* HTML-Entities aus den Quelldateien auflösen — ins Register gehört
+   Klartext, sonst landet "&amp;" im Suchindex und die Suche nach "&"
+   geht leer aus. Escaped wird erst wieder beim Rendern (hefter.js).
+   &amp; zuletzt, damit doppelt kodierte Zeichen korrekt eine Stufe heben. */
+const entitaetenAufloesen = s => s
+  .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+  .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+  .replace(/&amp;/g, "&");
 
 const register = anleitungsDateien.map(f => {
   const h = readFileSync(join(WURZEL, "anleitungen", f), "utf8");
   const greifen = (re, was) => {
     const m = h.match(re);
     if (!m) throw new Error(`${f}: ${was} nicht gefunden`);
-    return m[1].trim();
+    return entitaetenAufloesen(m[1].trim());
   };
+  eindeutigPruefen(h, f, "data-check");
+  eindeutigPruefen(h, f, "data-schritt");
   return {
     id: f.replace(/\.html$/, ""),
     titel: greifen(/<h1>([\s\S]*?)<\/h1>/, "<h1>"),
@@ -50,7 +74,7 @@ writeFileSync(join(WURZEL, "hefter.js"), js);
 console.log(`Register: ${register.length} Anleitungen aus /anleitungen übernommen`);
 
 /* ---------- 2. Precache-Liste per Scan ---------- */
-const ENDUNGEN = /\.(html|css|js|webmanifest|svg|png)$/;
+const ENDUNGEN = /\.(html|css|js|webmanifest|svg|png|woff2)$/;
 const AUSSCHLUSS = new Set(["sw.js", "bauen.mjs"]);
 
 function sammeln(ordner) {
@@ -105,7 +129,9 @@ self.addEventListener("fetch", e => {
       const netz = fetch(e.request).then(antwort => {
         if (antwort.ok) caches.open(VERSION).then(c => c.put(e.request, antwort.clone()));
         return antwort;
-      }).catch(() => cached);
+      }).catch(() => cached || new Response("Offline — Seite nicht im Cache.", {
+        status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" }
+      }));
       return cached || netz;
     })
   );

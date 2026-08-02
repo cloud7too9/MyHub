@@ -21,7 +21,7 @@ const REGISTER = [
   },
   {
     "id": "docker-einrichtung",
-    "titel": "Docker einrichten &amp; pro Repository integrieren",
+    "titel": "Docker einrichten & pro Repository integrieren",
     "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
     "kategorie": "Server",
     "datei": "anleitungen/docker-einrichtung.html",
@@ -29,7 +29,7 @@ const REGISTER = [
   },
   {
     "id": "server-ersteinrichtung",
-    "titel": "Server-Erst-Einrichtung &amp; Absicherung",
+    "titel": "Server-Erst-Einrichtung & Absicherung",
     "untertitel": "Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban",
     "kategorie": "Server",
     "datei": "anleitungen/server-ersteinrichtung.html",
@@ -72,15 +72,23 @@ function themeSetzen(t, speichern = true) {
   if (speichern) { try { localStorage.setItem(KEY.theme, t); } catch {} }
   const meta = document.querySelector("meta[name=theme-color]");
   if (meta) meta.content = t === "hell" ? "#f4f6fa" : "#060709";
+  /* Knopf benennt den aktiven Zustand, nicht das Ziel — deckt sich mit
+     der aktiven Karte in den Einstellungen. Die Aktion steckt im
+     aria-label, weil dieses den sichtbaren Text überschreibt. */
   document.querySelectorAll("[data-themebtn]").forEach(btn => {
     const lbl = btn.querySelector(".lbl"), ico = btn.querySelector("svg");
-    if (lbl) lbl.textContent = t === "hell" ? "Dunkel" : "Hell";
+    if (lbl) lbl.textContent = t === "hell" ? "Hell" : "Dunkel";
     if (ico) ico.innerHTML = t === "hell"
-      ? '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'
-      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>';
+      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>'
+      : '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+    btn.setAttribute("aria-label", t === "hell"
+      ? "Design wechseln — aktuell Hell"
+      : "Design wechseln — aktuell Dunkel");
   });
-  document.querySelectorAll(".themewahl button").forEach(b =>
-    b.classList.toggle("aktiv", b.dataset.t === t));
+  document.querySelectorAll(".themewahl button").forEach(b => {
+    b.classList.toggle("aktiv", b.dataset.t === t);
+    b.setAttribute("aria-pressed", b.dataset.t === t);
+  });
 }
 function themeLaden() {
   let t = "dunkel";
@@ -90,6 +98,8 @@ function themeLaden() {
 document.querySelectorAll("[data-themebtn]").forEach(btn =>
   btn.addEventListener("click", () =>
     themeSetzen(document.documentElement.dataset.theme === "hell" ? "dunkel" : "hell")));
+document.querySelectorAll(".themewahl button").forEach(b =>
+  b.addEventListener("click", () => themeSetzen(b.dataset.t)));
 
 /* ============================================================
    APP-ICON
@@ -112,8 +122,10 @@ function iconAnwenden(id, speichern = true) {
   document.querySelectorAll("[data-appicon]").forEach(img => {
     img.src = BASIS + "icons/" + id + ".svg";
   });
-  document.querySelectorAll(".iconkarte").forEach(k =>
-    k.classList.toggle("aktiv", k.dataset.icon === id));
+  document.querySelectorAll(".iconkarte").forEach(k => {
+    k.classList.toggle("aktiv", k.dataset.icon === id);
+    k.setAttribute("aria-pressed", k.dataset.icon === id);
+  });
 }
 
 /* ============================================================
@@ -122,13 +134,16 @@ function iconAnwenden(id, speichern = true) {
 function registerAufbauen() {
   const ziel = document.getElementById("registerListe");
   if (!ziel) return;
+  /* Das REGISTER enthält Klartext (Build löst Entities auf) — beim
+     Rendern per innerHTML muss deshalb hier escaped werden. */
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const kategorien = [...new Set(REGISTER.map(e => e.kategorie))];
   ziel.innerHTML = kategorien.map(kat => `
-    <section class="kategorie" data-kat="${kat}">
-      <h2>${kat}</h2>
+    <section class="kategorie" data-kat="${esc(kat)}">
+      <h2>${esc(kat)}</h2>
       ${REGISTER.filter(e => e.kategorie === kat).map(e => `
-        <a class="eintrag" href="${e.datei}" data-such="${(e.titel + " " + e.untertitel + " " + e.stichworte).toLowerCase()}">
-          <span><span class="t">${e.titel}</span><br><span class="u">${e.untertitel}</span></span>
+        <a class="eintrag" href="${e.datei}" data-such="${esc((e.titel + " " + e.untertitel + " " + e.stichworte).toLowerCase())}">
+          <span><span class="t">${esc(e.titel)}</span><br><span class="u">${esc(e.untertitel)}</span></span>
           <span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
         </a>`).join("")}
     </section>`).join("");
@@ -191,13 +206,25 @@ function checklisteAktivieren() {
   checks.forEach(c => { if (gespeichert.includes(c.dataset.check)) c.classList.add("done"); });
 
   const aktualisieren = () => {
+    checks.forEach(c => c.setAttribute("aria-checked", c.classList.contains("done")));
     if (stand) stand.textContent = checks.filter(c => c.classList.contains("done")).length + " / " + checks.length;
     if (seite) {
       const done = checks.filter(c => c.classList.contains("done")).map(c => c.dataset.check).filter(Boolean);
       try { localStorage.setItem(KEY.checks(seite), JSON.stringify(done)); } catch {}
     }
   };
-  checks.forEach(c => c.addEventListener("click", () => { c.classList.toggle("done"); aktualisieren(); }));
+  /* Die Häkchen sind <div>s — Rolle, Fokus und Tastatur werden hier
+     zentral nachgerüstet, damit die Anleitungs-HTMLs schlicht bleiben. */
+  if (stand) stand.setAttribute("aria-live", "polite");
+  checks.forEach(c => {
+    c.setAttribute("role", "checkbox");
+    c.tabIndex = 0;
+    const umschalten = () => { c.classList.toggle("done"); aktualisieren(); };
+    c.addEventListener("click", umschalten);
+    c.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); umschalten(); }
+    });
+  });
   aktualisieren();
 }
 
@@ -268,11 +295,11 @@ function fotosAktivieren() {
     const fig = document.createElement("div"); fig.className = "foto";
     const img = document.createElement("img");
     img.src = URL.createObjectURL(rec.blob); img.alt = "Angehängtes Foto";
+    img.onload = () => URL.revokeObjectURL(img.src);
     const rm = document.createElement("button"); rm.className = "rm"; rm.setAttribute("aria-label", "Foto entfernen");
     rm.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
     rm.addEventListener("click", () => {
       dbLoeschen(rec.id).catch(() => {});
-      URL.revokeObjectURL(img.src);
       fig.remove();
     });
     fig.append(img, rm);
@@ -378,8 +405,10 @@ function stufenfilterAktivieren() {
 
   const setzen = (modus, speichern = true) => {
     document.body.classList.toggle("nur-wiederkehrend", modus === "wiederkehrend");
-    filter.querySelectorAll("button").forEach(b =>
-      b.classList.toggle("aktiv", b.dataset.filter === modus));
+    filter.querySelectorAll("button").forEach(b => {
+      b.classList.toggle("aktiv", b.dataset.filter === modus);
+      b.setAttribute("aria-pressed", b.dataset.filter === modus);
+    });
     if (speichern && seite) { try { localStorage.setItem(schluessel, modus); } catch {} }
   };
 
@@ -415,9 +444,11 @@ function einstellungenAufbauen() {
    START
    ============================================================ */
 themeLaden();
-iconAnwenden(iconAktiv(), false);
 registerAufbauen();
 einstellungenAufbauen();
+/* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
+   die iconAnwenden als aktiv markiert. */
+iconAnwenden(iconAktiv(), false);
 kopierenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
@@ -455,8 +486,12 @@ if ("serviceWorker" in navigator) {
     });
   }).catch(() => {});
 
+  /* Beim Erstbesuch setzt clients.claim() den ersten Controller —
+     das ist kein Update; ohne diese Sperre lüde jede Erstansicht doppelt. */
+  let kontrolliert = !!navigator.serviceWorker.controller;
   let laedtNeu = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!kontrolliert) { kontrolliert = true; return; }
     if (laedtNeu) return;
     laedtNeu = true;
     location.reload();

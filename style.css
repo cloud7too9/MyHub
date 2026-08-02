@@ -1,4 +1,43 @@
 /* ============================================================
+   HEFTER · Schriften (selbst gehostet, /schriften)
+   Variable Fonts von Google Fonts übernommen — eine Datei je
+   Subset deckt alle Gewichte ab. Kein Fremd-Request, offline
+   verfügbar, da woff2 im Precache liegt (ENDUNGEN in bauen.mjs).
+   ============================================================ */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("schriften/dm-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("schriften/dm-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("schriften/jetbrains-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("schriften/jetbrains-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ============================================================
    HEFTER · Design-Tokens
    Themes überschreiben nur diese Werte.
    Neues Theme = ein weiterer [data-theme="…"]-Block.
@@ -48,6 +87,10 @@ body {
   transition: background .25s ease, color .25s ease;
 }
 code, kbd, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+/* Pfade wie /home/max/.ssh/authorized_keys haben keine Umbruchstelle und
+   schöben ihre Zeile sonst über den Bildschirmrand. Im <pre> nicht — dort
+   ist der waagerechte Scroll gewollt. */
+code:not(pre code) { overflow-wrap: anywhere; }
 a { color: inherit; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
@@ -86,6 +129,9 @@ a { color: inherit; }
 .iconbtn:hover { border-color: var(--accent); }
 .iconbtn:active { transform: scale(.97); }
 .iconbtn svg { width: 18px; height: 18px; }
+/* Auf schmalen Telefonen zählt jeder Pixel in der App-Bar — der Text
+   kommt ab 420px zurück, der Zustand steht bis dahin im aria-label. */
+.iconbtn .lbl { display: none; }
 .iconbtn.primary { background: var(--accent); color: #04222a; border-color: var(--accent); }
 [data-theme="hell"] .iconbtn.primary { color: #fff; }
 .iconbtn.primary:hover { filter: brightness(1.06); }
@@ -108,7 +154,10 @@ a { color: inherit; }
   font: inherit; font-size: 16px; outline: none;
 }
 .suche input::placeholder { color: var(--text-muted); }
+/* Erst ab Tastatur-Breite sichtbar — auf dem Telefon gibt es kein Strg,
+   und der Hinweis kostete dort ein Fünftel des Suchfelds. */
 .suche kbd {
+  display: none;
   flex: none; font-size: 11.5px; color: var(--text-muted);
   border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px;
   background: var(--surface-2);
@@ -152,21 +201,27 @@ a { color: inherit; }
 .lead { margin-top: 16px; color: var(--text-muted); font-size: 17px; }
 
 /* ---------- Schritt-Rail ---------- */
-.step { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 22px 0; }
+.step { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 22px 0; }
 .step + .step { border-top: 1px solid var(--border); }
 .rail { position: relative; }
 .step-num {
-  width: 40px; height: 40px; border-radius: 11px;
+  width: 32px; height: 32px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 17px;
+  font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 15px;
   color: var(--accent-ink); background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
 }
+/* top = Höhe der Nummer + 6px Luft; bei jeder Größenänderung mitziehen */
 .step:not(:last-of-type) .rail::after {
-  content: ""; position: absolute; left: 50%; top: 46px; bottom: -22px;
+  content: ""; position: absolute; left: 50%; top: 38px; bottom: -22px;
   width: 1px; background: var(--border); transform: translateX(-.5px);
 }
-.step-body h2 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 4px; }.step-body p { color: var(--text-muted); margin: 8px 0; }
+/* Ohne min-width:0 wächst das Grid-Item auf die min-content-Breite seiner
+   breitesten Codebox (bis ~760px) — dann läuft die ganze Seite über, statt
+   dass die Codebox für sich scrollt. Grid-Items sind per Vorgabe min-width:auto. */
+.step-body { min-width: 0; }
+.step-body h2 { font-size: 19px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 4px; }
+.step-body p { color: var(--text-muted); margin: 8px 0; }
 .step-body ul { margin: 10px 0 10px 2px; padding-left: 18px; color: var(--text-muted); }
 .step-body li { margin: 5px 0; }
 .step-body li b, .step-body p b { color: var(--text); font-weight: 600; }
@@ -240,9 +295,16 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
   padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--cb-border);
   color: #7d8598; font-size: 12.5px;
 }
-.codebox-head .fname { font-family: "JetBrains Mono", monospace; color: #aab2c5; }
+/* Lange Pfade wie /etc/ssh/sshd_config.d/00-haertung.conf haben keine
+   Umbruchstelle und schöben den Kopieren-Knopf sonst aus der Box, die auf
+   overflow:hidden steht — der Knopf wäre auf dem Telefon nicht mehr erreichbar. */
+.codebox-head .fname {
+  font-family: "JetBrains Mono", monospace; color: #aab2c5;
+  min-width: 0; overflow-wrap: anywhere;
+}
 .codebox-head .spacer { flex: 1; }
 .copybtn {
+  flex: none;
   display: inline-flex; align-items: center; gap: 6px;
   min-height: 32px; padding: 0 10px; border-radius: 8px;
   background: #171a22; color: #cdd3df; border: 1px solid #262b37;
@@ -268,6 +330,9 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
   border: 1px solid color-mix(in srgb, var(--c) 28%, var(--border));
   border-left: 3px solid var(--c); border-radius: 10px;
 }
+/* wie bei .step-body: Grid-Items sind per Vorgabe min-width:auto und
+   könnten sonst nicht unter die Breite eines langen Pfades schrumpfen */
+.callout > * { min-width: 0; }
 .callout .ico { color: var(--c); margin-top: 2px; }
 .callout .ico svg { width: 18px; height: 18px; display: block; }
 .callout .label { font-weight: 700; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--c); margin-bottom: 2px; }
@@ -418,7 +483,11 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
   padding: 10px 10px 10px 18px;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; box-shadow: var(--shadow);
-  font-size: 14.5px; font-weight: 600; white-space: nowrap;
+  font-size: 14.5px; font-weight: 600;
+  /* Umbruchfähig statt nowrap: der Inhalt braucht ~315px und klebte
+     sonst auf 320px-Schirmen an beiden Rändern. */
+  flex-wrap: wrap; justify-content: center;
+  max-width: calc(100vw - 24px);
   animation: hinweis-rein .3s ease;
 }
 @keyframes hinweis-rein {
@@ -426,9 +495,14 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
+@media (min-width: 420px) {
+  .iconbtn .lbl { display: inline; }
+}
 @media (min-width: 720px) {
   .step { grid-template-columns: 48px 1fr; gap: 20px; }
   .step-num { width: 44px; height: 44px; font-size: 18px; }
+  .step:not(:last-of-type) .rail::after { top: 50px; }
+  .suche kbd { display: block; }
   .editor-back { align-items: center; }
   .editor { border-radius: 18px; }
 }
