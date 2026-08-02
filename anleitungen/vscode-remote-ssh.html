@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="description" content="VS Code unter Windows per Remote-SSH mit dem Hetzner-Server verbinden: SSH-Alias, erste Verbindung, Extensions, Git, Port-Weiterleitung, Dev Containers und Fehlersuche.">
+<meta name="hefter-untertitel" content="Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche">
+<meta name="hefter-stichworte" content="vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban">
+<title>VS Code mit dem Hetzner-Server verbinden · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="vscode-remote-ssh" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Werkzeuge</span>
+    <h1>VS Code mit dem Hetzner-Server verbinden</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 25 Min</b></span>
+      <span>Aktualisiert <b>02.08.2026</b></span>
+      <span><span class="mono">Windows</span> · VS Code Remote-SSH → Ubuntu 24.04</span>
+    </div>
+    <p class="lead">Einmal einrichten, danach arbeitest du im gewohnten Editor direkt auf dem Server: Dateien, Terminal, Git und Container laufen dort, die Oberfläche bleibt lokal.</p>
+    <div class="callout info">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+      <div><div class="label">Was vorher stehen muss</div><div class="txt">Die <b>Server-Erst-Einrichtung</b> ist abgeschlossen: ein eigener Benutzer, Anmeldung nur per Schlüssel, <code>root</code> gesperrt. VS Code meldet sich bewusst als dieser Benutzer an — nicht als root.</div></div>
+    </div>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur pro Projekt</button>
+    </div>
+    <p class="stufen-hinweis">Die einmaligen Einrichtungsschritte sind ausgeblendet — sichtbar bleibt der Weg, den du für jedes neue Projekt gehst.</p>
+  </header>
+
+  <main>
+
+    <!-- ============ EINMALIG: Arbeitsplatz ============ -->
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Voraussetzungen auf dem Windows-Rechner prüfen</h2>
+        <p>VS Code bringt keinen eigenen SSH-Client mit — es benutzt den von Windows. Beides muss vorhanden und im <code>PATH</code> sein.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Muss eine Version ausgeben, z. B. OpenSSH_for_Windows_9.5</span>
+ssh -V
+
+<span class="tok-c"># Muss die VS-Code-Version ausgeben</span>
+code -v</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell als Administrator — nur falls ssh fehlt</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>Add-WindowsCapability <span class="tok-k">-Online</span> <span class="tok-k">-Name</span> OpenSSH.Client~~~~0.0.1.0</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Kein <code>code</code>-Befehl?</div><div class="txt">Dann fehlt der Eintrag im <code>PATH</code>. In VS Code <b>F1</b> drücken und <code>Shell Command: Install 'code' command in PATH</code> ausführen, danach die PowerShell neu öffnen.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="voraussetzungen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Extension „Remote - SSH" installieren</h2>
+        <p>Entweder über die Seitenleiste (<b>Strg+Umschalt+X</b>, nach <code>Remote - SSH</code> suchen, Herausgeber <b>Microsoft</b>) oder direkt aus der PowerShell.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>code <span class="tok-k">--install-extension</span> ms-vscode-remote.remote-ssh</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Das grüne Feld unten links</div><div class="txt">Nach der Installation sitzt in der Statusleiste ganz links ein grünes Feld mit zwei Pfeilen. Es ist ab jetzt dein Ein- und Ausstieg: verbinden, Verbindung wechseln, zurück nach lokal.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="extension-remote-ssh">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Server als Alias in der <code>.ssh\config</code> hinterlegen</h2>
+        <p>VS Code liest diese Datei aus und bietet jeden <code>Host</code>-Eintrag zur Auswahl an. Ein Alias erspart dir außerdem für immer das Tippen von IP, Benutzer und Port.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal) — Datei öffnen bzw. anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>notepad <span class="tok-s">"$env:USERPROFILE\.ssh\config"</span></pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">C:\Users\&lt;Name&gt;\.ssh\config</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">Host</span> web01
+    <span class="tok-k">HostName</span> &lt;SERVER-IP&gt;
+    <span class="tok-k">User</span> max
+    <span class="tok-k">Port</span> 22
+    <span class="tok-k">IdentityFile</span> ~/.ssh/id_ed25519
+    <span class="tok-c"># Nur diesen einen Schlüssel anbieten — siehe Kasten unten</span>
+    <span class="tok-k">IdentitiesOnly</span> yes
+    <span class="tok-c"># Hält die Verbindung offen, wenn du länger nichts tippst</span>
+    <span class="tok-k">ServerAliveInterval</span> 60
+    <span class="tok-c"># Reicht deinen lokalen Schlüssel für Git durch — siehe Schritt 8</span>
+    <span class="tok-k">ForwardAgent</span> yes</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label"><code>IdentitiesOnly</code> ist kein Beiwerk</div><div class="txt">Ohne diese Zeile bietet SSH der Reihe nach <b>alle</b> Schlüssel an, die es findet. Der gehärtete Server erlaubt aber nur <code>MaxAuthTries 3</code> — bei vier Schlüsseln fliegst du raus, bevor der richtige an der Reihe ist. Die Meldung lautet dann irreführend <code>Too many authentication failures</code>.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Port angepasst?</div><div class="txt">Wenn du den SSH-Port verlegt hast (letzter Schritt der Server-Erst-Einrichtung), muss er hier stehen. VS Code hat keine andere Quelle dafür.</div></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal) — erst hier testen, dann in VS Code</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>ssh web01</pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Soll-Ergebnis</div><div class="txt">Du landest ohne Passwortabfrage auf dem Server. Was in der PowerShell nicht funktioniert, funktioniert auch in VS Code nicht — dort steckt die Fehlermeldung nur tiefer vergraben.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="ssh-config">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 4 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Rechte am privaten Schlüssel geraderücken</h2>
+        <p>Der typische Windows-Stolperstein: Dateien im Benutzerordner erben Rechte für Gruppen wie <code>Benutzer</code> oder <code>SYSTEM</code>. OpenSSH verweigert daraufhin die Arbeit mit dem Schlüssel. Wenn Schritt 3 sauber durchlief, überspringst du das hier.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Vererbung kappen — danach hat nur noch, wer explizit eingetragen ist</span>
+icacls <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span> /inheritance:r
+
+<span class="tok-c"># Dir selbst Lesezugriff geben, sonst niemandem</span>
+icacls <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span> /grant:r <span class="tok-s">"$($env:USERNAME):(R)"</span>
+
+<span class="tok-c"># Kontrolle: es darf nur dein Benutzername auftauchen</span>
+icacls <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span></pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Das war die Ursache, wenn …</div><div class="txt">… beim Verbindungsversuch <code>UNPROTECTED PRIVATE KEY FILE</code> oder <code>bad permissions</code> im Log stand. Nur die <b>private</b> Datei ohne Endung ist betroffen, nicht die <code>.pub</code>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="key-rechte-windows">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 5 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Erste Verbindung aus VS Code herstellen</h2>
+        <p><b>F1</b> drücken, <code>Remote-SSH: Connect to Host</code> wählen, in der Liste <code>web01</code> anklicken. Es öffnet sich ein neues Fenster; die Frage nach der Plattform beantwortest du mit <b>Linux</b>, den Fingerabdruck bestätigst du einmalig.</p>
+        <p>Beim ersten Mal lädt VS Code seinen eigenen Serverteil auf die Maschine — das dauert ein bis zwei Minuten und passiert genau einmal pro Server.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — was dort gelandet ist</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>ls ~/.vscode-server
+du -sh ~/.vscode-server</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Die Firewall bleibt zu</div><div class="txt">Der VS-Code-Server lauscht nicht nach außen — der gesamte Verkehr läuft durch die bestehende SSH-Verbindung. Du musst in der UFW <b>keinen</b> zusätzlichen Port öffnen. Nur <code>root</code> geht nicht: die Extension arbeitet mit deinem normalen Benutzer, so wie der gehärtete Server es vorgibt.</div></div>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Verbunden</div><div class="txt">Unten links steht jetzt <code>SSH: web01</code>. Alles, was du in diesem Fenster tust, passiert auf dem Server.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="erste-verbindung">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRO PROJEKT ============ -->
+
+    <!-- Schritt 6 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">6</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Projektordner auf dem Server öffnen</h2>
+        <p>Im verbundenen Fenster <b>Datei → Ordner öffnen</b>. Der Dateidialog zeigt jetzt das <b>Server</b>-Dateisystem, nicht deine Festplatte. Danach fragt VS Code einmal, ob du den Autoren des Ordners vertraust.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Integriertes Terminal (Strg+ö) — läuft auf dem Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Zur Kontrolle, wo du gelandet bist</span>
+whoami
+hostname
+pwd</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Speichern schlägt fehl?</div><div class="txt">Ordner unter <code>/var/www</code> gehören oft <code>root</code>, dein Benutzer darf dort nur lesen. Entweder den Besitz übertragen oder das Projekt im eigenen Heimatverzeichnis halten.</div></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Besitz übertragen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>sudo chown -R max:max /var/www/mein-projekt</pre>
+        </div>
+        <div class="fotozone" data-schritt="ordner-oeffnen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 7 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">7</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Extensions am richtigen Ort installieren</h2>
+        <p>Die Extension-Seitenleiste teilt sich in der Remote-Sitzung in zwei Blöcke: <b>Lokal — Installiert</b> und <b>SSH: web01 — Installiert</b>. Bei jeder Extension steht dann nicht mehr „Installieren", sondern <b>„In SSH: web01 installieren"</b>.</p>
+        <ul>
+          <li><b>Lokal bleiben:</b> Themes, Icon-Sets, Tastaturbelegungen — alles, was nur die Oberfläche betrifft.</li>
+          <li><b>Auf den Server gehören:</b> Sprachunterstützung, Linter, Formatierer, Debugger, Docker — alles, was Code liest oder ausführt.</li>
+        </ul>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Integriertes Terminal — installiert direkt im Remote</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>code <span class="tok-k">--install-extension</span> ms-python.python
+
+<span class="tok-c"># Was ist auf dem Server aktiv?</span>
+code <span class="tok-k">--list-extensions</span></pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Warum die Trennung wichtig ist</div><div class="txt">Eine lokal installierte Sprachunterstützung sieht die Dateien auf dem Server gar nicht — sie meldet dann Fehler an Stellen, an denen keine sind, oder bleibt einfach stumm. Das ist die häufigste Verwirrung nach der ersten Verbindung.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="extensions-remote">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 8 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">8</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Git und GitHub aus der Remote-Sitzung nutzen</h2>
+        <p>Die Quellcodeverwaltung in VS Code bedient das Git <b>auf dem Server</b>. Zum Pushen braucht der Server also einen Schlüssel, den GitHub kennt — den musst du aber nicht dorthin kopieren. Das <code>ForwardAgent yes</code> aus Schritt 3 reicht deinen lokalen Schlüssel für die Dauer der Sitzung durch.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell als Administrator — Agent dauerhaft aktivieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>Set-Service ssh-agent <span class="tok-k">-StartupType</span> Automatic
+Start-Service ssh-agent</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal) — Schlüssel in den Agenten legen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>ssh-add <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span>
+
+<span class="tok-c"># Muss den Schlüssel auflisten</span>
+ssh-add -l</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Integriertes Terminal (Server) — Absender setzen und testen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git config --global user.name <span class="tok-s">"Max Mustermann"</span>
+git config --global user.email <span class="tok-s">"max@example.com"</span>
+
+<span class="tok-c"># Nutzt den durchgereichten Schlüssel — GitHub grüßt mit deinem Namen</span>
+ssh -T git@github.com</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Der Schlüssel bleibt zu Hause</div><div class="txt">Weitergereicht wird nur die Signieranfrage, nie die Schlüsseldatei. Auf dem Server liegt dadurch nichts, was jemand stehlen könnte.</div></div>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Nur auf eigenen Servern</div><div class="txt">Solange die Sitzung offen ist, kann jeder mit <code>root</code>-Rechten auf dieser Maschine den Agenten mitbenutzen. Auf deinem eigenen Hetzner-Server ist das in Ordnung — auf einem fremden gehört <code>ForwardAgent yes</code> nicht in die Konfiguration. Die Alternative dort ist ein eigener Deploy-Key, wie in der Deploy-Anleitung beschrieben.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="git-remote">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 9 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">9</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Ports weiterleiten und im lokalen Browser öffnen</h2>
+        <p>Neben dem Terminal liegt der Reiter <b>Ports</b>. Mit <b>Port weiterleiten</b> trägst du dort die Portnummer ein, die auf dem Server lauscht — VS Code öffnet dann denselben Port auf deinem Rechner und leitet ihn durch den SSH-Tunnel.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Integriertes Terminal (Server) — was lauscht überhaupt?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>ss -tlnp</pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Genau dafür ist die 127.0.0.1-Bindung da</div><div class="txt">Dienste, die laut Docker-Anleitung nur an <code>127.0.0.1</code> gebunden sind, erreichst du so im lokalen Browser unter <code>http://localhost:8000</code> — ohne die UFW zu öffnen und ohne den Dienst ins Internet zu stellen.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Meistens automatisch</div><div class="txt">Startest du eine Anwendung im integrierten Terminal und sie gibt eine <code>localhost</code>-Adresse aus, richtet VS Code die Weiterleitung von selbst ein und blendet eine Benachrichtigung mit Link ein. Der Ports-Reiter ist der Handgriff für alles, was schon vorher lief.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="ports">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 10 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">10</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>In Containern arbeiten: andocken oder darin entwickeln</h2>
+        <p>Läuft das Projekt nach der Docker-Anleitung in Containern, kommst du auch dort hinein — VS Code hängt sich dann in den Container, der auf dem Server läuft. Dafür brauchst du die Extension <b>Dev Containers</b>, installiert <b>im Remote</b>.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Integriertes Terminal (Server)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>code <span class="tok-k">--install-extension</span> ms-vscode-remote.remote-containers
+
+<span class="tok-c"># Muss ohne sudo laufen, sonst findet die Extension keine Container</span>
+docker ps</pre>
+        </div>
+        <p><b>Weg A — an einen laufenden Container andocken.</b> <b>F1</b> → <code>Dev Containers: Attach to Running Container…</code> → Container auswählen. Gut zum Nachsehen und für schnelle Eingriffe.</p>
+        <p><b>Weg B — im Container entwickeln.</b> Eine <code>devcontainer.json</code> ins Repo legen, dann <b>F1</b> → <code>Dev Containers: Reopen in Container</code>. Der Editor benutzt danach die Werkzeuge und Bibliotheken aus dem Container statt die des Servers.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">.devcontainer/devcontainer.json</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>{
+  <span class="tok-k">"name"</span>: <span class="tok-s">"mein-projekt"</span>,
+  <span class="tok-k">"dockerComposeFile"</span>: <span class="tok-s">"../compose.yaml"</span>,
+  <span class="tok-k">"service"</span>: <span class="tok-s">"api"</span>,
+  <span class="tok-k">"workspaceFolder"</span>: <span class="tok-s">"/app"</span>,
+  <span class="tok-k">"customizations"</span>: {
+    <span class="tok-k">"vscode"</span>: {
+      <span class="tok-k">"extensions"</span>: [<span class="tok-s">"ms-python.python"</span>]
+    }
+  },
+  <span class="tok-c">// Container nach dem Schließen weiterlaufen lassen</span>
+  <span class="tok-k">"shutdownAction"</span>: <span class="tok-s">"none"</span>
+}</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label"><code>permission denied</code> beim Docker-Socket</div><div class="txt">Dann fehlt deinem Benutzer die Gruppe <code>docker</code> (Docker-Anleitung, Schritt 3). Nach dem Nachtragen greift die neue Gruppe erst in einer <b>neuen</b> Anmeldung: in VS Code das Remote-Fenster schließen und frisch verbinden — ein Neuladen des Fensters genügt nicht.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Was <code>shutdownAction</code> verhindert</div><div class="txt">Ohne diese Zeile stoppt VS Code den Container beim Schließen des Fensters. Bei einem produktiv laufenden Dienst ist das selten gewollt.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="dev-containers">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 11 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">11</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Bei Bedarf</span>
+        <h2>Fehlersuche: die fünf üblichen Verdächtigen</h2>
+        <p>Erste Regel: nicht in VS Code raten, sondern in der PowerShell nachsehen. <code>ssh -v web01</code> zeigt in Klartext, woran es scheitert.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell (lokal) — ausführliche Ausgabe</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>ssh -v web01</pre>
+        </div>
+        <ul>
+          <li><b><code>Permission denied (publickey)</code></b> — falscher Benutzer, falscher Schlüssel in <code>IdentityFile</code> oder der öffentliche Schlüssel fehlt auf dem Server in <code>~/.ssh/authorized_keys</code>.</li>
+          <li><b><code>Too many authentication failures</code></b> — <code>IdentitiesOnly yes</code> fehlt in der Konfiguration, siehe Schritt 3.</li>
+          <li><b><code>UNPROTECTED PRIVATE KEY FILE</code></b> — die Dateirechte unter Windows, siehe Schritt 4.</li>
+          <li><b><code>Connection refused</code> oder Zeitüberschreitung</b> — falscher Port in der Konfiguration, oder fail2ban hat dich nach drei Fehlversuchen für eine Stunde ausgesperrt.</li>
+          <li><b><code>Could not establish connection … server install failed</code></b> — auf dem Server ist die Platte voll oder der Serverteil ist beschädigt.</li>
+        </ul>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server (über die Hetzner-Konsole, falls SSH nicht mehr geht)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Bin ich selbst gesperrt?</span>
+sudo fail2ban-client status sshd
+
+<span class="tok-c"># Sperre wieder aufheben</span>
+sudo fail2ban-client set sshd unbanip &lt;DEINE-IP&gt;</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Serverteil neu aufsetzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Platz auf der Platte prüfen</span>
+df -h
+
+<span class="tok-c"># Serverteil verwerfen — beim nächsten Verbinden lädt VS Code ihn neu</span>
+rm -rf ~/.vscode-server</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Das Log in VS Code</div><div class="txt"><b>F1</b> → <code>Remote-SSH: Show Log</code> öffnet das Ausgabefenster mit dem vollständigen Verbindungsprotokoll. Dort steht dieselbe Meldung wie im Terminal — nur muss man wissen, wo man sucht.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="fehlersuche">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 8</span>
+    </header>
+    <div class="check" data-check="extension-installiert"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Extension <code>Remote - SSH</code> installiert</span></div>
+    <div class="check" data-check="config-alias"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>ssh web01</code> läuft in der PowerShell ohne Passwort</span></div>
+    <div class="check" data-check="verbindung-steht"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Statusleiste zeigt <code>SSH: web01</code></span></div>
+    <div class="check" data-check="ordner-schreibbar"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Projektordner geöffnet und beschreibbar</span></div>
+    <div class="check" data-check="extensions-am-server"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Arbeits-Extensions unter <code>SSH: web01</code> installiert</span></div>
+    <div class="check" data-check="git-funktioniert"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>ssh -T git@github.com</code> grüßt vom Server aus</span></div>
+    <div class="check" data-check="port-weitergeleitet"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Port weitergeleitet und im lokalen Browser geöffnet</span></div>
+    <div class="check" data-check="container-erreichbar"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>docker ps</code> ohne sudo, Container angedockt</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

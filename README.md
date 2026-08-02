@@ -13,7 +13,8 @@ hefter/
 ├── anleitungen/
 │   ├── hetzner-deploy.html
 │   ├── server-ersteinrichtung.html
-│   └── docker-einrichtung.html
+│   ├── docker-einrichtung.html
+│   └── vscode-remote-ssh.html
 ├── style.css                   Design-Tokens, Themes, alle Bausteine
 ├── hefter.js                   gesamte App-Logik (REGISTER wird generiert)
 ├── bauen.mjs                   Build-Skript — siehe unten
