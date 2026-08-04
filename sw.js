@@ -1,8 +1,10 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-be090c428f";
+const VERSION = "hefter-c186e39d25";
 const SHELL = [
+  "anleitungen/coolify-einrichtung.html",
   "anleitungen/docker-einrichtung.html",
+  "anleitungen/domain-einrichtung.html",
   "anleitungen/git-ssd.html",
   "anleitungen/git-zugang-privat.html",
   "anleitungen/hetzner-deploy.html",

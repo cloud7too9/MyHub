@@ -14,6 +14,8 @@ hefter/
 │   ├── hetzner-deploy.html
 │   ├── server-ersteinrichtung.html
 │   ├── docker-einrichtung.html
+│   ├── coolify-einrichtung.html
+│   ├── domain-einrichtung.html
 │   ├── vscode-remote-ssh.html
 │   ├── git-zugang-privat.html
 │   ├── git-ssd.html

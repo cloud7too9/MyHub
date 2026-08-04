@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="description" content="Eine Domain auf den Hetzner-Server zeigen lassen — Nameserver, A- und AAAA-Records, Subdomains und HTTPS per Let's Encrypt.">
+<meta name="hefter-untertitel" content="Nameserver, A/AAAA-Records, Let's Encrypt">
+<meta name="hefter-stichworte" content="domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung">
+<title>Domain auf den Server zeigen lassen · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="domain-einrichtung" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Server</span>
+    <h1>Domain einrichten &amp; per HTTPS ausliefern</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 30 Min</b></span>
+      <span>Aktualisiert <b>04.08.2026</b></span>
+      <span><span class="mono">Hetzner DNS</span> · anbieterneutral</span>
+    </div>
+    <p class="lead">Von der gekauften Domain bis zum grünen Schloss: Zone anlegen, Nameserver umstellen, Records setzen — und das Zertifikat entweder von Coolify oder von Certbot holen lassen.</p>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur pro Subdomain</button>
+    </div>
+    <p class="stufen-hinweis">Die einmaligen Schritte sind ausgeblendet — sichtbar bleibt der Weg, den du für jedes neue Projekt gehst.</p>
+  </header>
+
+  <main>
+
+    <!-- ============ EINMALIG: Domain und Zone ============ -->
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>IP-Adressen des Servers ermitteln</h2>
+        <p>Ein DNS-Eintrag ist am Ende nichts anderes als „Name → IP". Also brauchst du zuerst die beiden Adressen deines Hetzner-Servers. Sie stehen in der Hetzner-Cloud-Konsole beim Server, oder du fragst sie direkt auf dem Server ab.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server (per SSH)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Öffentliche IPv4 des Servers</span>
+curl <span class="tok-k">-4</span> https://ifconfig.me
+
+<span class="tok-c"># Öffentliche IPv6 — leer oder Fehler heißt: keine nutzbare IPv6</span>
+curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">IPv6 nur eintragen, wenn sie wirklich antwortet</div><div class="txt">Ein <code>AAAA</code>-Record auf eine IPv6, unter der nichts lauscht, führt zu sporadisch nicht erreichbaren Seiten: moderne Browser probieren IPv6 zuerst. Im Zweifel erst nur den <code>A</code>-Record setzen.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="server-ip">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Domain</span>
+        <h2>DNS-Zone beim gewünschten Betreiber anlegen</h2>
+        <p>Zwei Rollen werden ständig verwechselt:</p>
+        <ul>
+          <li><b>Registrar</b> — dort hast du die Domain <i>gekauft</i> (z. B. IONOS, Namecheap, INWX). Er verwaltet die Eigentümerdaten und trägt ein, <b>welche Nameserver</b> zuständig sind.</li>
+          <li><b>DNS-Betreiber</b> — dort liegen die eigentlichen <b>Records</b>. Das kann der Registrar selbst sein, oder ein anderer Dienst wie die Hetzner DNS Console.</li>
+        </ul>
+        <p>Du kannst also bei jedem Registrar bleiben und die Records trotzdem bei Hetzner pflegen. In der <span class="mono">Hetzner DNS Console</span> unter <b>Zonen → Zone hinzufügen</b> die Domain ohne <code>www</code> eintragen (z. B. <code>example.de</code>) und die vorgeschlagene Import-Option überspringen, wenn die Domain neu ist.</p>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Die Zone existiert und zeigt dir drei Nameserver-Namen an (bei Hetzner <code>hydrogen</code>, <code>oxygen</code>, <code>helium</code> <code>.ns.hetzner.com</code>). Genau die brauchst du im nächsten Schritt.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="zone-anlegen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Domain</span>
+        <h2>Nameserver beim Registrar eintragen</h2>
+        <p>Beim Registrar in der Domain-Verwaltung die eigenen Nameserver-Einträge durch die drei aus Schritt 2 ersetzen. Der Menüpunkt heißt je nach Anbieter <b>Nameserver</b>, <b>DNS-Einstellungen</b> oder <b>Zielserver</b>.</p>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Vorher die alten Records abschreiben</div><div class="txt">Mit dem Nameserver-Wechsel gilt <b>nur noch</b> die neue Zone. Bestehende <code>MX</code>-Records für E-Mail oder <code>TXT</code>-Records für Dienste musst du in der neuen Zone nachbauen — sonst kommt ab dem Umschalten keine Mail mehr an.</div></div>
+        </div>
+        <p>Die Umstellung wirkt nicht sofort: rechne mit ein bis vier Stunden, im ungünstigsten Fall bis zu 48. Prüfen kannst du es so:</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Welche Nameserver sind für die Domain hinterlegt?</span>
+dig <span class="tok-k">NS</span> example.de +short
+
+<span class="tok-c"># Windows ohne dig: nslookup tut es auch</span>
+nslookup <span class="tok-k">-type=NS</span> example.de</pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Die Ausgabe listet die neuen Nameserver. Ab jetzt zählt allein, was in deiner Zone steht.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="nameserver">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WIEDERKEHREND: pro Projekt / Subdomain ============ -->
+
+    <!-- Schritt 4 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Domain</span>
+        <h2>Records für Root-Domain und <code>www</code> setzen</h2>
+        <p>Die vier Record-Typen, mit denen du praktisch alles abdeckst:</p>
+        <ul>
+          <li><code>A</code> — Name zeigt auf eine <b>IPv4</b>. Der Standardfall.</li>
+          <li><code>AAAA</code> — Name zeigt auf eine <b>IPv6</b>. Nur setzen, wenn der Server sie beantwortet.</li>
+          <li><code>CNAME</code> — Name zeigt auf einen <b>anderen Namen</b>. Praktisch für <code>www</code>, aber <b>nie</b> für die Root-Domain (<code>@</code>).</li>
+          <li><code>*</code> — Wildcard: fängt jede Subdomain ab, die keinen eigenen Record hat.</li>
+        </ul>
+        <p>Der Name <code>@</code> steht dabei für die Domain selbst. In der Hetzner DNS Console lässt sich die Zone auch direkt als Textdatei bearbeiten — das geht schneller als die Formularmaske:</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Zonendatei (Auszug)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c">; Name   TTL   Typ     Wert</span>
+@        3600  <span class="tok-k">A</span>       203.0.113.10
+@        3600  <span class="tok-k">AAAA</span>    2a01:4f8:c17:1234::1
+www      3600  <span class="tok-k">CNAME</span>   example.de.</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">TTL bewusst wählen</div><div class="txt">Die TTL sagt Resolvern, wie lange sie die Antwort behalten dürfen. Vor einem geplanten Umzug einen Tag vorher auf <code>300</code> senken, danach wieder auf <code>3600</code> — sonst hängen Besucher stundenlang auf der alten IP fest. Der Punkt am Ende von <code>example.de.</code> ist Absicht: er markiert den vollständigen Namen.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="root-records">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 5 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Subdomain für das Projekt anlegen</h2>
+        <p>Jedes Projekt bekommt seinen eigenen Namen: <code>app.example.de</code>, <code>api.example.de</code>, <code>status.example.de</code>. Alle zeigen auf dieselbe Server-IP — welche Anwendung antwortet, entscheidet später der Reverse-Proxy anhand des angefragten Hostnamens.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Zonendatei (Auszug)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c">; Eine Subdomain je Projekt — gleiche IP, verschiedene Namen</span>
+app      3600  <span class="tok-k">A</span>   203.0.113.10
+api      3600  <span class="tok-k">A</span>   203.0.113.10
+
+<span class="tok-c">; Alternative: Wildcard fängt alles ab, was keinen eigenen Record hat</span>
+*        3600  <span class="tok-k">A</span>   203.0.113.10</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Wildcard, wenn Coolify die Subdomains vergibt</div><div class="txt">Legst du Apps in Coolify im Minutentakt an, spart ein einzelner <code>*</code>-Record den Gang in die DNS-Konsole bei jedem neuen Projekt. Der Preis: jeder Tippfehler landet ebenfalls auf deinem Server statt auf einer Fehlermeldung.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="subdomain">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 6 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">6</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Auflösung prüfen, <b>bevor</b> ein Zertifikat angefordert wird</h2>
+        <p>Dieser Schritt sieht nach Kleinkram aus und ist der wichtigste der ganzen Anleitung. Let's Encrypt prüft die Domain über genau diese Auflösung — stimmt sie nicht, scheitert die Ausstellung.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Muss exakt die Server-IP zurückgeben</span>
+dig app.example.de +short
+
+<span class="tok-c"># Am lokalen Cache vorbei, direkt bei einem öffentlichen Resolver fragen</span>
+dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Nicht ins Rate-Limit rennen</div><div class="txt">Let's Encrypt erlaubt pro Domain nur eine begrenzte Zahl gescheiterter Versuche pro Stunde. Wer bei falschem DNS wieder und wieder auf „Deploy" drückt, sperrt sich die Domain für Stunden aus. Erst <code>dig</code>, dann Zertifikat.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Ports müssen offen sein</div><div class="txt">Für die Zertifikatsprüfung muss der Server über Port <code>80</code> erreichbar sein, für den Betrieb über <code>443</code>. Wie die Firewall dafür eingerichtet wird, steht in <a href="server-ersteinrichtung.html">Server-Erst-Einrichtung &amp; Absicherung</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="dns-pruefen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 7 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">7</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Weg A — HTTPS über Coolify (Standard)</h2>
+        <p>Läuft Coolify auf dem Server, ist das der kürzere Weg: dort ist ein Traefik-Proxy eingebaut, der das Zertifikat selbst besorgt und erneuert. Du trägst nur die Domain ein.</p>
+        <ul>
+          <li>In Coolify die Anwendung öffnen → <b>Configuration → General</b></li>
+          <li>Unter <b>Domains</b> die vollständige URL eintragen: <code>https://app.example.de</code></li>
+          <li><b>Save</b>, danach <b>Redeploy</b> — Traefik fordert das Zertifikat beim ersten Aufruf an</li>
+        </ul>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Nach wenigen Sekunden antwortet <code>https://app.example.de</code> mit gültigem Zertifikat. Die Erneuerung alle 90 Tage übernimmt Traefik ohne dein Zutun.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Verwandte Anleitung</div><div class="txt">Installation, GitHub-Anbindung und das Anlegen der Anwendung stehen in <a href="coolify-einrichtung.html">Coolify einrichten &amp; Projekte ausrollen</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="tls-coolify">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 8 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">8</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Weg B — HTTPS über Nginx und Certbot</h2>
+        <p>Ohne Coolify — etwa für ein Projekt, das per Docker Compose oder GitHub Action ausgerollt wird — übernimmt Nginx die Rolle des Reverse-Proxys und Certbot die Zertifikate.</p>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Weg A und Weg B nie parallel</div><div class="txt">Coolifys Traefik und Nginx wollen beide die Ports <code>80</code> und <code>443</code>. Wer zuerst startet, gewinnt; der andere bleibt mit <code>address already in use</code> stehen. Auf einem Server also entweder das eine oder das andere.</div></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Nginx und Certbot installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>sudo apt update
+sudo apt install <span class="tok-k">-y</span> nginx certbot python3-certbot-nginx</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">/etc/nginx/sites-available/app.example.de</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">server</span> {
+    <span class="tok-k">listen</span> 80;
+    <span class="tok-k">server_name</span> app.example.de;
+
+    <span class="tok-k">location</span> / {
+        <span class="tok-c"># An die Anwendung, die lokal auf Port 3000 lauscht</span>
+        <span class="tok-k">proxy_pass</span> http://127.0.0.1:3000;
+        <span class="tok-k">proxy_set_header</span> Host $host;
+        <span class="tok-k">proxy_set_header</span> X-Real-IP $remote_addr;
+        <span class="tok-k">proxy_set_header</span> X-Forwarded-For $proxy_add_x_forwarded_for;
+        <span class="tok-k">proxy_set_header</span> X-Forwarded-Proto $scheme;
+    }
+}</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — aktivieren und Zertifikat holen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Site aktivieren und Konfiguration testen</span>
+sudo ln <span class="tok-k">-s</span> /etc/nginx/sites-available/app.example.de /etc/nginx/sites-enabled/
+sudo nginx <span class="tok-k">-t</span> &amp;&amp; sudo systemctl reload nginx
+
+<span class="tok-c"># Zertifikat holen — certbot trägt HTTPS und die Umleitung selbst ein</span>
+sudo certbot <span class="tok-k">--nginx</span> <span class="tok-k">-d</span> app.example.de <span class="tok-k">-d</span> www.app.example.de</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Erneuerung prüfen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Der Timer erledigt die Erneuerung zweimal täglich</span>
+systemctl status certbot.timer
+
+<span class="tok-c"># Probelauf ohne echte Ausstellung — muss fehlerfrei durchlaufen</span>
+sudo certbot renew <span class="tok-k">--dry-run</span></pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Certbot hat die <code>server</code>-Blöcke umgeschrieben: Port 80 leitet auf 443 um, das Zertifikat liegt unter <code>/etc/letsencrypt/live/</code>. Der Probelauf bestätigt, dass die Erneuerung in 90 Tagen funktioniert.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="tls-certbot">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 9 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">9</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Domain</span>
+        <h2>Optional: CAA-Record und saubere Weiterleitungen</h2>
+        <p>Zwei Feinheiten, die die Einrichtung abrunden.</p>
+        <p><b>CAA-Record</b> — legt fest, welche Zertifizierungsstelle für deine Domain überhaupt ausstellen darf. Ein Angreifer, der irgendwo anders ein Zertifikat erschleichen will, läuft damit ins Leere.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Zonendatei (Auszug)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c">; Nur Let's Encrypt darf Zertifikate ausstellen</span>
+@   3600  <span class="tok-k">CAA</span>  0 issue <span class="tok-s">"letsencrypt.org"</span></pre>
+        </div>
+        <p><b>Weiterleitung <code>www</code> → Root</b> — damit beide Schreibweisen unter derselben Adresse landen. In Coolify genügt es, <code>https://www.example.de</code> als zweite Domain einzutragen; ohne Coolify erledigt das ein kleiner Nginx-Block.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Nginx — www auf die Root-Domain umleiten</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">server</span> {
+    <span class="tok-k">listen</span> 443 ssl;
+    <span class="tok-k">server_name</span> www.example.de;
+    <span class="tok-k">return</span> 301 https://example.de$request_uri;
+}</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Auch der www-Name braucht ein Zertifikat</div><div class="txt">Die Umleitung passiert erst <i>nach</i> dem TLS-Handshake. <code>www.example.de</code> muss also im selben Zertifikat stehen — bei Certbot per zusätzlichem <code>-d</code>, bei Coolify als zweite Domain.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="caa-weiterleitung">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 7</span>
+    </header>
+    <div class="check" data-check="ip-notiert"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Server-IPv4 (und ggf. IPv6) notiert</span></div>
+    <div class="check" data-check="zone-angelegt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">DNS-Zone angelegt, alte Records übernommen</span></div>
+    <div class="check" data-check="nameserver-gesetzt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Nameserver beim Registrar eingetragen</span></div>
+    <div class="check" data-check="a-record"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>A</code>-Record für Root, <code>www</code> und Subdomain gesetzt</span></div>
+    <div class="check" data-check="dns-verifiziert"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>dig +short</code> liefert die richtige IP</span></div>
+    <div class="check" data-check="zertifikat-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">HTTPS aktiv — über Coolify oder Certbot</span></div>
+    <div class="check" data-check="renewal-geprueft"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Erneuerung geprüft</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

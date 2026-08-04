@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="description" content="Coolify auf dem Hetzner-Server installieren, absichern, mit GitHub verbinden und die erste Anwendung mit Auto-Deploy ausrollen.">
+<meta name="hefter-untertitel" content="Installation, GitHub-Anbindung, erste App">
+<meta name="hefter-stichworte" content="coolify paas self hosted docker traefik proxy deploy github app webhook auto deploy umgebungsvariablen env secrets domain buildpack nixpacks dockerfile compose dashboard port 8000 rollback persistent storage hetzner update">
+<title>Coolify auf dem Hetzner-Server · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="coolify-einrichtung" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Server</span>
+    <h1>Coolify einrichten &amp; Projekte ausrollen</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 45 Min</b></span>
+      <span>Aktualisiert <b>04.08.2026</b></span>
+      <span><span class="mono">Ubuntu 24.04 LTS</span> · Coolify v4</span>
+    </div>
+    <p class="lead">Einmalig Coolify auf dem Hetzner-Server aufsetzen und absichern — danach jedes Projekt aus GitHub anlegen, mit Domain versehen und bei jedem Push automatisch ausrollen lassen.</p>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur pro App</button>
+    </div>
+    <p class="stufen-hinweis">Die einmaligen Server-Schritte sind ausgeblendet — sichtbar bleibt der Weg, den du für jede neue Anwendung gehst.</p>
+  </header>
+
+  <main>
+
+    <!-- ============ EINMALIG: Server ============ -->
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Voraussetzungen prüfen</h2>
+        <p>Coolify ist ein selbst gehostetes PaaS: eine Weboberfläche, die im Hintergrund Docker steuert und einen Traefik-Proxy für Domains und Zertifikate mitbringt. Der Server sollte vorbereitet sein:</p>
+        <ul>
+          <li><b>Abgesicherte Grundinstallation</b> — eigener sudo-Benutzer, SSH-Härtung, UFW und fail2ban nach <a href="server-ersteinrichtung.html">Server-Erst-Einrichtung &amp; Absicherung</a></li>
+          <li><b>Mindestens 2 vCPU, 4 GB RAM, 30 GB Platte</b> — bei Hetzner also ab <code>CX22</code>. Mit 2 GB startet Coolify zwar, aber jeder größere Build läuft ins OOM-Kill</li>
+          <li><b>Freie Ports</b> <code>80</code>, <code>443</code> und <code>8000</code></li>
+          <li><b>Ubuntu 24.04 LTS</b> — Debian 12 funktioniert genauso</li>
+        </ul>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — belegte Ports prüfen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Lauscht schon etwas auf 80, 443 oder 8000?</span>
+sudo ss <span class="tok-k">-tulpn</span> | grep <span class="tok-k">-E</span> <span class="tok-s">':(80|443|8000)\b'</span></pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Nginx oder ein eigener Traefik stehen im Weg</div><div class="txt">Coolify startet seinen eigenen Proxy auf <code>80</code> und <code>443</code>. Läuft dort schon ein Nginx aus einer früheren Einrichtung, bleibt Coolifys Proxy mit <code>address already in use</code> stehen. Vorher <code>sudo systemctl disable --now nginx</code> — oder Coolify auf einen frischen Server setzen.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="voraussetzungen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Coolify installieren</h2>
+        <p>Das Installationsskript richtet alles ein: Docker (falls noch nicht vorhanden), die Coolify-Container, die Datenbank und den Proxy.</p>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Erst lesen, dann ausführen</div><div class="txt">Ein Skript mit <code>sudo</code> aus dem Netz zu pipen heißt, dem Anbieter vollen Zugriff auf den Server zu geben. Lade es herunter, sieh es dir an und führe es dann aus — der Aufwand ist eine Minute.</div></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server (per SSH)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Skript holen, ansehen, dann ausführen</span>
+curl <span class="tok-k">-fsSL</span> https://cdn.coollabs.io/coolify/install.sh <span class="tok-k">-o</span> install-coolify.sh
+less install-coolify.sh
+sudo bash install-coolify.sh</pre>
+        </div>
+        <p>Der Durchlauf dauert je nach Server drei bis fünf Minuten. Am Ende nennt das Skript die Adresse des Dashboards.</p>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Mehrere Container laufen — prüfbar mit <code>docker ps</code>. Alle Daten von Coolify liegen unter <code>/data/coolify</code>; genau dieser Ordner gehört später ins Backup.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Verwandte Anleitung</div><div class="txt">Wie Docker von Hand eingerichtet wird und was es mit der UFW-Falle auf sich hat, steht in <a href="docker-einrichtung.html">Docker einrichten &amp; pro Repository integrieren</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="installer">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Firewall setzen — und das Dashboard <b>nicht</b> öffnen</h2>
+        <p>Nach außen gehören nur die Ports auf, über die Besucher deine Anwendungen erreichen. Das Dashboard auf <code>8000</code> gehört nicht dazu.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — UFW</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw status numbered
+
+<span class="tok-c"># Port 8000 bleibt zu — falls schon geöffnet, Regel wieder entfernen</span>
+sudo ufw delete allow 8000/tcp</pre>
+        </div>
+        <p>Ans Dashboard kommst du trotzdem: ein SSH-Tunnel leitet den Port auf deinen eigenen Rechner um. Danach ist Coolify unter <code>http://localhost:8000</code> erreichbar, aber für sonst niemanden im Netz.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Tunnel offen halten, solange du im Dashboard arbeitest</span>
+ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Ein offenes Dashboard ist ein offener Server</div><div class="txt">Wer Coolify bedienen kann, kann Container starten, Umgebungsvariablen lesen und ein Terminal öffnen. Das Dashboard über <code>http://&lt;IP&gt;:8000</code> ungeschützt im Netz stehen zu lassen — auch nur „kurz zum Einrichten" — ist die riskanteste Abkürzung dieser Anleitung.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="ufw-tunnel">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 4 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Admin-Konto anlegen und Registrierung schließen</h2>
+        <p>Beim ersten Aufruf über den Tunnel zeigt Coolify ein Registrierungsformular. Das erste angelegte Konto wird automatisch Administrator.</p>
+        <ul>
+          <li>E-Mail und ein <b>langes, einzigartiges Passwort</b> setzen — am besten aus dem Passwortmanager</li>
+          <li>Danach sofort: <b>Settings → Advanced</b>, Schalter <b>Registration allowed</b> ausschalten</li>
+          <li>Optional, aber empfohlen: unter dem eigenen Profil <b>Two-Factor Authentication</b> aktivieren</li>
+        </ul>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Das Zeitfenster zwischen Installation und Registrierung</div><div class="txt">Solange kein Konto existiert und die Registrierung offen ist, wird der Erste, der das Formular findet, Administrator deiner Instanz. Deshalb: Konto direkt nach der Installation anlegen und die Registrierung im selben Zug schließen.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="admin-konto">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 5 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>Dashboard hinter eine eigene Domain legen</h2>
+        <p>Auf Dauer ist der SSH-Tunnel unbequem. Gib dem Dashboard stattdessen eine eigene Subdomain mit HTTPS — dann läuft es über Port 443 durch den Proxy, und 8000 bleibt geschlossen.</p>
+        <ul>
+          <li><code>A</code>-Record für <code>coolify.example.de</code> auf die Server-IP setzen und die Auflösung prüfen</li>
+          <li>Im Dashboard unter <b>Settings → General</b> das Feld <b>Instance Domain</b> auf <code>https://coolify.example.de</code> setzen</li>
+          <li>Speichern — Coolify holt das Zertifikat und leitet sich selbst auf die neue Adresse um</li>
+        </ul>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Verwandte Anleitung</div><div class="txt">Zone, Nameserver, Records und die Prüfung mit <code>dig</code> stehen Schritt für Schritt in <a href="domain-einrichtung.html">Domain einrichten &amp; per HTTPS ausliefern</a>.</div></div>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Erst DNS, dann Domain eintragen</div><div class="txt">Zeigt der Record noch nicht auf den Server, scheitert die Zertifikatsausstellung — und das Dashboard ist unter der neuen Adresse nicht erreichbar. Der SSH-Tunnel aus Schritt 3 bleibt in dem Fall dein Rückweg.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="instance-domain">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 6 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">6</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
+        <h2>GitHub anbinden</h2>
+        <p>Damit Coolify deine Repositories klonen und auf Pushes reagieren kann, legst du eine GitHub App an. Coolify führt dich durch den Vorgang.</p>
+        <ul>
+          <li><b>Sources → + Add → GitHub App</b></li>
+          <li>Name vergeben, <b>Register now</b> — GitHub öffnet sich mit vorausgefüllten Rechten</li>
+          <li>Nach dem Anlegen <b>Install</b> und die Repositories auswählen, auf die Coolify zugreifen darf</li>
+        </ul>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">GitHub App statt Deploy-Key</div><div class="txt">Coolify kann Repos auch per Deploy-Key klonen. Die GitHub App ist aber der bessere Weg: sie bringt die Webhooks für Auto-Deploy gleich mit, lässt sich pro Repository freigeben und mit einem Klick wieder entziehen.</div></div>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Nur die nötigen Repos freigeben</div><div class="txt">Bei der Installation <b>Only select repositories</b> wählen. „All repositories" gibt einer Anwendung auf deinem Server Lesezugriff auf dein gesamtes GitHub-Konto.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="github-app">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WIEDERKEHREND: pro Anwendung ============ -->
+
+    <!-- Schritt 7 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">7</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro App</span>
+        <h2>Projekt anlegen und Anwendung hinzufügen</h2>
+        <p>Coolify sortiert alles in <b>Projekte</b>; jedes Projekt hat mindestens ein <b>Environment</b> (standardmäßig <code>production</code>). Darin liegen die einzelnen Ressourcen.</p>
+        <ul>
+          <li><b>Projects → + Add</b>, Namen wie den des Repos vergeben</li>
+          <li>Im Environment <b>+ New Resource → Application → Private Repository (with GitHub App)</b></li>
+          <li>Die in Schritt 6 angelegte Source wählen, dann Repository und Branch (meist <code>main</code>)</li>
+        </ul>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Ein zweites Environment für Staging</div><div class="txt">Willst du denselben Code aus einem anderen Branch testen, lege im selben Projekt ein Environment <code>staging</code> an und hänge dort eine zweite Anwendung mit Branch <code>develop</code> und eigener Subdomain ein.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="projekt-anlegen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 8 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">8</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro App</span>
+        <h2>Build-Pack wählen und Port setzen</h2>
+        <p>Das Build-Pack entscheidet, wie aus dem Repository ein Container wird:</p>
+        <ul>
+          <li><b>Dockerfile</b> — dein Repo bringt ein <code>Dockerfile</code> mit. Der ehrlichste Weg: identisch lokal und auf dem Server.</li>
+          <li><b>Docker Compose</b> — mehrere Dienste aus einer <code>compose.yaml</code>, etwa App und Datenbank zusammen.</li>
+          <li><b>Nixpacks</b> — kein Dockerfile nötig, Coolify erkennt die Sprache selbst. Bequem für einen schnellen Start, weniger vorhersagbar.</li>
+        </ul>
+        <p>Unter <b>Configuration → General</b> gehören außerdem hinein:</p>
+        <ul>
+          <li><b>Ports Exposes</b> — der Port, auf dem <b>im Container</b> gelauscht wird, z. B. <code>3000</code></li>
+          <li><b>Base Directory</b> — bei einem Monorepo der Unterordner, z. B. <code>/apps/web</code></li>
+          <li><b>Build Command</b> / <b>Start Command</b> — nur nötig, wenn sie vom Standard abweichen</li>
+        </ul>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Die Anwendung muss auf <code>0.0.0.0</code> lauschen</div><div class="txt">Bindet sie sich im Container an <code>127.0.0.1</code>, erreicht der Proxy sie nicht — der Aufruf endet in einem <code>502 Bad Gateway</code>, obwohl der Container läuft. Das ist mit Abstand der häufigste Stolperstein.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Verwandte Anleitung</div><div class="txt">Wie ein tragfähiges <code>Dockerfile</code>, eine <code>.dockerignore</code> und eine <code>compose.yaml</code> aussehen, steht in <a href="docker-einrichtung.html">Docker einrichten &amp; pro Repository integrieren</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="buildpack">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 9 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">9</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro App</span>
+        <h2>Umgebungsvariablen und Secrets pflegen</h2>
+        <p>Im Reiter <b>Environment Variables</b> trägst du ein, was nicht ins Repository gehört. Der Unterschied zwischen den beiden Arten ist wichtig:</p>
+        <ul>
+          <li><b>Runtime</b> (Standard) — steht dem laufenden Container zur Verfügung. Datenbank-URLs, API-Schlüssel, Tokens.</li>
+          <li><b>Build Time</b> — muss zusätzlich angehakt werden. Nötig für alles, was schon beim Bauen eingesetzt wird, etwa <code>NEXT_PUBLIC_*</code> oder <code>VITE_*</code>.</li>
+        </ul>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Environment Variables (Beispiel)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">NODE_ENV</span>=production
+<span class="tok-k">PORT</span>=3000
+<span class="tok-k">DATABASE_URL</span>=postgres://app:geheim@datenbank:5432/app
+<span class="tok-k">SESSION_SECRET</span>=<span class="tok-s">"per openssl rand -hex 32 erzeugen"</span></pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Die <code>.env</code> bleibt draußen</div><div class="txt">Die echten Werte leben in Coolify, nicht im Repo. Dort gehört nur eine <code>.env.example</code> ohne Geheimnisse hin, und <code>.env</code> in die <code>.gitignore</code>. Was einmal committet wurde, bleibt in der Git-Historie — dann hilft nur noch, das Secret zu wechseln.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Build-Time-Variablen brauchen einen neuen Build</div><div class="txt">Änderst du eine Runtime-Variable, genügt ein Neustart. Bei Build-Time-Variablen muss die Anwendung neu gebaut werden — sonst steckt im Abbild noch der alte Wert.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="env-vars">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 10 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">10</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro App</span>
+        <h2>Domain zuweisen und erstmals ausrollen</h2>
+        <p>Unter <b>Configuration → General → Domains</b> die vollständige URL eintragen — mit <code>https://</code>, ohne abschließenden Schrägstrich:</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Domains</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>https://app.example.de</pre>
+        </div>
+        <p>Speichern, dann oben rechts auf <b>Deploy</b>. Der Build läuft sichtbar im Log mit.</p>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Der Status springt auf <b>Running</b>, das Zertifikat ist da, <code>https://app.example.de</code> zeigt deine Anwendung.</div></div>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Wenn es nicht läuft — in dieser Reihenfolge prüfen</div><div class="txt"><b>Build bricht ab</b> → das Deployment-Log liest sich wie ein lokales <code>docker build</code>; meist fehlt eine Build-Time-Variable. <b>502 Bad Gateway</b> → falscher Port oder Bindung an <code>127.0.0.1</code>. <b>Kein Zertifikat</b> → der DNS-Record zeigt nicht auf den Server, siehe <a href="domain-einrichtung.html">Domain einrichten</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="erstes-deploy">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 11 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">11</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro App</span>
+        <h2>Auto-Deploy prüfen</h2>
+        <p>Über die GitHub App hat Coolify den Webhook bereits eingerichtet. Unter <b>Configuration → General</b> muss nur <b>Auto Deploy</b> aktiv sein — dann löst jeder Push auf den gewählten Branch ein neues Deployment aus.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (lokal) — Test</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git commit <span class="tok-k">-m</span> <span class="tok-s">"Auto-Deploy testen"</span> <span class="tok-k">--allow-empty</span>
+git push origin main</pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Wenige Sekunden nach dem Push erscheint unter <b>Deployments</b> ein neuer Eintrag. Damit ist der Kreis geschlossen: Push → Build → Container-Tausch, ohne dass du dich auf dem Server anmeldest.</div></div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Passiert nichts?</div><div class="txt">Im Repository unter <b>Settings → GitHub Apps → Advanced</b> die letzten Webhook-Zustellungen ansehen. Ein roter Eintrag zeigt, ob GitHub Coolify überhaupt erreicht hat — das trennt Netzproblem von Konfigurationsfehler.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="autodeploy">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 12 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">12</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro App</span>
+        <h2>Betrieb: Logs, Rollback, Speicher, Updates</h2>
+        <p>Was du im Alltag brauchst — das meiste davon direkt im Dashboard:</p>
+        <ul>
+          <li><b>Logs</b> — laufende Ausgabe des Containers, ohne SSH</li>
+          <li><b>Terminal</b> — Shell im Container, praktisch für Migrationen</li>
+          <li><b>Deployments → Rollback</b> — zurück auf ein früheres Abbild, wenn ein Deploy etwas kaputt macht</li>
+          <li><b>Persistent Storage</b> — ein Volume für Uploads oder eine SQLite-Datei; ohne das ist beim nächsten Deploy alles weg</li>
+        </ul>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Container sind vergänglich</div><div class="txt">Jedes Deployment ersetzt den Container vollständig. Alles, was nicht in einem Volume oder einer Datenbank liegt — hochgeladene Dateien, generierte Bilder, eine SQLite-Datei im Projektordner — ist danach verschwunden. Volumes <b>vor</b> dem ersten produktiven Einsatz anlegen.</div></div>
+        </div>
+        <p>Coolify selbst aktualisierst du unter <b>Settings → Update</b>. Vorher lohnt ein Blick auf das Datenverzeichnis:</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — Zustand und Platz</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>docker ps                        <span class="tok-c"># Laufen alle Container?</span>
+docker system df                 <span class="tok-c"># Platzverbrauch von Abbildern und Volumes</span>
+sudo du <span class="tok-k">-sh</span> /data/coolify         <span class="tok-c"># Coolifys Daten — das gehört ins Backup</span></pre>
+        </div>
+        <div class="fotozone" data-schritt="betrieb">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 10</span>
+    </header>
+    <div class="check" data-check="voraussetzungen"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Server abgesichert, Ports 80/443/8000 frei</span></div>
+    <div class="check" data-check="installiert"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Coolify installiert, Container laufen</span></div>
+    <div class="check" data-check="ports-gesetzt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">UFW: 80/443 offen, <code>8000</code> zu</span></div>
+    <div class="check" data-check="admin-konto"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Admin-Konto mit starkem Passwort angelegt</span></div>
+    <div class="check" data-check="registrierung-zu"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Registrierung geschlossen, Dashboard-Domain gesetzt</span></div>
+    <div class="check" data-check="github-app"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">GitHub App angelegt, nur nötige Repos freigegeben</span></div>
+    <div class="check" data-check="app-angelegt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Anwendung angelegt, Build-Pack und Port gesetzt</span></div>
+    <div class="check" data-check="env-gesetzt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Umgebungsvariablen gepflegt, <code>.env</code> nicht im Repo</span></div>
+    <div class="check" data-check="domain-live"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Domain erreichbar, Zertifikat gültig</span></div>
+    <div class="check" data-check="autodeploy"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Push löst automatisch ein Deployment aus</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

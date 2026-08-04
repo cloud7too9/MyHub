@@ -44,12 +44,28 @@ const REGISTER = [
     "stichworte": "github privat authentifizierung anmeldung token pat ssh schluessel login vscode zugriff credentials fine-grained"
   },
   {
+    "id": "coolify-einrichtung",
+    "titel": "Coolify einrichten & Projekte ausrollen",
+    "untertitel": "Installation, GitHub-Anbindung, erste App",
+    "kategorie": "Server",
+    "datei": "anleitungen/coolify-einrichtung.html",
+    "stichworte": "coolify paas self hosted docker traefik proxy deploy github app webhook auto deploy umgebungsvariablen env secrets domain buildpack nixpacks dockerfile compose dashboard port 8000 rollback persistent storage hetzner update"
+  },
+  {
     "id": "docker-einrichtung",
     "titel": "Docker einrichten & pro Repository integrieren",
     "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
     "kategorie": "Server",
     "datei": "anleitungen/docker-einrichtung.html",
     "stichworte": "docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx"
+  },
+  {
+    "id": "domain-einrichtung",
+    "titel": "Domain einrichten & per HTTPS ausliefern",
+    "untertitel": "Nameserver, A/AAAA-Records, Let's Encrypt",
+    "kategorie": "Server",
+    "datei": "anleitungen/domain-einrichtung.html",
+    "stichworte": "domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung"
   },
   {
     "id": "server-ersteinrichtung",
