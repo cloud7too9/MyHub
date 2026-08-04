@@ -295,7 +295,7 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <li><b>Runtime</b> (Standard) — steht dem laufenden Container zur Verfügung. Datenbank-URLs, API-Schlüssel, Tokens.</li>
           <li><b>Build Time</b> — muss zusätzlich angehakt werden. Nötig für alles, was schon beim Bauen eingesetzt wird, etwa <code>NEXT_PUBLIC_*</code> oder <code>VITE_*</code>.</li>
         </ul>
-        <div class="codebox">
+        <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">Environment Variables (Beispiel)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre><span class="tok-k">NODE_ENV</span>=production
 <span class="tok-k">PORT</span>=3000

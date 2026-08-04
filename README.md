@@ -42,6 +42,11 @@ hefter/
      Checklisten-Punkt — **stabile, beliebige IDs**; nie wiederverwenden,
      sonst wandern Fotos/Haken mit. Duplikate innerhalb einer Seite fängt
      das Build-Skript mit einer klaren Fehlermeldung ab.
+   - Codeboxen: Befehle sind der Standard und brauchen nichts. Enthält eine
+     Box stattdessen einen **Dateiinhalt**, bekommt sie `data-typ="datei"`.
+     Ein **Befehl über mehrere Zeilen** (Heredoc, `for`-Schleife,
+     Backslash-Fortsetzung) wird in `<span class="befehl">…</span>`
+     geklammert, damit er als ein Befehl kopiert wird.
 3. `node bauen.mjs` ausführen.
 4. Committen und pushen.
 
@@ -70,7 +75,14 @@ node bauen.mjs
   Der Filter unter dem Kopf blendet einmalige Schritte aus; die Wahl wird
   je Seite gemerkt. `stufenwechsel` am letzten Schritt eines Abschnitts
   unterdrückt die Verbindungslinie.
-- Codeboxen mit Kopieren-Knopf (bleiben in beiden Themes dunkel).
+- Codeboxen (bleiben in beiden Themes dunkel) in zwei Ausprägungen:
+  **Befehle** (Standard) bekommen je Befehlszeile einen eigenen
+  Kopier-Knopf — Kommentar- und Leerzeilen keinen. Ein Knopf über dem
+  ganzen Block wäre eine Falle: eingefügt liefe alles auf einmal durch,
+  auch dort, wo erst das Ergebnis zu lesen ist (`sshd -t`, `nginx -t`)
+  oder ein Skript vor dem Ausführen angesehen werden soll.
+  **Dateiinhalte** werden mit `data-typ="datei"` an der `.codebox`
+  ausgezeichnet und behalten den Knopf für den ganzen Block.
 - Callouts: `info`, `sicher`/`achtung` (Gelb), `ergebnis` (Grün), `gefahr` (Rot).
 - Foto anfügen: Foto wählen → im 16:9-Feld schieben/zoomen → Übernehmen
   hängt den Ausschnitt unter den Schritt (1280×720 JPEG).

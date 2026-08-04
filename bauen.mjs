@@ -44,6 +44,16 @@ const entitaetenAufloesen = s => s
   .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
   .replace(/&amp;/g, "&");
 
+/* Nur "datei" schaltet eine Codebox auf Block-Kopieren um. Ein Tippfehler
+   fiele sonst nicht auf: die Box verhielte sich still wie eine Befehlsbox,
+   und der Dateiinhalt wäre nur noch zeilenweise zu kopieren. */
+function codeboxTypenPruefen(html, datei) {
+  const falsch = [...html.matchAll(/<div class="codebox" data-typ="([^"]*)"/g)]
+    .map(m => m[1]).filter(w => w !== "datei");
+  if (falsch.length)
+    throw new Error(`${datei}: unbekanntes data-typ an einer Codebox — ${[...new Set(falsch)].join(", ")}`);
+}
+
 const register = anleitungsDateien.map(f => {
   const h = readFileSync(join(WURZEL, "anleitungen", f), "utf8");
   const greifen = (re, was) => {
@@ -53,6 +63,7 @@ const register = anleitungsDateien.map(f => {
   };
   eindeutigPruefen(h, f, "data-check");
   eindeutigPruefen(h, f, "data-schritt");
+  codeboxTypenPruefen(h, f);
   return {
     id: f.replace(/\.html$/, ""),
     titel: greifen(/<h1>([\s\S]*?)<\/h1>/, "<h1>"),

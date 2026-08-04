@@ -195,7 +195,7 @@ sudo whoami</pre>
           <div class="codebox-head"><span class="fname">Server — vorhandene Schnipsel ansehen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>ls -l /etc/ssh/sshd_config.d/</pre>
         </div>
-        <div class="codebox">
+        <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">/etc/ssh/sshd_config.d/00-haertung.conf</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre><span class="tok-c"># Nur noch Schlüssel-Anmeldung, kein root, keine Passwörter</span>
 <span class="tok-k">PermitRootLogin</span> no
@@ -278,7 +278,7 @@ sudo ufw status verbose</pre>
           <pre>sudo apt install fail2ban -y
 sudo nano /etc/fail2ban/jail.local</pre>
         </div>
-        <div class="codebox">
+        <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">/etc/fail2ban/jail.local</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>[DEFAULT]
 <span class="tok-c"># Eigene IP nie sperren (mehrere durch Leerzeichen trennen)</span>
@@ -351,7 +351,7 @@ sudo unattended-upgrades --dry-run --debug</pre>
           <div class="codebox-head"><span class="fname">Server — Socket-Override anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>sudo systemctl edit ssh.socket</pre>
         </div>
-        <div class="codebox">
+        <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">Inhalt des Overrides</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>[Socket]
 <span class="tok-c"># Leere Zeile löscht den Standard-Port 22</span>
