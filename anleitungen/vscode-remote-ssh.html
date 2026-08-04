@@ -120,7 +120,7 @@ code -v</pre>
           <div class="codebox-head"><span class="fname">PowerShell (lokal) — Datei öffnen bzw. anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>notepad <span class="tok-s">"$env:USERPROFILE\.ssh\config"</span></pre>
         </div>
-        <div class="codebox">
+        <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">C:\Users\&lt;Name&gt;\.ssh\config</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre><span class="tok-k">Host</span> web01
     <span class="tok-k">HostName</span> &lt;SERVER-IP&gt;
@@ -358,7 +358,7 @@ docker ps</pre>
         </div>
         <p><b>Weg A — an einen laufenden Container andocken.</b> <b>F1</b> → <code>Dev Containers: Attach to Running Container…</code> → Container auswählen. Gut zum Nachsehen und für schnelle Eingriffe.</p>
         <p><b>Weg B — im Container entwickeln.</b> Eine <code>devcontainer.json</code> ins Repo legen, dann <b>F1</b> → <code>Dev Containers: Reopen in Container</code>. Der Editor benutzt danach die Werkzeuge und Bibliotheken aus dem Container statt die des Servers.</p>
-        <div class="codebox">
+        <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">.devcontainer/devcontainer.json</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>{
   <span class="tok-k">"name"</span>: <span class="tok-s">"mein-projekt"</span>,

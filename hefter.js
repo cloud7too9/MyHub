@@ -222,12 +222,116 @@ function registerAufbauen() {
 
 /* ============================================================
    KOPIEREN
+   Zwei Arten von Codeboxen:
+
+   Befehle (Standard)   je Befehlszeile ein eigener Knopf.
+                        Ein Knopf über dem ganzen Block wäre eine
+                        Falle: eingefügt läuft alles auf einmal
+                        durch — auch dort, wo das Ergebnis eines
+                        Befehls erst gelesen werden muss (sshd -t,
+                        nginx -t) oder wo ein Skript vor dem
+                        Ausführen angesehen werden soll.
+   data-typ="datei"     Dateiinhalt, gehört als Ganzes kopiert —
+                        behält den Knopf im Kopf der Box.
    ============================================================ */
+const KOPIE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>';
+const HAKEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="15" height="15"><path d="M20 6L9 17l-5-5"/></svg>';
+
+/* Zerlegt den <pre>-Inhalt in Zeilen — auf Knotenebene, damit die
+   tok-Spans erhalten bleiben. Ein <span class="befehl"> gilt als
+   eine einzige Zeile, auch wenn es mehrere umfasst: so bleiben
+   Heredocs, for-Schleifen und Backslash-Fortsetzungen zusammen. */
+function inZeilenZerlegen(pre) {
+  const zeilen = [[]];
+  for (const knoten of [...pre.childNodes]) {
+    if (knoten.nodeType === 1 && knoten.classList.contains("befehl")) {
+      /* Der Befehl belegt seine Zeilen allein. Danach wird bewusst keine
+         neue Zeile begonnen — den Umbruch bringt der folgende Textknoten
+         schon mit, sonst entstünde eine Leerzeile zu viel. */
+      if (zeilen.at(-1).length) zeilen.push([]);
+      zeilen[zeilen.length - 1] = [knoten];
+      continue;
+    }
+    if (knoten.nodeType === 3) {
+      const teile = knoten.data.split("\n");
+      teile.forEach((t, i) => {
+        if (i) zeilen.push([]);
+        if (t) zeilen.at(-1).push(document.createTextNode(t));
+      });
+      continue;
+    }
+    zeilen.at(-1).push(knoten);
+  }
+  return zeilen;
+}
+
+/* Was kopiert wird: der Zeilentext ohne angehängten Kommentar —
+   "docker compose ps   # Zustand" ergibt "docker compose ps". */
+function befehlstext(zeile) {
+  const klon = zeile.cloneNode(true);
+  const letztes = klon.lastElementChild;
+  if (letztes && letztes.classList.contains("tok-c")) letztes.remove();
+  return klon.textContent.replace(/\s+$/, "");
+}
+
+function rueckmeldung(btn, inhalt) {
+  btn.innerHTML = HAKEN_ICON;
+  btn.classList.add("ok");
+  setTimeout(() => { btn.innerHTML = inhalt; btn.classList.remove("ok"); }, 1400);
+}
+
+async function inZwischenablage(text) {
+  try { await navigator.clipboard.writeText(text); } catch {}
+}
+
+function befehlsboxAufbauen(box) {
+  const pre = box.querySelector("pre");
+  if (!pre) return;
+
+  const zeilen = inZeilenZerlegen(pre);
+  pre.textContent = "";
+  pre.classList.add("befehle");
+
+  for (const knoten of zeilen) {
+    const zeile = document.createElement("div");
+    zeile.className = "zeile";
+    const code = document.createElement("span");
+    code.className = "zeile-code";
+    knoten.forEach(k => code.appendChild(k));
+    zeile.appendChild(code);
+
+    const text = code.textContent;
+    const istBefehl = knoten.some(k => k.nodeType === 1 && k.classList?.contains("befehl"))
+      || (text.trim() !== "" && !/^\s*[#;]/.test(text));
+
+    if (istBefehl) {
+      const btn = document.createElement("button");
+      btn.className = "befehlbtn";
+      btn.innerHTML = KOPIE_ICON;
+      btn.setAttribute("aria-label", "Befehl kopieren");
+      btn.title = "Diesen Befehl kopieren";
+      btn.addEventListener("click", async () => {
+        await inZwischenablage(befehlstext(code));
+        rueckmeldung(btn, KOPIE_ICON);
+      });
+      zeile.appendChild(btn);
+    }
+    pre.appendChild(zeile);
+  }
+
+  /* Der Block-Knopf würde genau das erlauben, was hier verhindert
+     werden soll — er verschwindet, die Beschriftung bleibt. */
+  box.querySelector(".codebox-head .copybtn")?.remove();
+}
+
 function kopierenAktivieren() {
+  document.querySelectorAll(".codebox:not([data-typ='datei'])").forEach(befehlsboxAufbauen);
+
+  /* Bleibt für Dateiinhalte: dort gehört der ganze Block in die
+     Zwischenablage. */
   document.querySelectorAll(".copybtn").forEach(btn => {
     btn.addEventListener("click", async () => {
-      const text = btn.closest(".codebox").querySelector("pre").innerText;
-      try { await navigator.clipboard.writeText(text); } catch {}
+      await inZwischenablage(btn.closest(".codebox").querySelector("pre").innerText);
       btn.textContent = "Kopiert"; btn.classList.add("ok");
       setTimeout(() => { btn.textContent = "Kopieren"; btn.classList.remove("ok"); }, 1400);
     });

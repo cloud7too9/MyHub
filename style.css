@@ -321,6 +321,29 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .codebox pre .tok-k { color: #00e5ff; }
 .codebox pre .tok-s { color: #7ee0b0; }
 
+/* ---------- Befehlsbox: je Befehl ein Knopf ----------
+   Aufgebaut von hefter.js. Das Scrollen wandert vom <pre> in die
+   einzelne Zeile — sonst schöbe eine lange Zeile die Knopfspalte
+   aus der Box, die auf overflow:hidden steht. */
+.codebox pre.befehle { padding: 10px 0; overflow-x: visible; }
+.codebox pre.befehle .zeile {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start; gap: 8px;
+  padding: 0 8px 0 14px; min-height: 1.65em;
+}
+.codebox pre.befehle .zeile-code { display: block; overflow-x: auto; }
+/* Dünne Leiste, damit die Zeilen nicht auseinanderrutschen */
+.codebox pre.befehle .zeile-code { scrollbar-width: thin; }
+.befehlbtn {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 26px; padding: 0; border-radius: 7px;
+  background: #171a22; color: #8b93a6; border: 1px solid #262b37;
+  cursor: pointer;
+}
+.befehlbtn:hover { border-color: var(--accent); color: #fff; }
+.befehlbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.befehlbtn.ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 50%, #262b37); }
+
 /* ---------- Callouts ---------- */
 .callout {
   --c: var(--accent);
