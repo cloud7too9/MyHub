@@ -25,9 +25,9 @@ const WURZEL = fileURLToPath(new URL(".", import.meta.url));
 const anleitungsDateien = readdirSync(join(WURZEL, "anleitungen"))
   .filter(f => f.endsWith(".html")).sort();
 
-/* Checklisten-Fortschritt und Fotos werden über diese IDs zugeordnet.
-   Ein Duplikat legt zwei Häkchen bzw. zwei Fotozonen still zusammen —
-   im Browser praktisch nicht zu bemerken, deshalb hier hart abbrechen. */
+/* Der Checklisten-Fortschritt wird über diese IDs zugeordnet. Ein Duplikat
+   legt zwei Häkchen still zusammen — im Browser praktisch nicht zu
+   bemerken, deshalb hier hart abbrechen. */
 function eindeutigPruefen(html, datei, attribut) {
   const werte = [...html.matchAll(new RegExp(`${attribut}="([^"]*)"`, "g"))].map(m => m[1]);
   const doppelt = [...new Set(werte.filter((w, i) => werte.indexOf(w) !== i))];
@@ -62,7 +62,6 @@ const register = anleitungsDateien.map(f => {
     return entitaetenAufloesen(m[1].trim());
   };
   eindeutigPruefen(h, f, "data-check");
-  eindeutigPruefen(h, f, "data-schritt");
   codeboxTypenPruefen(h, f);
   return {
     id: f.replace(/\.html$/, ""),

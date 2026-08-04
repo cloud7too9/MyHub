@@ -103,14 +103,8 @@ const BASIS = document.body.dataset.basis || "";
 const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
-  checks: id => "hefter:checks:" + id,
-  fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
+  checks: id => "hefter:checks:" + id
 };
-
-function neueId() {
-  try { return crypto.randomUUID(); }
-  catch { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2); }
-}
 
 /* ============================================================
    THEME
@@ -381,172 +375,6 @@ function checklisteAktivieren() {
 }
 
 /* ============================================================
-   FOTO ANFÜGEN
-   16:9-Editor · Ablage in IndexedDB als Blob (kein 5-MB-Limit,
-   kein base64-Aufschlag) · Zuordnung über data-schritt-IDs.
-   Altbestände aus localStorage werden einmalig übernommen.
-   ============================================================ */
-function fotosAktivieren() {
-  const zonen = [...document.querySelectorAll(".fotozone")];
-  if (!zonen.length) return;
-  const seite = document.body.dataset.seite;
-  const zonenNachSchritt = {};
-  zonen.forEach(z => { if (z.dataset.schritt) zonenNachSchritt[z.dataset.schritt] = z; });
-
-  /* ---------- IndexedDB ---------- */
-  const dbBereit = new Promise((res, rej) => {
-    const r = indexedDB.open("hefter", 1);
-    r.onupgradeneeded = () => {
-      const store = r.result.createObjectStore("fotos", { keyPath: "id" });
-      store.createIndex("seite", "seite");
-    };
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-  const dbAblegen = rec => dbBereit.then(db => new Promise((res, rej) => {
-    const t = db.transaction("fotos", "readwrite");
-    t.objectStore("fotos").put(rec);
-    t.oncomplete = res; t.onerror = () => rej(t.error);
-  }));
-  const dbLoeschen = id => dbBereit.then(db => new Promise((res, rej) => {
-    const t = db.transaction("fotos", "readwrite");
-    t.objectStore("fotos").delete(id);
-    t.oncomplete = res; t.onerror = () => rej(t.error);
-  }));
-  const dbAlle = () => dbBereit.then(db => new Promise((res, rej) => {
-    const anfrage = db.transaction("fotos").objectStore("fotos").index("seite").getAll(seite);
-    anfrage.onsuccess = () => res(anfrage.result || []);
-    anfrage.onerror = () => rej(anfrage.error);
-  }));
-
-  /* ---------- Editor-Overlay einmalig einhängen ---------- */
-  document.body.insertAdjacentHTML("beforeend", `
-    <div class="editor-back" id="editorBack">
-      <div class="editor">
-        <h3>Foto ins 16:9-Feld setzen</h3>
-        <p class="hint">Ziehen zum Verschieben · Regler zum Zoomen. Der sichtbare Ausschnitt wird angehängt.</p>
-        <div class="stage" id="stage"><img id="stageImg" alt=""></div>
-        <div class="zoomrow">
-          <label for="zoom">Zoom</label>
-          <input type="range" id="zoom" min="1" max="3" step="0.01" value="1">
-        </div>
-        <div class="editor-actions">
-          <button class="iconbtn" id="btnCancel">Verwerfen</button>
-          <button class="iconbtn primary" id="btnApply">Übernehmen</button>
-        </div>
-      </div>
-    </div>
-    <input type="file" id="fotoDatei" accept="image/*" style="display:none">`);
-
-  const back = document.getElementById("editorBack"), stage = document.getElementById("stage");
-  const stageImg = document.getElementById("stageImg"), zoom = document.getElementById("zoom");
-  const datei = document.getElementById("fotoDatei");
-  let zielSchritt = null, nat = { w: 0, h: 0 }, cover = 1, scale = 1, pos = { x: 0, y: 0 }, frame = { w: 0, h: 0 };
-
-  function fotoEinhaengen(zone, rec) {
-    const fig = document.createElement("div"); fig.className = "foto";
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(rec.blob); img.alt = "Angehängtes Foto";
-    img.onload = () => URL.revokeObjectURL(img.src);
-    const rm = document.createElement("button"); rm.className = "rm"; rm.setAttribute("aria-label", "Foto entfernen");
-    rm.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-    rm.addEventListener("click", () => {
-      dbLoeschen(rec.id).catch(() => {});
-      fig.remove();
-    });
-    fig.append(img, rm);
-    zone.querySelector(".fotos").appendChild(fig);
-  }
-
-  /* Altbestand aus localStorage (base64, Positions-Index) einmalig übernehmen */
-  async function altbestandUebernehmen() {
-    if (!seite) return;
-    let alt = null;
-    try { alt = JSON.parse(localStorage.getItem(KEY.fotos(seite)) || "null"); } catch {}
-    if (!alt) return;
-    for (const [index, liste] of Object.entries(alt)) {
-      const schritt = zonen[+index]?.dataset.schritt;
-      if (!schritt) continue;
-      for (const dataURL of liste) {
-        try {
-          const blob = await (await fetch(dataURL)).blob();
-          await dbAblegen({ id: neueId(), seite, schritt, zeit: Date.now(), blob });
-        } catch {}
-      }
-    }
-    try { localStorage.removeItem(KEY.fotos(seite)); } catch {}
-  }
-
-  /* Gespeicherte Fotos laden und einhängen */
-  (async () => {
-    await altbestandUebernehmen();
-    const alle = await dbAlle();
-    alle.sort((a, b) => a.zeit - b.zeit).forEach(rec => {
-      const zone = zonenNachSchritt[rec.schritt];
-      if (zone) fotoEinhaengen(zone, rec);
-    });
-  })().catch(() => {});
-
-  zonen.forEach(zone => {
-    zone.querySelector(".addfoto").addEventListener("click", () => {
-      zielSchritt = zone.dataset.schritt;
-      datei.value = ""; datei.click();
-    });
-  });
-
-  datei.addEventListener("change", () => {
-    const f = datei.files[0]; if (!f) return;
-    const url = URL.createObjectURL(f);
-    stageImg.onload = () => {
-      nat = { w: stageImg.naturalWidth, h: stageImg.naturalHeight };
-      back.classList.add("open");
-      frame = { w: stage.clientWidth, h: stage.clientHeight };
-      cover = Math.max(frame.w / nat.w, frame.h / nat.h);
-      zoom.value = 1; scale = cover;
-      pos = { x: (frame.w - nat.w * scale) / 2, y: (frame.h - nat.h * scale) / 2 };
-      anwenden();
-      URL.revokeObjectURL(url);
-    };
-    stageImg.src = url;
-  });
-
-  function anwenden() {
-    const w = nat.w * scale, h = nat.h * scale;
-    pos.x = Math.min(0, Math.max(frame.w - w, pos.x));
-    pos.y = Math.min(0, Math.max(frame.h - h, pos.y));
-    stageImg.style.transform = `translate(${pos.x}px,${pos.y}px) scale(${scale})`;
-  }
-  zoom.addEventListener("input", () => {
-    const cx = frame.w / 2, cy = frame.h / 2, prev = scale;
-    scale = cover * parseFloat(zoom.value);
-    pos.x = cx - (cx - pos.x) * (scale / prev);
-    pos.y = cy - (cy - pos.y) * (scale / prev);
-    anwenden();
-  });
-  let drag = null;
-  stage.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; stage.setPointerCapture(e.pointerId); stage.classList.add("dragging"); });
-  stage.addEventListener("pointermove", e => { if (!drag) return; pos.x += e.clientX - drag.x; pos.y += e.clientY - drag.y; drag = { x: e.clientX, y: e.clientY }; anwenden(); });
-  stage.addEventListener("pointerup", () => { drag = null; stage.classList.remove("dragging"); });
-  stage.addEventListener("pointercancel", () => { drag = null; stage.classList.remove("dragging"); });
-  document.getElementById("btnCancel").addEventListener("click", () => back.classList.remove("open"));
-  back.addEventListener("click", e => { if (e.target === back) back.classList.remove("open"); });
-
-  document.getElementById("btnApply").addEventListener("click", () => {
-    const OUT_W = 1280, ratio = OUT_W / frame.w;
-    const cv = document.createElement("canvas"); cv.width = OUT_W; cv.height = 720;
-    cv.getContext("2d").drawImage(stageImg, pos.x * ratio, pos.y * ratio, nat.w * scale * ratio, nat.h * scale * ratio);
-    cv.toBlob(async blob => {
-      const rec = { id: neueId(), seite, schritt: zielSchritt, zeit: Date.now(), blob };
-      try { await dbAblegen(rec); }
-      catch { alert("Foto konnte nicht dauerhaft gespeichert werden — es bleibt nur bis zum Neuladen sichtbar."); }
-      const zone = zonenNachSchritt[zielSchritt];
-      if (zone) fotoEinhaengen(zone, rec);
-      back.classList.remove("open");
-    }, "image/jpeg", 0.85);
-  });
-}
-
-/* ============================================================
    SCHRITT-STUFEN  (einmalig ausblenden, Wahl je Seite merken)
    ============================================================ */
 function stufenfilterAktivieren() {
@@ -604,7 +432,6 @@ iconAnwenden(iconAktiv(), false);
 kopierenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
-fotosAktivieren();
 
 /* ============================================================
    UPDATE-FLUSS

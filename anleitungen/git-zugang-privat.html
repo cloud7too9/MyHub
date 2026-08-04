@@ -60,10 +60,6 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Empfehlung</div><div class="txt">Eigener Hauptrechner: <b>A</b> für den schnellen Start, <b>C</b> für die Dauer. Für den SSD-Workflow an fremden Rechnern gibt es die eigene Anleitung <a href="git-ssd.html">Git von der portablen SSD nutzen</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="weg-wahl">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -78,10 +74,6 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
         <div class="callout ergebnis">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Die Zugangsdaten liegen im Anmeldeinformations&shy;manager des Systems (unter Windows: Anmeldeinformationsverwaltung) — keine erneute Anmeldung nötig. Sie hängen damit an <b>diesem Rechner</b>, nicht am Projekt.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="weg-a-login">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -102,10 +94,6 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
         <div class="callout gefahr">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Wie ein Passwort behandeln</div><div class="txt">Das Token wird nach dem Erstellen genau einmal angezeigt. Nirgendwo in Dateien oder Repos ablegen — wer es hat, hat den Repo-Zugriff.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="weg-b-token">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -137,10 +125,6 @@ cat ~/.ssh/id_ed25519.pub</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Schlüssel schon vorhanden?</div><div class="txt">Wer <a href="vscode-remote-ssh.html">VS Code mit dem Hetzner-Server verbinden</a> durchlaufen hat, besitzt <code>~/.ssh/id_ed25519</code> bereits — derselbe Schlüssel dient dort als Server-Zugang. Dann hier nichts neu erzeugen, nur den öffentlichen Teil zusätzlich bei GitHub hinterlegen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="weg-c-ssh">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -156,10 +140,6 @@ cat ~/.ssh/id_ed25519.pub</pre>
 ssh -T git@github.com</pre>
         </div>
         <p>Bei Weg A und B genügt der Praxistest: ein privates Repo klonen oder einen kleinen Commit pushen — läuft es ohne Nachfrage durch, sitzt der Zugang.</p>
-        <div class="fotozone" data-schritt="zugang-test">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -176,7 +156,7 @@ ssh -T git@github.com</pre>
     <div class="check" data-check="test-ok"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Klonen/Pushen eines privaten Repos läuft ohne Nachfrage</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>

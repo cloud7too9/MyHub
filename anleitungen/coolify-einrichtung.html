@@ -75,10 +75,6 @@ sudo ss <span class="tok-k">-tulpn</span> | grep <span class="tok-k">-E</span> <
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Nginx oder ein eigener Traefik stehen im Weg</div><div class="txt">Coolify startet seinen eigenen Proxy auf <code>80</code> und <code>443</code>. Läuft dort schon ein Nginx aus einer früheren Einrichtung, bleibt Coolifys Proxy mit <code>address already in use</code> stehen. Vorher <code>sudo systemctl disable --now nginx</code> — oder Coolify auf einen frischen Server setzen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="voraussetzungen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -109,10 +105,6 @@ sudo bash install-coolify.sh</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Verwandte Anleitung</div><div class="txt">Wie Docker von Hand eingerichtet wird und was es mit der UFW-Falle auf sich hat, steht in <a href="docker-einrichtung.html">Docker einrichten &amp; pro Repository integrieren</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="installer">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -142,10 +134,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Ein offenes Dashboard ist ein offener Server</div><div class="txt">Wer Coolify bedienen kann, kann Container starten, Umgebungsvariablen lesen und ein Terminal öffnen. Das Dashboard über <code>http://&lt;IP&gt;:8000</code> ungeschützt im Netz stehen zu lassen — auch nur „kurz zum Einrichten" — ist die riskanteste Abkürzung dieser Anleitung.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ufw-tunnel">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -164,10 +152,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
         <div class="callout gefahr">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Das Zeitfenster zwischen Installation und Registrierung</div><div class="txt">Solange kein Konto existiert und die Registrierung offen ist, wird der Erste, der das Formular findet, Administrator deiner Instanz. Deshalb: Konto direkt nach der Installation anlegen und die Registrierung im selben Zug schließen.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="admin-konto">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -192,10 +176,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Erst DNS, dann Domain eintragen</div><div class="txt">Zeigt der Record noch nicht auf den Server, scheitert die Zertifikatsausstellung — und das Dashboard ist unter der neuen Adresse nicht erreichbar. Der SSH-Tunnel aus Schritt 3 bleibt in dem Fall dein Rückweg.</div></div>
         </div>
-        <div class="fotozone" data-schritt="instance-domain">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -219,10 +199,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Nur die nötigen Repos freigeben</div><div class="txt">Bei der Installation <b>Only select repositories</b> wählen. „All repositories" gibt einer Anwendung auf deinem Server Lesezugriff auf dein gesamtes GitHub-Konto.</div></div>
         </div>
-        <div class="fotozone" data-schritt="github-app">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -243,10 +219,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Ein zweites Environment für Staging</div><div class="txt">Willst du denselben Code aus einem anderen Branch testen, lege im selben Projekt ein Environment <code>staging</code> an und hänge dort eine zweite Anwendung mit Branch <code>develop</code> und eigener Subdomain ein.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="projekt-anlegen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -277,10 +249,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Verwandte Anleitung</div><div class="txt">Wie ein tragfähiges <code>Dockerfile</code>, eine <code>.dockerignore</code> und eine <code>compose.yaml</code> aussehen, steht in <a href="docker-einrichtung.html">Docker einrichten &amp; pro Repository integrieren</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="buildpack">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -310,10 +278,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Build-Time-Variablen brauchen einen neuen Build</div><div class="txt">Änderst du eine Runtime-Variable, genügt ein Neustart. Bei Build-Time-Variablen muss die Anwendung neu gebaut werden — sonst steckt im Abbild noch der alte Wert.</div></div>
         </div>
-        <div class="fotozone" data-schritt="env-vars">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -337,10 +301,6 @@ ssh <span class="tok-k">-L</span> 8000:localhost:8000 deploy@203.0.113.10</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Wenn es nicht läuft — in dieser Reihenfolge prüfen</div><div class="txt"><b>Build bricht ab</b> → das Deployment-Log liest sich wie ein lokales <code>docker build</code>; meist fehlt eine Build-Time-Variable. <b>502 Bad Gateway</b> → falscher Port oder Bindung an <code>127.0.0.1</code>. <b>Kein Zertifikat</b> → der DNS-Record zeigt nicht auf den Server, siehe <a href="domain-einrichtung.html">Domain einrichten</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="erstes-deploy">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -363,10 +323,6 @@ git push origin main</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Passiert nichts?</div><div class="txt">Im Repository unter <b>Settings → GitHub Apps → Advanced</b> die letzten Webhook-Zustellungen ansehen. Ein roter Eintrag zeigt, ob GitHub Coolify überhaupt erreicht hat — das trennt Netzproblem von Konfigurationsfehler.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="autodeploy">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -395,10 +351,6 @@ git push origin main</pre>
 docker system df                 <span class="tok-c"># Platzverbrauch von Abbildern und Volumes</span>
 sudo du <span class="tok-k">-sh</span> /data/coolify         <span class="tok-c"># Coolifys Daten — das gehört ins Backup</span></pre>
         </div>
-        <div class="fotozone" data-schritt="betrieb">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -422,7 +374,7 @@ sudo du <span class="tok-k">-sh</span> /data/coolify         <span class="tok-c"
     <div class="check" data-check="autodeploy"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Push löst automatisch ein Deployment aus</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>

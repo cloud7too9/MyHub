@@ -38,10 +38,10 @@ hefter/
    - `<span class="chip">` — wird zur Register-Kategorie
    - `<meta name="hefter-untertitel">` und `<meta name="hefter-stichworte">`
    - `data-seite="…"` am `<body>` — eindeutige Seiten-ID für die Speicherung
-   - `data-schritt="…"` an jeder `.fotozone`, `data-check="…"` an jedem
-     Checklisten-Punkt — **stabile, beliebige IDs**; nie wiederverwenden,
-     sonst wandern Fotos/Haken mit. Duplikate innerhalb einer Seite fängt
-     das Build-Skript mit einer klaren Fehlermeldung ab.
+   - `data-check="…"` an jedem Checklisten-Punkt — **stabile, beliebige
+     IDs**; nie wiederverwenden, sonst wandern Haken mit. Duplikate
+     innerhalb einer Seite fängt das Build-Skript mit einer klaren
+     Fehlermeldung ab.
    - Codeboxen: Befehle sind der Standard und brauchen nichts. Enthält eine
      Box stattdessen einen **Dateiinhalt**, bekommt sie `data-typ="datei"`.
      Ein **Befehl über mehrere Zeilen** (Heredoc, `for`-Schleife,
@@ -84,22 +84,20 @@ node bauen.mjs
   **Dateiinhalte** werden mit `data-typ="datei"` an der `.codebox`
   ausgezeichnet und behalten den Knopf für den ganzen Block.
 - Callouts: `info`, `sicher`/`achtung` (Gelb), `ergebnis` (Grün), `gefahr` (Rot).
-- Foto anfügen: Foto wählen → im 16:9-Feld schieben/zoomen → Übernehmen
-  hängt den Ausschnitt unter den Schritt (1280×720 JPEG).
 - Abschluss-Checkliste mit Fortschrittszähler.
 
 ## Speicherung (alles lokal auf dem Gerät)
 
 | Was                          | Wo                                   |
 |------------------------------|--------------------------------------|
-| Fotos                        | IndexedDB `hefter` → Store `fotos` (Blobs, an `data-schritt`-IDs) |
 | Checklisten-Haken            | `localStorage` `hefter:checks:<seite>` (Array von `data-check`-IDs) |
 | Design (dunkel/hell)         | `localStorage` `hefter:theme`        |
 | App-Icon-Wahl                | `localStorage` `hefter:icon`         |
 | Stufenfilter je Seite        | `localStorage` `hefter:stufe:<seite>`|
 
-Kein Server, keine Konten, keine Übertragung — Backup/Export auf ein zweites
-Gerät gibt es (noch) nicht.
+Kein Server, keine Konten, keine Übertragung. Gespeichert werden nur
+Fortschritt und Einstellungen — geht das verloren, sind die Anleitungen selbst
+unberührt.
 
 ## App-Icon & Themes
 

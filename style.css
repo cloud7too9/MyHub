@@ -367,32 +367,6 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .callout.ergebnis  { --c: var(--success); }
 .callout.gefahr    { --c: var(--danger); }
 
-/* ---------- Foto anfügen (16:9) ---------- */
-.fotozone { margin: 14px 0 2px; }
-.fotos { display: grid; gap: 10px; }
-.fotos:not(:empty) { margin-bottom: 10px; }
-.foto {
-  position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;
-  border: 1px solid var(--border); background: var(--surface-2);
-}
-.foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.foto .rm {
-  position: absolute; top: 8px; right: 8px;
-  width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
-  background: rgba(6,7,9,.72); color: #fff; border: 1px solid rgba(255,255,255,.18);
-  display: flex; align-items: center; justify-content: center;
-}
-.foto .rm:hover { background: var(--danger); border-color: var(--danger); }
-.addfoto {
-  display: inline-flex; align-items: center; gap: 8px;
-  min-height: 44px; padding: 0 14px; cursor: pointer;
-  background: transparent; color: var(--accent-ink);
-  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
-  border-radius: 11px; font: inherit; font-weight: 600; font-size: 14px;
-}
-.addfoto:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.addfoto svg { width: 18px; height: 18px; }
-
 /* ---------- Checkliste ---------- */
 .checkliste { margin-top: 30px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
 .checkliste header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -416,40 +390,6 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .check .lbl { font-size: 15.5px; line-height: 1.5; padding-top: 3px; }
 
 .foot { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
-
-/* ---------- Foto-Editor ---------- */
-.editor-back {
-  position: fixed; inset: 0; z-index: 50; display: none;
-  align-items: flex-end; justify-content: center;
-  background: rgba(3,4,6,.72); backdrop-filter: blur(4px);
-}
-.editor-back.open { display: flex; }
-.editor {
-  width: 100%; max-width: 560px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: 18px 18px 0 0;
-  box-shadow: var(--shadow); padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-}
-.editor h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.editor .hint { color: var(--text-muted); font-size: 13px; margin-bottom: 12px; }
-.stage {
-  position: relative; aspect-ratio: 16 / 9; width: 100%;
-  border-radius: 12px; overflow: hidden; background: #000;
-  border: 1px solid var(--border); touch-action: none; cursor: grab;
-}
-.stage.dragging { cursor: grabbing; }
-.stage img { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; pointer-events: none; user-select: none; }
-.stage::before, .stage::after {
-  content: ""; position: absolute; width: 18px; height: 18px; pointer-events: none;
-  border: 2px solid var(--accent); opacity: .9;
-}
-.stage::before { top: 8px; left: 8px; border-right: 0; border-bottom: 0; border-radius: 3px 0 0 0; }
-.stage::after  { bottom: 8px; right: 8px; border-left: 0; border-top: 0; border-radius: 0 0 3px 0; }
-.zoomrow { display: flex; align-items: center; gap: 12px; margin: 14px 0 16px; }
-.zoomrow label { color: var(--text-muted); font-size: 13px; min-width: 42px; }
-.zoomrow input[type=range] { flex: 1; accent-color: var(--accent); height: 44px; }
-.editor-actions { display: flex; gap: 10px; }
-.editor-actions .iconbtn { flex: 1; justify-content: center; }
 
 /* ---------- Einstellungen ---------- */
 .block { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 18px; }
@@ -526,7 +466,5 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
   .step-num { width: 44px; height: 44px; font-size: 18px; }
   .step:not(:last-of-type) .rail::after { top: 50px; }
   .suche kbd { display: block; }
-  .editor-back { align-items: center; }
-  .editor { border-radius: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

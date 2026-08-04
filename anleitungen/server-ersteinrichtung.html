@@ -73,10 +73,6 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
 <span class="tok-c"># Neustart nötig? Datei existiert nur, wenn ja</span>
 [ -f /var/run/reboot-required ] <span class="tok-k">&amp;&amp;</span> reboot</pre>
         </div>
-        <div class="fotozone" data-schritt="system-update">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -94,10 +90,6 @@ timedatectl set-timezone Europe/Berlin
 
 <span class="tok-c"># Hostname zusätzlich in der Hosts-Datei ergänzen</span>
 echo <span class="tok-s">"127.0.1.1 web01"</span> &gt;&gt; /etc/hosts</pre>
-        </div>
-        <div class="fotozone" data-schritt="hostname-zeit">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -120,10 +112,6 @@ usermod -aG sudo max</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Warum ein Passwort</div><div class="txt">Der SSH-Login läuft gleich rein über den Schlüssel. Das Passwort brauchst du nur noch für <code>sudo</code> auf dem Server selbst — das ist die gewünschte Bremse vor Systemänderungen.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="benutzer">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -148,10 +136,6 @@ usermod -aG sudo max</pre>
           <pre>ls -ld /home/max/.ssh
 ls -l /home/max/.ssh/authorized_keys</pre>
         </div>
-        <div class="fotozone" data-schritt="ssh-schluessel">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -172,10 +156,6 @@ sudo whoami</pre>
         <div class="callout achtung">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Erst weiter, wenn beides klappt</div><div class="txt">Login per Schlüssel <b>und</b> <code>sudo whoami</code> müssen funktionieren. Sonst zurück zu Schritt 4 — die root-Sitzung ist noch offen und rettet dich.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="zugang-test">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -227,10 +207,6 @@ sudo systemctl restart ssh</pre>
           <div><div class="label">Socket-Aktivierung</div><div class="txt">Ubuntu startet <code>sshd</code> seit 22.10 pro Verbindung über <code>ssh.socket</code>. Für Optionen wie diese reicht der Neustart oben — nur beim <b>Port</b> muss zusätzlich der Socket angefasst werden (Schritt 10).</div></div>
         </div>
         <p><b>Test vor dem Schließen der root-Sitzung:</b> ein drittes Fenster öffnen, <code>ssh max@&lt;SERVER-IP&gt;</code> muss laufen, <code>ssh root@&lt;SERVER-IP&gt;</code> muss abgewiesen werden.</p>
-        <div class="fotozone" data-schritt="ssh-haertung">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -258,10 +234,6 @@ sudo ufw status verbose</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Zweite Ebene</div><div class="txt">Die Cloud-Firewall bei Hetzner arbeitet <b>vor</b> dem Server und kostet nichts. Beide zu nutzen ist sinnvoll — aber dann Regeln an beiden Stellen pflegen, sonst suchst du Fehler an der falschen Stelle.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="ufw">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -304,10 +276,6 @@ sudo fail2ban-client status sshd</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Einordnung</div><div class="txt">Der große Sicherheitsgewinn kam schon in Schritt 6 — ohne Passwort-Login läuft ein Rateangriff ins Leere. fail2ban hält zusätzlich die Logs sauber und bremst Dauerscanner aus.</div></div>
         </div>
-        <div class="fotozone" data-schritt="fail2ban">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -328,10 +296,6 @@ cat /etc/apt/apt.conf.d/20auto-upgrades
 
 <span class="tok-c"># Trockenlauf</span>
 sudo unattended-upgrades --dry-run --debug</pre>
-        </div>
-        <div class="fotozone" data-schritt="auto-updates">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -372,10 +336,6 @@ sudo ss -tuln | grep 2222</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Sitzung offen lassen</div><div class="txt">Erst mit <code>ssh -p 2222 max@&lt;SERVER-IP&gt;</code> aus einem zweiten Fenster testen. Klappt es, kann die alte Regel weg: <code>sudo ufw delete allow OpenSSH</code>. Klappt es nicht, hilft die Konsole im Hetzner-Cloud-Panel.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssh-port">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -397,7 +357,7 @@ sudo ss -tuln | grep 2222</pre>
     <div class="check" data-check="auto-updates-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Sicherheitsupdates aktiv</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>

@@ -68,10 +68,6 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Passphrase ist hier Pflicht</div><div class="txt">Anders als beim <a href="hetzner-deploy.html">Server-Deploy-Key</a>: Dieser Schlüssel liegt auf einem Datenträger, der verloren gehen kann. Die Passphrase ist die letzte Verteidigungslinie — ohne sie ist die gefundene SSD ein GitHub-Generalschlüssel.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssd-schluessel">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -86,10 +82,6 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
           <pre>cat /pfad/zur/ssd/.portable-ssh/id_ed25519.pub</pre>
         </div>
         <p>Inhalt kopieren → GitHub → <b>Settings → SSH and GPG keys → New SSH key</b> → als Titel z. B. <b>„SSD portable"</b> — so ist beim Aufräumen sofort klar, welcher Schlüssel das ist.</p>
-        <div class="fotozone" data-schritt="pubkey-github">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -110,10 +102,6 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
         <div class="callout achtung">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Pfad ändert sich je Rechner</div><div class="txt">Laufwerksbuchstabe (Windows) bzw. Einhängepunkt (Linux/macOS) der SSD variieren. Der <code>IdentityFile</code>-Pfad in der config muss dann kurz angepasst werden — oder du nutzt in Schritt 4 die Variante ohne config, die den Pfad direkt mitgibt.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="ssd-config">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -141,10 +129,6 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Linux/macOS: Rechte-Meldung</div><div class="txt">Ist die SSD mit exFAT/FAT32 formatiert, kann sie keine Unix-Dateirechte speichern — SSH verweigert dann mit <i>„UNPROTECTED PRIVATE KEY"</i>. Abhilfe: Schlüssel für die Sitzung kurz kopieren: <code>cp &lt;ssd&gt;/id_ed25519 /tmp/ &amp;&amp; chmod 600 /tmp/id_ed25519</code> und den Pfad in <code>-i</code> darauf zeigen — hinterher löschen (Schritt 6). Unter Windows tritt das nicht auf.</div></div>
         </div>
-        <div class="fotozone" data-schritt="git-zeigen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -167,10 +151,6 @@ git clone git@github.com:benutzer/repo.git
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Fenster gewechselt?</div><div class="txt">Die Variable gilt nur im gesetzten Terminal. Ein neues Fenster oder das VS-Code-Terminal braucht den <code>export</code> aus Schritt 4 erneut. Der Arbeitsablauf selbst steht in <a href="vscode-git-workflow.html">Repo in VS Code klonen &amp; Änderungen hochladen</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="arbeiten">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -190,10 +170,6 @@ git clone git@github.com:benutzer/repo.git
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Auf dem fremden Rechner bleibt nichts zurück — Schlüssel und Zugang existieren nur auf der SSD und bei GitHub.</div></div>
         </div>
-        <div class="fotozone" data-schritt="aufraeumen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -212,7 +188,7 @@ git clone git@github.com:benutzer/repo.git
     <div class="check" data-check="aufgeraeumt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Nach der Sitzung aufgeräumt — nichts bleibt zurück</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>

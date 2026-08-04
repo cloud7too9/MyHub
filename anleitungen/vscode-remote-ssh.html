@@ -80,10 +80,6 @@ code -v</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Kein <code>code</code>-Befehl?</div><div class="txt">Dann fehlt der Eintrag im <code>PATH</code>. In VS Code <b>F1</b> drücken und <code>Shell Command: Install 'code' command in PATH</code> ausführen, danach die PowerShell neu öffnen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="voraussetzungen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -101,10 +97,6 @@ code -v</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Das grüne Feld unten links</div><div class="txt">Nach der Installation sitzt in der Statusleiste ganz links ein grünes Feld mit zwei Pfeilen. Es ist ab jetzt dein Ein- und Ausstieg: verbinden, Verbindung wechseln, zurück nach lokal.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="extension-remote-ssh">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -150,10 +142,6 @@ code -v</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Soll-Ergebnis</div><div class="txt">Du landest ohne Passwortabfrage auf dem Server. Was in der PowerShell nicht funktioniert, funktioniert auch in VS Code nicht — dort steckt die Fehlermeldung nur tiefer vergraben.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssh-config">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -179,10 +167,6 @@ icacls <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Das war die Ursache, wenn …</div><div class="txt">… beim Verbindungsversuch <code>UNPROTECTED PRIVATE KEY FILE</code> oder <code>bad permissions</code> im Log stand. Nur die <b>private</b> Datei ohne Endung ist betroffen, nicht die <code>.pub</code>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="key-rechte-windows">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -206,10 +190,6 @@ du -sh ~/.vscode-server</pre>
         <div class="callout ergebnis">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Verbunden</div><div class="txt">Unten links steht jetzt <code>SSH: web01</code>. Alles, was du in diesem Fenster tust, passiert auf dem Server.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="erste-verbindung">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -238,10 +218,6 @@ pwd</pre>
           <div class="codebox-head"><span class="fname">Server — Besitz übertragen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>sudo chown -R max:max /var/www/mein-projekt</pre>
         </div>
-        <div class="fotozone" data-schritt="ordner-oeffnen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -266,10 +242,6 @@ code <span class="tok-k">--list-extensions</span></pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Warum die Trennung wichtig ist</div><div class="txt">Eine lokal installierte Sprachunterstützung sieht die Dateien auf dem Server gar nicht — sie meldet dann Fehler an Stellen, an denen keine sind, oder bleibt einfach stumm. Das ist die häufigste Verwirrung nach der ersten Verbindung.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="extensions-remote">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -309,10 +281,6 @@ ssh -T git@github.com</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Nur auf eigenen Servern</div><div class="txt">Solange die Sitzung offen ist, kann jeder mit <code>root</code>-Rechten auf dieser Maschine den Agenten mitbenutzen. Auf deinem eigenen Hetzner-Server ist das in Ordnung — auf einem fremden gehört <code>ForwardAgent yes</code> nicht in die Konfiguration. Die Alternative dort ist ein eigener Deploy-Key, wie in der Deploy-Anleitung beschrieben.</div></div>
         </div>
-        <div class="fotozone" data-schritt="git-remote">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -334,10 +302,6 @@ ssh -T git@github.com</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Meistens automatisch</div><div class="txt">Startest du eine Anwendung im integrierten Terminal und sie gibt eine <code>localhost</code>-Adresse aus, richtet VS Code die Weiterleitung von selbst ein und blendet eine Benachrichtigung mit Link ein. Der Ports-Reiter ist der Handgriff für alles, was schon vorher lief.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="ports">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -382,10 +346,6 @@ docker ps</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Was <code>shutdownAction</code> verhindert</div><div class="txt">Ohne diese Zeile stoppt VS Code den Container beim Schließen des Fensters. Bei einem produktiv laufenden Dienst ist das selten gewollt.</div></div>
         </div>
-        <div class="fotozone" data-schritt="dev-containers">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -427,10 +387,6 @@ rm -rf ~/.vscode-server</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Das Log in VS Code</div><div class="txt"><b>F1</b> → <code>Remote-SSH: Show Log</code> öffnet das Ausgabefenster mit dem vollständigen Verbindungsprotokoll. Dort steht dieselbe Meldung wie im Terminal — nur muss man wissen, wo man sucht.</div></div>
         </div>
-        <div class="fotozone" data-schritt="fehlersuche">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -452,7 +408,7 @@ rm -rf ~/.vscode-server</pre>
     <div class="check" data-check="container-erreichbar"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>docker ps</code> ohne sudo, Container angedockt</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>

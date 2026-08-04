@@ -71,10 +71,6 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Zwei Dateien entstehen: <code>github_deploy_key</code> (privat → kommt zu GitHub) und <code>github_deploy_key.pub</code> (öffentlich → kommt auf den Server).</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssh-key">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -94,10 +90,6 @@ cat ~/.ssh/github_deploy_key.pub</pre>
           <div class="codebox-head"><span class="fname">Server (per SSH)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre><span class="tok-c"># Inhalt der .pub-Datei ans Ende anhängen</span>
 echo <span class="tok-s">"&lt;dein-öffentlicher-Schlüssel&gt;"</span> &gt;&gt; ~/.ssh/authorized_keys</pre>
-        </div>
-        <div class="fotozone" data-schritt="pubkey-server">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -122,10 +114,6 @@ cat ~/.ssh/github_deploy_key</pre>
         <div class="callout gefahr">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Privat halten</div><div class="txt">Der private Schlüssel gehört <b>nur</b> in das GitHub-Secret — niemals ins Repo committen oder weitergeben.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="github-secrets">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -161,10 +149,6 @@ cat ~/.ssh/github_deploy_key</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Vorab-Check auf dem Server</div><div class="txt">Damit <code>git pull</code> funktioniert, muss das Repo einmalig manuell in den Zielordner (z. B. <code>/var/www/mein-projekt</code>) geklont sein.</div></div>
         </div>
-        <div class="fotozone" data-schritt="workflow">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -183,7 +167,7 @@ cat ~/.ssh/github_deploy_key</pre>
     <div class="check" data-check="repo-geklont"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Repo einmalig auf den Server geklont</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>

@@ -72,10 +72,6 @@ curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">IPv6 nur eintragen, wenn sie wirklich antwortet</div><div class="txt">Ein <code>AAAA</code>-Record auf eine IPv6, unter der nichts lauscht, führt zu sporadisch nicht erreichbaren Seiten: moderne Browser probieren IPv6 zuerst. Im Zweifel erst nur den <code>A</code>-Record setzen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="server-ip">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -94,10 +90,6 @@ curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
         <div class="callout ergebnis">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Die Zone existiert und zeigt dir drei Nameserver-Namen an (bei Hetzner <code>hydrogen</code>, <code>oxygen</code>, <code>helium</code> <code>.ns.hetzner.com</code>). Genau die brauchst du im nächsten Schritt.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="zone-anlegen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -125,10 +117,6 @@ nslookup <span class="tok-k">-type=NS</span> example.de</pre>
         <div class="callout ergebnis">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Die Ausgabe listet die neuen Nameserver. Ab jetzt zählt allein, was in deiner Zone steht.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="nameserver">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -160,10 +148,6 @@ www      3600  <span class="tok-k">CNAME</span>   example.de.</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">TTL bewusst wählen</div><div class="txt">Die TTL sagt Resolvern, wie lange sie die Antwort behalten dürfen. Vor einem geplanten Umzug einen Tag vorher auf <code>300</code> senken, danach wieder auf <code>3600</code> — sonst hängen Besucher stundenlang auf der alten IP fest. Der Punkt am Ende von <code>example.de.</code> ist Absicht: er markiert den vollständigen Namen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="root-records">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -186,10 +170,6 @@ api      3600  <span class="tok-k">A</span>   203.0.113.10
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Wildcard, wenn Coolify die Subdomains vergibt</div><div class="txt">Legst du Apps in Coolify im Minutentakt an, spart ein einzelner <code>*</code>-Record den Gang in die DNS-Konsole bei jedem neuen Projekt. Der Preis: jeder Tippfehler landet ebenfalls auf deinem Server statt auf einer Fehlermeldung.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="subdomain">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -217,10 +197,6 @@ dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Ports müssen offen sein</div><div class="txt">Für die Zertifikatsprüfung muss der Server über Port <code>80</code> erreichbar sein, für den Betrieb über <code>443</code>. Wie die Firewall dafür eingerichtet wird, steht in <a href="server-ersteinrichtung.html">Server-Erst-Einrichtung &amp; Absicherung</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="dns-pruefen">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -243,10 +219,6 @@ dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Verwandte Anleitung</div><div class="txt">Installation, GitHub-Anbindung und das Anlegen der Anwendung stehen in <a href="coolify-einrichtung.html">Coolify einrichten &amp; Projekte ausrollen</a>.</div></div>
-        </div>
-        <div class="fotozone" data-schritt="tls-coolify">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
       </div>
     </section>
@@ -304,10 +276,6 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Certbot hat die <code>server</code>-Blöcke umgeschrieben: Port 80 leitet auf 443 um, das Zertifikat liegt unter <code>/etc/letsencrypt/live/</code>. Der Probelauf bestätigt, dass die Erneuerung in 90 Tagen funktioniert.</div></div>
         </div>
-        <div class="fotozone" data-schritt="tls-certbot">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -337,10 +305,6 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Auch der www-Name braucht ein Zertifikat</div><div class="txt">Die Umleitung passiert erst <i>nach</i> dem TLS-Handshake. <code>www.example.de</code> muss also im selben Zertifikat stehen — bei Certbot per zusätzlichem <code>-d</code>, bei Coolify als zweite Domain.</div></div>
         </div>
-        <div class="fotozone" data-schritt="caa-weiterleitung">
-          <div class="fotos"></div>
-          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
-        </div>
       </div>
     </section>
 
@@ -361,7 +325,7 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
     <div class="check" data-check="renewal-geprueft"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Erneuerung geprüft</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+  <p class="foot">Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
 </div>
 
 <script src="../hefter.js"></script>
