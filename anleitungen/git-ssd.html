@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="description" content="Ein separater SSH-Schlüssel samt Konfiguration reist auf der SSD mit — Git an fremden Rechnern nutzen, ohne Spuren zu hinterlassen.">
+<meta name="hefter-untertitel" content="SSH-Schlüssel und Konfiguration unterwegs dabei">
+<meta name="hefter-stichworte" content="ssd portable ssh schluessel config git ssh command fremder rechner unterwegs stick mobil workflow">
+<title>Git von der portablen SSD · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="git-ssd" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Git</span>
+    <h1>Git von der portablen SSD nutzen</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 20 Min</b></span>
+      <span>Aktualisiert <b>04.08.2026</b></span>
+      <span><span class="mono">SSD</span> · fremde Rechner</span>
+    </div>
+    <p class="lead">Zugangsdaten aus Browser-Login und Token hängen am jeweiligen Rechner — nicht an der SSD. Die Lösung: ein eigener SSH-Schlüssel samt Konfiguration reist auf der SSD mit, und Git wird am fremden Rechner nur kurz darauf gezeigt.</p>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur am fremden Rechner</button>
+    </div>
+    <p class="stufen-hinweis">Die einmalige Einrichtung der SSD ist ausgeblendet — sichtbar bleibt der Ablauf an jedem fremden Rechner.</p>
+  </header>
+
+  <main>
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig auf der SSD</span>
+        <h2>Eigenen Schlüssel für die SSD erzeugen</h2>
+        <p>Ein <b>separater</b> Schlüssel nur für unterwegs — nicht der Hauptschlüssel deines Rechners. Geht die SSD verloren, ziehst du bei GitHub nur diesen einen zurück.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Ordner auf der SSD anlegen und Schlüssel direkt dorthin</span>
+mkdir -p /pfad/zur/ssd/.portable-ssh
+ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <span class="tok-s">"ssd-portable"</span> <span class="tok-k">-f</span> /pfad/zur/ssd/.portable-ssh/id_ed25519</pre>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Passphrase ist hier Pflicht</div><div class="txt">Anders als beim <a href="hetzner-deploy.html">Server-Deploy-Key</a>: Dieser Schlüssel liegt auf einem Datenträger, der verloren gehen kann. Die Passphrase ist die letzte Verteidigungslinie — ohne sie ist die gefundene SSD ein GitHub-Generalschlüssel.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="ssd-schluessel">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig auf der SSD</span>
+        <h2>Öffentlichen Schlüssel bei GitHub hinterlegen</h2>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>cat /pfad/zur/ssd/.portable-ssh/id_ed25519.pub</pre>
+        </div>
+        <p>Inhalt kopieren → GitHub → <b>Settings → SSH and GPG keys → New SSH key</b> → als Titel z. B. <b>„SSD portable"</b> — so ist beim Aufräumen sofort klar, welcher Schlüssel das ist.</p>
+        <div class="fotozone" data-schritt="pubkey-github">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig auf der SSD</span>
+        <h2>SSH-Konfiguration auf die SSD legen</h2>
+        <p>Damit du am fremden Rechner nicht mit Pfaden hantierst, bekommt die SSD eine eigene <code>config</code>:</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">/pfad/zur/ssd/.portable-ssh/config</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-k">Host</span> github.com
+  <span class="tok-k">User</span> git
+  <span class="tok-k">IdentityFile</span> /pfad/zur/ssd/.portable-ssh/id_ed25519
+  <span class="tok-k">IdentitiesOnly</span> yes</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Pfad ändert sich je Rechner</div><div class="txt">Laufwerksbuchstabe (Windows) bzw. Einhängepunkt (Linux/macOS) der SSD variieren. Der <code>IdentityFile</code>-Pfad in der config muss dann kurz angepasst werden — oder du nutzt in Schritt 4 die Variante ohne config, die den Pfad direkt mitgibt.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="ssd-config">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 4 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> An jedem fremden Rechner</span>
+        <h2>Git auf die SSD zeigen lassen</h2>
+        <p>Gilt nur für das aktuelle Terminal-Fenster — nach dem Schließen ist nichts davon übrig. Genau das ist gewollt.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Git Bash / Linux / macOS</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>export GIT_SSH_COMMAND=<span class="tok-s">"ssh -F /pfad/zur/ssd/.portable-ssh/config"</span></pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>$env:GIT_SSH_COMMAND = <span class="tok-s">'ssh -F E:\.portable-ssh\config'</span></pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Variante ohne config — Pfad direkt mitgeben</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>export GIT_SSH_COMMAND=<span class="tok-s">"ssh -i /pfad/zur/ssd/.portable-ssh/id_ed25519 -o IdentitiesOnly=yes"</span></pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Linux/macOS: Rechte-Meldung</div><div class="txt">Ist die SSD mit exFAT/FAT32 formatiert, kann sie keine Unix-Dateirechte speichern — SSH verweigert dann mit <i>„UNPROTECTED PRIVATE KEY"</i>. Abhilfe: Schlüssel für die Sitzung kurz kopieren: <code>cp &lt;ssd&gt;/id_ed25519 /tmp/ &amp;&amp; chmod 600 /tmp/id_ed25519</code> und den Pfad in <code>-i</code> darauf zeigen — hinterher löschen (Schritt 6). Unter Windows tritt das nicht auf.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="git-zeigen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 5 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> An jedem fremden Rechner</span>
+        <h2>Testen und arbeiten wie gewohnt</h2>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal (dasselbe Fenster!)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Muss mit "Hi &lt;benutzer&gt;!" antworten</span>
+ssh -T git@github.com
+
+<span class="tok-c"># Danach normal — SSH-URLs verwenden</span>
+git clone git@github.com:benutzer/repo.git
+<span class="tok-c"># … bearbeiten, add, commit, pull --rebase, push …</span></pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Fenster gewechselt?</div><div class="txt">Die Variable gilt nur im gesetzten Terminal. Ein neues Fenster oder das VS-Code-Terminal braucht den <code>export</code> aus Schritt 4 erneut. Der Arbeitsablauf selbst steht in <a href="vscode-git-workflow.html">Repo in VS Code klonen &amp; Änderungen hochladen</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="arbeiten">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 6 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">6</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> An jedem fremden Rechner</span>
+        <h2>Keine Spuren hinterlassen</h2>
+        <ul>
+          <li>Alle Änderungen <b>gepusht</b>? Lokale Klone auf dem fremden Rechner löschen — oder direkt auf der SSD arbeiten.</li>
+          <li>Falls der Schlüssel nach <code>/tmp</code> kopiert wurde: <code>rm /tmp/id_ed25519</code></li>
+          <li>Terminal schließen — damit ist <code>GIT_SSH_COMMAND</code> weg.</li>
+          <li>Falls zwischendurch doch HTTPS mit Anmeldung benutzt wurde: Windows-Anmeldeinformations&shy;verwaltung öffnen und den <code>git:https://github.com</code>-Eintrag entfernen.</li>
+        </ul>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Auf dem fremden Rechner bleibt nichts zurück — Schlüssel und Zugang existieren nur auf der SSD und bei GitHub.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="aufraeumen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 5</span>
+    </header>
+    <div class="check" data-check="schluessel-ssd"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Separater Schlüssel mit Passphrase auf der SSD</span></div>
+    <div class="check" data-check="pubkey-benannt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Öffentlicher Schlüssel bei GitHub, erkennbar benannt</span></div>
+    <div class="check" data-check="config-ssd"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>config</code> auf der SSD angelegt</span></div>
+    <div class="check" data-check="test-fremd"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>ssh -T</code> am fremden Rechner erfolgreich</span></div>
+    <div class="check" data-check="aufgeraeumt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Nach der Sitzung aufgeräumt — nichts bleibt zurück</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

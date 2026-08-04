@@ -20,6 +20,30 @@ const REGISTER = [
     "stichworte": "ssh github actions hetzner deploy key secrets workflow ci cd"
   },
   {
+    "id": "git-ssd",
+    "titel": "Git von der portablen SSD nutzen",
+    "untertitel": "SSH-Schlüssel und Konfiguration unterwegs dabei",
+    "kategorie": "Git",
+    "datei": "anleitungen/git-ssd.html",
+    "stichworte": "ssd portable ssh schluessel config git ssh command fremder rechner unterwegs stick mobil workflow"
+  },
+  {
+    "id": "vscode-git-workflow",
+    "titel": "Repo in VS Code klonen & Änderungen hochladen",
+    "untertitel": "Klonen, committen, synchronisieren — UI und Terminal",
+    "kategorie": "Git",
+    "datei": "anleitungen/vscode-git-workflow.html",
+    "stichworte": "vscode git clone commit push pull sync quellcodeverwaltung stagen repository workflow hochladen"
+  },
+  {
+    "id": "git-zugang-privat",
+    "titel": "Zugang zu privaten Repositories einrichten",
+    "untertitel": "Browser-Login, Token oder SSH-Schlüssel",
+    "kategorie": "Git",
+    "datei": "anleitungen/git-zugang-privat.html",
+    "stichworte": "github privat authentifizierung anmeldung token pat ssh schluessel login vscode zugriff credentials fine-grained"
+  },
+  {
     "id": "docker-einrichtung",
     "titel": "Docker einrichten & pro Repository integrieren",
     "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",

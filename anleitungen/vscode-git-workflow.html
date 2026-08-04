@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="description" content="Der Git-Alltag in VS Code: Repo klonen, Stand holen, Diffs prüfen, thematisch committen und synchronisieren — jeweils per Oberfläche und Terminal.">
+<meta name="hefter-untertitel" content="Klonen, committen, synchronisieren — UI und Terminal">
+<meta name="hefter-stichworte" content="vscode git clone commit push pull sync quellcodeverwaltung stagen repository workflow hochladen">
+<title>Repo in VS Code klonen &amp; hochladen · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="vscode-git-workflow" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Git</span>
+    <h1>Repo in VS Code klonen &amp; Änderungen hochladen</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 10 Min</b></span>
+      <span>Aktualisiert <b>04.08.2026</b></span>
+      <span><span class="mono">VS Code</span> · GitHub</span>
+    </div>
+    <p class="lead">Der Alltagsablauf: Repo holen, bearbeiten, sauber committen, synchronisieren — jeweils per Oberfläche und als Terminal-Äquivalent.</p>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur Alltag</button>
+    </div>
+    <p class="stufen-hinweis">Das einmalige Klonen ist ausgeblendet — sichtbar bleibt der Ablauf bei jeder Arbeitssitzung.</p>
+  </header>
+
+  <main>
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Repo</span>
+        <h2>Repository klonen</h2>
+        <p><b>In VS Code:</b> <code>Strg+Umschalt+P</code> → „Git: Clone" → Repo-URL einfügen (auf GitHub: grüner <b>Code</b>-Button → HTTPS- oder SSH-URL kopieren) → Zielordner wählen → Nachfrage „Projekt öffnen?" bestätigen.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal-Äquivalent (Strg+ö)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git clone https://github.com/benutzer/repo.git
+cd repo
+code .</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Privates Repo?</div><div class="txt">Dann fragt Git nach einer Anmeldung — die drei Wege stehen in <a href="git-zugang-privat.html">Zugang zu privaten Repositories einrichten</a>.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="klonen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">2</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Bei jeder Sitzung</span>
+        <h2>Vor der Arbeit: aktuellen Stand holen</h2>
+        <p>Erste Handlung jeder Sitzung — <b>vor</b> der ersten Änderung. In VS Code: Sync-Symbol unten links in der Statusleiste.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal-Äquivalent</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git pull</pre>
+        </div>
+        <div class="callout achtung">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Mehrere Rechner</div><div class="txt">Wer an mehreren Geräten arbeitet und diesen Schritt auslässt, produziert beim Push Konflikte. Pull zuerst ist die billigste Versicherung.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="pull">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">3</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Bei jeder Sitzung</span>
+        <h2>Änderungen prüfen und stagen</h2>
+        <p>Linke Seitenleiste → <b>Quellcodeverwaltung</b> (<code>Strg+Umschalt+G</code>). Jede geänderte Datei anklicken und den Diff überfliegen — erst dann mit <code>+</code> stagen (einzeln, oder das <code>+</code> an „Änderungen" für alle).</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal-Äquivalent</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Überblick, dann alles stagen</span>
+git status
+git add .</pre>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <div><div class="label">Der Diff-Blick lohnt</div><div class="txt">Der kurze Blick vor dem Stagen fängt vergessene Debug-Zeilen und versehentlich geänderte Dateien ab — und verhindert, dass eine <code>.env</code> ins Repo rutscht.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="stagen">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 4 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">4</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Bei jeder Sitzung</span>
+        <h2>Committen</h2>
+        <p>Nachricht ins Textfeld oben, dann <code>Strg+Eingabe</code>.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal-Äquivalent</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git commit -m <span class="tok-s">"Auftragsmodell überarbeitet"</span></pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Klein und thematisch</div><div class="txt">Ein Commit = eine abgeschlossene Änderung. Kein Sammel-Commit am Tagesende — kleine Commits lassen sich einzeln zurücknehmen und im Verlauf verstehen.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="commit">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 5 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">5</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Bei jeder Sitzung</span>
+        <h2>Synchronisieren (hochladen)</h2>
+        <p>Button <b>„Änderungen synchronisieren"</b> in der Quellcodeverwaltung — führt Pull und Push in einem Schritt aus.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal-Äquivalent</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git pull --rebase
+git push</pre>
+        </div>
+        <div class="callout ergebnis">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <div><div class="label">Ergebnis</div><div class="txt">Der Stand liegt auf GitHub — kontrollierbar im Repo unter <b>Commits</b>. Läuft ein <a href="hetzner-deploy.html">Deploy per Action</a>, startet er jetzt automatisch.</div></div>
+        </div>
+        <div class="fotozone" data-schritt="sync">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Abschluss-Checkliste -->
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 4</span>
+    </header>
+    <div class="check" data-check="repo-geklont"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Repo geklont und in VS Code geöffnet</span></div>
+    <div class="check" data-check="pull-zuerst"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Sitzung mit Pull begonnen</span></div>
+    <div class="check" data-check="diff-geprueft"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Diffs vor dem Stagen geprüft</span></div>
+    <div class="check" data-check="sync-ok"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Thematisch committet und synchronisiert</span></div>
+  </div>
+
+  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

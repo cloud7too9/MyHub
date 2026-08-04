@@ -1,10 +1,13 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-b94ff8e193";
+const VERSION = "hefter-be090c428f";
 const SHELL = [
   "anleitungen/docker-einrichtung.html",
+  "anleitungen/git-ssd.html",
+  "anleitungen/git-zugang-privat.html",
   "anleitungen/hetzner-deploy.html",
   "anleitungen/server-ersteinrichtung.html",
+  "anleitungen/vscode-git-workflow.html",
   "anleitungen/vscode-remote-ssh.html",
   "einstellungen.html",
   "hefter.js",
