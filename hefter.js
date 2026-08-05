@@ -70,10 +70,10 @@ const REGISTER = [
   {
     "id": "server-ersteinrichtung",
     "titel": "Server-Erst-Einrichtung & Absicherung",
-    "untertitel": "Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban",
+    "untertitel": "Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban",
     "kategorie": "Server",
     "datei": "anleitungen/server-ersteinrichtung.html",
-    "stichworte": "ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port"
+    "stichworte": "ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port"
   },
   {
     "id": "vscode-remote-ssh",
