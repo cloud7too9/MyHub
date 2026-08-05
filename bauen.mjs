@@ -2,12 +2,13 @@
    HEFTER · Build-Skript  ·  Aufruf:  node bauen.mjs
    Ohne Abhängigkeiten (nur Node-Stdlib). Erzeugt:
 
-   1. REGISTER in hefter.js — aus den Anleitungs-HTMLs:
+   1. REGISTER in hefter.js — aus den Seiten beider Sorten:
         <h1>                        → titel
         <span class="chip">         → kategorie
         meta hefter-untertitel      → untertitel
         meta hefter-stichworte      → stichworte
         Dateiname                   → id
+        Ordner                      → art
    2. sw.js — Precache-Liste per Verzeichnis-Scan und VERSION
       als Hash über alle Inhalte. Jede Änderung ergibt damit
       automatisch eine neue Version; Vergessen unmöglich.
@@ -21,9 +22,15 @@ import { fileURLToPath } from "url";
    und Leerzeichen oder Umlaute im Pfad bleiben prozent-kodiert. */
 const WURZEL = fileURLToPath(new URL(".", import.meta.url));
 
-/* ---------- 1. Register aus den Anleitungen ---------- */
-const anleitungsDateien = readdirSync(join(WURZEL, "anleitungen"))
-  .filter(f => f.endsWith(".html")).sort();
+/* ---------- 1. Register aus beiden Seitensorten ----------
+   Anleitungen sind zum Durchlaufen, Nachschlage-Übersichten zum
+   Nachschlagen. Welche Sorte eine Seite ist, sagt ihr Ordner — kein
+   Meta-Tag, das man beim Kopieren einer Vorlage zu ändern vergisst. */
+const SORTEN = [
+  { ordner: "anleitungen", art: "anleitung" },
+  { ordner: "nachschlagen", art: "uebersicht" }
+];
+const RANG = { anleitung: 0, uebersicht: 1 };
 
 /* Checklisten-Fortschritt und Fotos werden über diese IDs zugeordnet.
    Ein Duplikat legt zwei Häkchen bzw. zwei Fotozonen still zusammen —
@@ -54,26 +61,37 @@ function codeboxTypenPruefen(html, datei) {
     throw new Error(`${datei}: unbekanntes data-typ an einer Codebox — ${[...new Set(falsch)].join(", ")}`);
 }
 
-const register = anleitungsDateien.map(f => {
-  const h = readFileSync(join(WURZEL, "anleitungen", f), "utf8");
-  const greifen = (re, was) => {
-    const m = h.match(re);
-    if (!m) throw new Error(`${f}: ${was} nicht gefunden`);
-    return entitaetenAufloesen(m[1].trim());
-  };
-  eindeutigPruefen(h, f, "data-check");
-  eindeutigPruefen(h, f, "data-schritt");
-  codeboxTypenPruefen(h, f);
-  return {
-    id: f.replace(/\.html$/, ""),
-    titel: greifen(/<h1>([\s\S]*?)<\/h1>/, "<h1>"),
-    untertitel: greifen(/<meta name="hefter-untertitel" content="([^"]*)"/, "meta hefter-untertitel"),
-    kategorie: greifen(/<span class="chip">([\s\S]*?)<\/span>/, "Kategorie-Chip"),
-    datei: "anleitungen/" + f,
-    stichworte: greifen(/<meta name="hefter-stichworte" content="([^"]*)"/, "meta hefter-stichworte")
-  };
-}).sort((a, b) =>
-  a.kategorie.localeCompare(b.kategorie, "de") || a.titel.localeCompare(b.titel, "de"));
+const register = SORTEN.flatMap(({ ordner, art }) =>
+  readdirSync(join(WURZEL, ordner)).filter(f => f.endsWith(".html")).sort().map(f => {
+    const h = readFileSync(join(WURZEL, ordner, f), "utf8");
+    const greifen = (re, was) => {
+      const m = h.match(re);
+      if (!m) throw new Error(`${f}: ${was} nicht gefunden`);
+      return entitaetenAufloesen(m[1].trim());
+    };
+    eindeutigPruefen(h, f, "data-check");
+    eindeutigPruefen(h, f, "data-schritt");
+    codeboxTypenPruefen(h, f);
+    return {
+      id: f.replace(/\.html$/, ""),
+      art,
+      titel: greifen(/<h1>([\s\S]*?)<\/h1>/, "<h1>"),
+      untertitel: greifen(/<meta name="hefter-untertitel" content="([^"]*)"/, "meta hefter-untertitel"),
+      kategorie: greifen(/<span class="chip">([\s\S]*?)<\/span>/, "Kategorie-Chip"),
+      datei: ordner + "/" + f,
+      stichworte: greifen(/<meta name="hefter-stichworte" content="([^"]*)"/, "meta hefter-stichworte")
+    };
+  })
+).sort((a, b) => RANG[a.art] - RANG[b.art]
+  || a.kategorie.localeCompare(b.kategorie, "de")
+  || a.titel.localeCompare(b.titel, "de"));
+
+/* Gleicher Dateiname in beiden Ordnern: im Register stünden dann zwei
+   Einträge mit derselben id. Fällt im Browser nicht auf, deshalb hier. */
+const ids = register.map(e => e.id);
+const doppelteIds = [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
+if (doppelteIds.length)
+  throw new Error(`Seiten-id mehrfach vergeben — ${doppelteIds.join(", ")}`);
 
 const registerBlock =
   "/* REGISTER-START */\nconst REGISTER = " +
@@ -82,7 +100,8 @@ const registerBlock =
 let js = readFileSync(join(WURZEL, "hefter.js"), "utf8");
 js = js.replace(/\/\* REGISTER-START \*\/[\s\S]*?\/\* REGISTER-ENDE \*\//, registerBlock);
 writeFileSync(join(WURZEL, "hefter.js"), js);
-console.log(`Register: ${register.length} Anleitungen aus /anleitungen übernommen`);
+const jeArt = art => register.filter(e => e.art === art).length;
+console.log(`Register: ${jeArt("anleitung")} Anleitungen, ${jeArt("uebersicht")} Übersichten übernommen`);
 
 /* ---------- 2. Precache-Liste per Scan ---------- */
 const ENDUNGEN = /\.(html|css|js|webmanifest|svg|png|woff2)$/;

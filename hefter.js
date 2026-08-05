@@ -1,18 +1,19 @@
 /* ============================================================
    HEFTER · gemeinsame App-Logik
-   Neue Anleitung: Eintrag in REGISTER ergänzen + HTML-Datei
-   in /anleitungen anlegen (vorlage kopieren).
+   Neue Seite: HTML-Datei in /anleitungen (zum Durchlaufen) oder
+   /nachschlagen (zum Nachschlagen) anlegen, dann node bauen.mjs.
    ============================================================ */
 
-/* ---------- Register aller Anleitungen ----------
-   GENERIERT aus den Anleitungs-HTMLs — nicht von Hand pflegen.
+/* ---------- Register aller Seiten ----------
+   GENERIERT aus den Seiten-HTMLs — nicht von Hand pflegen.
    Quelle je Seite: <h1> (Titel), .chip (Kategorie),
-   meta hefter-untertitel, meta hefter-stichworte.
+   meta hefter-untertitel, meta hefter-stichworte, Ordner (art).
    Nach Änderungen: node bauen.mjs ausführen. */
 /* REGISTER-START */
 const REGISTER = [
   {
     "id": "hetzner-deploy",
+    "art": "anleitung",
     "titel": "Automatisches Deploy auf Hetzner per GitHub Actions",
     "untertitel": "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
     "kategorie": "Deployment",
@@ -21,6 +22,7 @@ const REGISTER = [
   },
   {
     "id": "git-ssd",
+    "art": "anleitung",
     "titel": "Git von der portablen SSD nutzen",
     "untertitel": "SSH-Schlüssel und Konfiguration unterwegs dabei",
     "kategorie": "Git",
@@ -29,6 +31,7 @@ const REGISTER = [
   },
   {
     "id": "vscode-git-workflow",
+    "art": "anleitung",
     "titel": "Repo in VS Code klonen & Änderungen hochladen",
     "untertitel": "Klonen, committen, synchronisieren — UI und Terminal",
     "kategorie": "Git",
@@ -37,6 +40,7 @@ const REGISTER = [
   },
   {
     "id": "git-zugang-privat",
+    "art": "anleitung",
     "titel": "Zugang zu privaten Repositories einrichten",
     "untertitel": "Browser-Login, Token oder SSH-Schlüssel",
     "kategorie": "Git",
@@ -45,6 +49,7 @@ const REGISTER = [
   },
   {
     "id": "coolify-einrichtung",
+    "art": "anleitung",
     "titel": "Coolify einrichten & Projekte ausrollen",
     "untertitel": "Installation, GitHub-Anbindung, erste App",
     "kategorie": "Server",
@@ -53,6 +58,7 @@ const REGISTER = [
   },
   {
     "id": "docker-einrichtung",
+    "art": "anleitung",
     "titel": "Docker einrichten & pro Repository integrieren",
     "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
     "kategorie": "Server",
@@ -61,6 +67,7 @@ const REGISTER = [
   },
   {
     "id": "domain-einrichtung",
+    "art": "anleitung",
     "titel": "Domain einrichten & per HTTPS ausliefern",
     "untertitel": "Nameserver, A/AAAA-Records, Let's Encrypt",
     "kategorie": "Server",
@@ -69,19 +76,30 @@ const REGISTER = [
   },
   {
     "id": "server-ersteinrichtung",
+    "art": "anleitung",
     "titel": "Server-Erst-Einrichtung & Absicherung",
-    "untertitel": "Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban",
+    "untertitel": "Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban",
     "kategorie": "Server",
     "datei": "anleitungen/server-ersteinrichtung.html",
-    "stichworte": "ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port"
+    "stichworte": "ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port"
   },
   {
     "id": "vscode-remote-ssh",
+    "art": "anleitung",
     "titel": "VS Code mit dem Hetzner-Server verbinden",
     "untertitel": "Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche",
     "kategorie": "Werkzeuge",
     "datei": "anleitungen/vscode-remote-ssh.html",
     "stichworte": "vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban"
+  },
+  {
+    "id": "schluesselverwaltung",
+    "art": "uebersicht",
+    "titel": "Schlüsselverwaltung",
+    "untertitel": "Schlüsselpaare, Ablage pro Nutzer, mehrere Geräte, Widerruf, Rechte",
+    "kategorie": "Server",
+    "datei": "nachschlagen/schluesselverwaltung.html",
+    "stichworte": "ssh schluessel schluesselpaar ed25519 rsa passphrase ssh-agent authorized_keys fingerabdruck known_hosts rechte strictmodes rollen sudo sudoers docker gruppe geraete zweitgeraet widerruf aussperren sperren optionen command from restrict no-pty deploy permission denied publickey fehlersuche nachschlagen"
   }
 ];
 /* REGISTER-ENDE */
@@ -104,6 +122,7 @@ const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
   checks: id => "hefter:checks:" + id,
+  weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
 
@@ -178,6 +197,9 @@ function iconAnwenden(id, speichern = true) {
 
 /* ============================================================
    REGISTER-SEITE  (Liste + Suche)
+   Zwei Sorten: Anleitungen nach Bereich gruppiert, darunter die
+   Nachschlage-Übersichten als eigener Block. Die Suche läuft über
+   beide — getrennt ist nur die Anzeige.
    ============================================================ */
 function registerAufbauen() {
   const ziel = document.getElementById("registerListe");
@@ -185,16 +207,37 @@ function registerAufbauen() {
   /* Das REGISTER enthält Klartext (Build löst Entities auf) — beim
      Rendern per innerHTML muss deshalb hier escaped werden. */
   const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const kategorien = [...new Set(REGISTER.map(e => e.kategorie))];
+  const BUCH = '<span class="sorte-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg></span>';
+
+  const eintrag = e => {
+    const uebersicht = e.art === "uebersicht";
+    /* Die Übersichten stehen nicht unter ihrer Kategorie — die kommt
+       deshalb in die Unterzeile, sonst ginge sie ganz verloren. */
+    const unter = uebersicht ? e.kategorie + " · " + e.untertitel : e.untertitel;
+    const such = (e.titel + " " + e.untertitel + " " + e.kategorie + " " + e.stichworte).toLowerCase();
+    return `
+      <a class="eintrag${uebersicht ? " uebersicht" : ""}" href="${e.datei}" data-such="${esc(such)}">
+        ${uebersicht ? BUCH : ""}
+        <span><span class="t">${esc(e.titel)}</span><br><span class="u">${esc(unter)}</span></span>
+        <span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+      </a>`;
+  };
+
+  const anleitungen = REGISTER.filter(e => e.art !== "uebersicht");
+  const uebersichten = REGISTER.filter(e => e.art === "uebersicht");
+  const kategorien = [...new Set(anleitungen.map(e => e.kategorie))];
+
   ziel.innerHTML = kategorien.map(kat => `
     <section class="kategorie" data-kat="${esc(kat)}">
       <h2>${esc(kat)}</h2>
-      ${REGISTER.filter(e => e.kategorie === kat).map(e => `
-        <a class="eintrag" href="${e.datei}" data-such="${esc((e.titel + " " + e.untertitel + " " + e.stichworte).toLowerCase())}">
-          <span><span class="t">${esc(e.titel)}</span><br><span class="u">${esc(e.untertitel)}</span></span>
-          <span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
-        </a>`).join("")}
-    </section>`).join("");
+      ${anleitungen.filter(e => e.kategorie === kat).map(eintrag).join("")}
+    </section>`).join("")
+    + (uebersichten.length ? `
+    <section class="kategorie nachschlagen" data-kat="Nachschlagen">
+      <h2>Nachschlagen</h2>
+      <p class="kat-sub">Zum Nachschlagen statt zum Durchlaufen — Hintergrund und Handgriffe an einer Stelle.</p>
+      ${uebersichten.map(eintrag).join("")}
+    </section>` : "");
 
   const feld = document.getElementById("sucheFeld");
   if (!feld) return;
@@ -573,6 +616,51 @@ function stufenfilterAktivieren() {
 }
 
 /* ============================================================
+   A/B-WEICHE  (Varianten eines Schritts)
+   Ein Schritt, zwei Ausgangslagen — sichtbar ist immer nur einer
+   der Wege. Weichen mit gleichem data-weiche schalten gemeinsam:
+   wer oben "Weg B" wählt, bekommt ihn auch weiter unten, ohne die
+   Wahl zu wiederholen. Gemerkt wird sie je Seite und Weiche.
+   ============================================================ */
+function weichenAktivieren() {
+  const weichen = [...document.querySelectorAll(".weiche")];
+  if (!weichen.length) return;
+  const seite = document.body.dataset.seite;
+  /* Ohne data-weiche laufen alle Weichen einer Seite gemeinsam —
+     besser als ein "undefined", das keinen Weg mehr findet. */
+  const name = w => w.dataset.weiche || "standard";
+  const knoepfe = w => w.querySelectorAll(":scope > .weiche-wahl button");
+
+  const setzen = (weichenName, weg, speichern = true) => {
+    if (!weg) return;
+    weichen.filter(w => name(w) === weichenName).forEach(w => {
+      knoepfe(w).forEach(b => {
+        b.classList.toggle("aktiv", b.dataset.weg === weg);
+        b.setAttribute("aria-pressed", b.dataset.weg === weg);
+      });
+      w.querySelectorAll(":scope > .weg").forEach(p =>
+        p.classList.toggle("aktiv", p.dataset.weg === weg));
+    });
+    if (speichern && seite) {
+      try { localStorage.setItem(KEY.weg(seite, weichenName), weg); } catch {}
+    }
+  };
+
+  weichen.forEach(w => knoepfe(w).forEach(b =>
+    b.addEventListener("click", () => setzen(name(w), b.dataset.weg))));
+
+  for (const weichenName of new Set(weichen.map(name))) {
+    let gewaehlt = null;
+    if (seite) { try { gewaehlt = localStorage.getItem(KEY.weg(seite, weichenName)); } catch {} }
+    /* Fällt die gemerkte Wahl weg (Weg umbenannt oder entfernt), greift
+       der erste Weg der Weiche — nie ein leerer Schritt. */
+    const wege = weichen.find(w => name(w) === weichenName).querySelectorAll(":scope > .weg");
+    const bekannt = [...wege].some(p => p.dataset.weg === gewaehlt);
+    setzen(weichenName, bekannt ? gewaehlt : wege[0]?.dataset.weg, false);
+  }
+}
+
+/* ============================================================
    EINSTELLUNGEN  (Icon-Galerie)
    ============================================================ */
 function einstellungenAufbauen() {
@@ -602,6 +690,7 @@ einstellungenAufbauen();
    die iconAnwenden als aktiv markiert. */
 iconAnwenden(iconAktiv(), false);
 kopierenAktivieren();
+weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
 fotosAktivieren();

@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060709">
-<meta name="description" content="Ubuntu-24.04-Server absichern: eigener Benutzer, SSH nur per Schlüssel, root gesperrt, UFW-Firewall und fail2ban — Schritt für Schritt.">
-<meta name="hefter-untertitel" content="Ubuntu 24.04 · Benutzer, SSH-Härtung, UFW, fail2ban">
-<meta name="hefter-stichworte" content="ubuntu hetzner server setup benutzer sudo ssh root passwort firewall ufw fail2ban brute force absichern haertung port">
+<meta name="description" content="Ubuntu-24.04-Server absichern: eigenes Schlüsselpaar, drei Rollen statt eines Alleskönners, SSH nur per Schlüssel, root gesperrt, UFW-Firewall und fail2ban — Schritt für Schritt.">
+<meta name="hefter-untertitel" content="Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban">
+<meta name="hefter-stichworte" content="ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port">
 <title>Server-Erst-Einrichtung (Ubuntu 24.04) · Hefter</title>
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
@@ -36,35 +36,104 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
     <span class="chip">Server</span>
     <h1>Server-Erst-Einrichtung &amp; Absicherung</h1>
     <div class="meta">
-      <span>⏱ <b>ca. 30 Min</b></span>
-      <span>Aktualisiert <b>02.08.2026</b></span>
+      <span>⏱ <b>ca. 45 Min</b></span>
+      <span>Aktualisiert <b>05.08.2026</b></span>
       <span><span class="mono">Ubuntu 24.04 LTS</span> · Hetzner Cloud</span>
     </div>
-    <p class="lead">Vom frisch erstellten Server zur abgesicherten Basis: eigener Benutzer, SSH nur noch per Schlüssel, root gesperrt, Firewall und Brute-Force-Schutz aktiv.</p>
+    <p class="lead">Vom frisch erstellten Server zur abgesicherten Basis: eigenes Schlüsselpaar je Gerät, drei Rollen statt eines Alleskönners, SSH nur noch per Schlüssel, root gesperrt, Firewall und Brute-Force-Schutz aktiv.</p>
     <div class="callout info">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
-      <div><div class="label">Reihenfolge zählt</div><div class="txt">Die Schritte 1–5 laufen bewusst <b>vor</b> dem Absichern in Schritt 6. Wer root sperrt, bevor der neue Zugang getestet ist, sperrt sich selbst aus.</div></div>
+      <div><div class="label">Reihenfolge zählt</div><div class="txt">Die Schritte 1–6 laufen bewusst <b>vor</b> dem Absichern in Schritt 7. Wer den Passwort-Login sperrt, bevor jeder Nutzer und jedes Gerät seinen Schlüssel hat, sperrt sich selbst aus.</div></div>
+    </div>
+    <div class="callout info">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12M6 21v-2M18 21V9M18 3v2M6 15a6 6 0 0 0 12-6"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/></svg></span>
+      <div><div class="label">Zwei Ausgangslagen</div><div class="txt"><b>Weg A:</b> Beim Erstellen des Servers war dein öffentlicher Schlüssel schon hinterlegt. <b>Weg B:</b> Der Server kennt nur ein Passwort. Wo sich die Wege unterscheiden, steht ein Umschalter im Schritt — die Wahl gilt dann für die ganze Seite.</div></div>
     </div>
 
     <div class="stufenfilter" role="group" aria-label="Schritte filtern">
       <button data-filter="alle" class="aktiv">Alle Schritte</button>
-      <button data-filter="wiederkehrend">Nur Pflichtschritte</button>
+      <button data-filter="wiederkehrend">Nur pro Nutzer &amp; Gerät</button>
     </div>
-    <p class="stufen-hinweis">Die einmaligen Schritte sind ausgeblendet — sichtbar bleibt der Weg, den du jedes Mal gehst.</p>
+    <p class="stufen-hinweis">Die einmaligen Server-Schritte sind ausgeblendet — sichtbar bleibt der Weg, den du für jeden weiteren Nutzer und jedes weitere Gerät gehst.</p>
   </header>
 
   <main>
 
     <!-- Schritt 1 -->
-    <section class="step einmalig">
+    <section class="step wiederkehrend stufenwechsel">
       <div class="rail"><div class="step-num">1</div></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Gerät</span>
+        <h2>Lokales Schlüsselpaar prüfen — sonst anlegen<a class="infolink" href="../nachschlagen/schluesselverwaltung.html#paar" aria-label="Nachschlagen: privater und öffentlicher Schlüssel" title="Nachschlagen: privater und öffentlicher Schlüssel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Der Schlüssel entsteht auf <b>deinem</b> Gerät, nicht auf dem Server. Der private Teil bleibt hier und verlässt das Gerät nie; nur der öffentliche wandert auf den Server. Unter Windows laufen dieselben Befehle in der PowerShell, das Verzeichnis heißt dort <code>C:\Users\&lt;du&gt;\.ssh</code>.</p>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ls -l ~/.ssh/id_ed25519.pub</pre>
+            </div>
+            <p class="pr-soll">Soll: eine Datei. Dann hast du bereits ein Paar und lässt es, wie es ist.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fehlt</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Verzeichnis anlegen, falls es das noch nicht gibt</span>
+mkdir -p ~/.ssh <span class="tok-k">&amp;&amp;</span> chmod 700 ~/.ssh
+
+<span class="tok-c"># Der Kommentar hinter -C benennt das Gerät — nicht die Person</span>
+ssh-keygen -t ed25519 -C <span class="tok-s">"max@laptop"</span></pre>
+            </div>
+            <p class="pr-soll">Danach liegen zwei Dateien nebeneinander: <code>id_ed25519</code> (privat, bleibt hier) und <code>id_ed25519.pub</code> (öffentlich, darf überall hin).</p>
+          </div>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Warum der Kommentar zählt</div><div class="txt">Er steht später Zeichen für Zeichen in der <code>authorized_keys</code> auf dem Server. Ohne ihn stehen dort mehrere gleich aussehende Zeilen, und du weißt nicht mehr, welche zum verlorenen Tablet gehört.</div></div>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Passphrase: ja</div><div class="txt">Der private Schlüssel ist eine Datei — ohne Passphrase genügt ein kopierter Ordner, um dein Konto zu übernehmen. Mit <code>ssh-agent</code> tippst du sie einmal je Sitzung, nicht bei jedem Login.</div></div>
+        </div>
+        <p><b>Weg A oder B?</b> Auf Weg B ist dieser Schritt zwingend — ohne öffentlichen Schlüssel gibt es in Schritt 5 nichts zu hinterlegen. Auf Weg A ist er längst erledigt, sonst hättest du den Server nicht mit Schlüssel erstellen können.</p>
+        <div class="fotozone" data-schritt="schluesselpaar-lokal">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig">
+      <div class="rail"><div class="step-num">2</div></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Als root einloggen und System aktualisieren</h2>
-        <p>Beim Erstellen des Servers hast du deinen SSH-Schlüssel hinterlegt — damit kommst du direkt als <code>root</code> rein. Erste Amtshandlung: alles auf aktuellen Stand bringen.</p>
-        <div class="codebox">
-          <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
-          <pre>ssh root@&lt;SERVER-IP&gt;</pre>
+        <p>Der erste Login läuft je nach Ausgangslage anders. Erste Amtshandlung ist danach in beiden Fällen dieselbe: alles auf aktuellen Stand bringen.</p>
+        <div class="weiche" data-weiche="zugang">
+          <div class="weiche-wahl" role="group" aria-label="Ausgangslage wählen">
+            <button data-weg="a" class="aktiv">Weg A · Schlüssel hinterlegt</button>
+            <button data-weg="b">Weg B · nur Passwort</button>
+          </div>
+          <div class="weg aktiv" data-weg="a">
+            <p class="wegtext">Beim Erstellen des Servers hast du deinen öffentlichen Schlüssel hinterlegt — der Login läuft ohne Passwort. Bei Hetzner-Images ist der Passwort-Login dann meist von vornherein aus.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ssh root@&lt;SERVER-IP&gt;</pre>
+            </div>
+          </div>
+          <div class="weg" data-weg="b">
+            <p class="wegtext">Der Server kennt nur ein Passwort; bei Hetzner kommt es per Mail. Beim ersten Login verlangt er sofort ein neues — leg es im Passwortspeicher ab: Bis Schritt 7 ist es dein einziger Zugang, und danach bleibt es der Schlüssel zur Notfall-Konsole des Anbieters.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ssh root@&lt;SERVER-IP&gt;
+
+<span class="tok-c"># Der Server fragt zuerst das Passwort aus der Mail ab und verlangt</span>
+<span class="tok-c"># dann sofort ein neues. Erst danach steht die Sitzung.</span></pre>
+            </div>
+            <p class="wegtext">Bis Schritt 7 bleibt der Passwort-Login offen — auf diesem Weg unvermeidlich, denn du brauchst ihn in Schritt 5 selbst. Genau deshalb sollte Schritt 7 heute passieren und nicht nächste Woche.</p>
+          </div>
         </div>
         <div class="codebox">
           <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
@@ -80,20 +149,35 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
       </div>
     </section>
 
-    <!-- Schritt 2 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">2</div></div>
+    <!-- Schritt 3 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">3</div></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
-        <h2>Hostname und Zeitzone setzen</h2>
-        <p>Kleinigkeit, die später beim Lesen von Logs viel wert ist — Zeitstempel in lokaler Zeit und ein Name, den du wiedererkennst.</p>
-        <div class="codebox">
-          <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
-          <pre>hostnamectl set-hostname web01
+        <h2>Hostname und Zeitzone ansehen</h2>
+        <p>Ansehen ist Pflicht, Ändern nicht: Viele Anbieter setzen beides schon beim Erstellen. Beim Lesen von Logs ist es später viel wert — Zeitstempel in lokaler Zeit und ein Name, den du wiedererkennst.</p>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>hostnamectl
+timedatectl</pre>
+            </div>
+            <p class="pr-soll">Soll: <code>Static hostname</code> ist ein Name, den du wiedererkennst, <code>Time zone</code> passt zu der Zeit, in der du Logs liest.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>hostnamectl set-hostname web01
 timedatectl set-timezone Europe/Berlin
 
-<span class="tok-c"># Hostname zusätzlich in der Hosts-Datei ergänzen</span>
-echo <span class="tok-s">"127.0.1.1 web01"</span> &gt;&gt; /etc/hosts</pre>
+<span class="tok-c"># Der Name gehört zusätzlich in die Hosts-Datei — sonst hängt sudo</span>
+<span class="tok-c"># bei jedem Aufruf kurz an der Namensauflösung</span>
+grep -q web01 /etc/hosts <span class="tok-k">||</span> echo <span class="tok-s">"127.0.1.1 web01"</span> &gt;&gt; /etc/hosts</pre>
+            </div>
+          </div>
         </div>
         <div class="fotozone" data-schritt="hostname-zeit">
           <div class="fotos"></div>
@@ -102,25 +186,82 @@ echo <span class="tok-s">"127.0.1.1 web01"</span> &gt;&gt; /etc/hosts</pre>
       </div>
     </section>
 
-    <!-- Schritt 3 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">3</div></div>
+    <!-- Schritt 4 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">4</div></div>
       <div class="step-body">
-        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
-        <h2>Benutzer anlegen und sudo-Rechte geben</h2>
-        <p>Ab jetzt arbeitest du nicht mehr als root. Der neue Benutzer bekommt über die Gruppe <code>sudo</code> die Rechte, die er punktuell braucht.</p>
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Nutzer</span>
+        <h2>Identität und Rechte<a class="infolink" href="../nachschlagen/schluesselverwaltung.html#rollen" aria-label="Nachschlagen: Rollen und Rechte" title="Nachschlagen: Rollen und Rechte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Ab jetzt arbeitest du nicht mehr als root. Ein Konto steht für eine Person oder eine Aufgabe — und nicht jedes Konto darf alles. Wer über einen Login hereinkommt, soll genau das können, wofür er da ist.</p>
         <div class="codebox">
           <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
-          <pre><span class="tok-c"># Fragt nach einem Passwort — vergib ein starkes, du brauchst es für sudo</span>
+          <pre><span class="tok-c"># 1) Admin — darf über sudo alles, das Passwort ist die Bremse davor</span>
 adduser max
+usermod -aG sudo max
 
-<span class="tok-c"># In die sudo-Gruppe aufnehmen</span>
-usermod -aG sudo max</pre>
+<span class="tok-c"># 2) Eingeschränkter Nutzer — kein sudo, nur die eigenen Dateien</span>
+adduser lena
+
+<span class="tok-c"># 3) Dienst-Nutzer — kein Passwort, kein sudo, nur Schlüssel-Login</span>
+adduser --disabled-password --gecos <span class="tok-s">""</span> deploy</pre>
         </div>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
-          <div><div class="label">Warum ein Passwort</div><div class="txt">Der SSH-Login läuft gleich rein über den Schlüssel. Das Passwort brauchst du nur noch für <code>sudo</code> auf dem Server selbst — das ist die gewünschte Bremse vor Systemänderungen.</div></div>
+          <div><div class="label">Zwei Sorten Dienst-Nutzer</div><div class="txt"><code>--disabled-password</code> heißt: Es gibt kein Passwort, mit dem man sich anmelden könnte — der Zugang läuft ausschließlich über den hinterlegten Schlüssel. Wer gar keinen Login will (ein reiner Datei-Besitzer für einen Dienst), setzt zusätzlich <code>--shell /usr/sbin/nologin</code>. Dann laufen aber auch Deploy-Befehle über SSH nicht mehr.</div></div>
         </div>
+        <p><b>Passwort wofür?</b> Der SSH-Login läuft ab Schritt 7 rein über den Schlüssel. Das Passwort des Admins brauchst du nur noch für <code>sudo</code> auf dem Server selbst — das ist die gewünschte Bremse vor Systemänderungen.</p>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>id max
+id lena
+id deploy</pre>
+            </div>
+            <p class="pr-soll">Soll: <code>sudo</code> taucht nur bei <code>max</code> in der Gruppenliste auf.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Rechte geben …</span>
+usermod -aG sudo max
+
+<span class="tok-c"># … oder wieder wegnehmen</span>
+deluser lena sudo</pre>
+            </div>
+            <p class="pr-soll">Gruppenwechsel greifen erst bei der nächsten Anmeldung — bestehende Sitzungen des Nutzers vorher beenden.</p>
+          </div>
+        </div>
+        <p><b>Zwischenstufe: gezielte sudo-Rechte.</b> Zwischen „alles“ und „nichts“ liegt der nützlichste Fall: Ein Nutzer darf genau die Befehle, die zu seiner Aufgabe gehören. Das gehört in eine eigene Datei unter <code>/etc/sudoers.d/</code> — nie in die <code>sudoers</code> selbst.</p>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">/etc/sudoers.d/50-lena-neustart</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Genau zwei Befehle, mit vollem Pfad. Ohne Pfad ließe sich ein</span>
+<span class="tok-c"># gleichnamiges Programm im eigenen Verzeichnis unterschieben.</span>
+lena ALL=(root) /usr/bin/systemctl restart meineapp, /usr/bin/systemctl status meineapp</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Server — anlegen und prüfen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># visudo statt nano: prüft beim Speichern und legt 0440 an.</span>
+<span class="tok-c"># Ein Syntaxfehler in sudoers.d sperrt sonst jedes sudo im System.</span>
+sudo visudo -f /etc/sudoers.d/50-lena-neustart
+
+<span class="tok-c"># Alle Regeln zusammen gegenlesen — muss "parsed OK" melden</span>
+sudo visudo -c
+
+<span class="tok-c"># Was darf lena wirklich?</span>
+sudo -l -U lena</pre>
+        </div>
+        <div class="callout sicher">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Der Dateiname darf keinen Punkt enthalten</div><div class="txt"><code>sudoers.d</code> überliest jede Datei mit <code>.</code> oder <code>~</code> im Namen — <code>50-lena.conf</code> wirkt also nie, ohne dass irgendwo eine Fehlermeldung stünde. Und: Ein Editor oder eine Shell in der Befehlsliste hebt die ganze Beschränkung auf, denn aus beidem heraus lässt sich alles Weitere starten.</div></div>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Die Gruppe <code>docker</code> hebelt alles aus</div><div class="txt">Wer in der Gruppe <code>docker</code> ist, kann sich einen Container mit dem Wurzelverzeichnis des Servers geben — und ist damit faktisch root, ohne Passwortabfrage und ohne Eintrag in den sudo-Logs. Jede Abstufung darüber ist dann Zierde. Nimm in die Gruppe nur auf, wem du auch <code>sudo</code> ohne Passwort geben würdest; für Deploys lieber gezielte Rechte auf die Compose-Befehle.</div></div>
+        </div>
+        <p><b>Ein Nutzer, mehrere Geräte.</b> Das Konto steht für die Person, nicht für den Laptop. Kommt ein zweites Gerät dazu, entsteht kein zweites Konto — es kommt eine weitere Schlüsselzeile in dieselbe Datei des Nutzers. Der Vorteil zeigt sich beim Verlust: Ein Gerät fliegt raus, das Konto und alle anderen Geräte bleiben. Die Handgriffe dazu stehen in Schritt 5.</p>
         <div class="fotozone" data-schritt="benutzer">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
@@ -128,25 +269,113 @@ usermod -aG sudo max</pre>
       </div>
     </section>
 
-    <!-- Schritt 4 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">4</div></div>
+    <!-- Schritt 5 -->
+    <section class="step wiederkehrend">
+      <div class="rail"><div class="step-num">5</div></div>
       <div class="step-body">
-        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
-        <h2>SSH-Schlüssel für den neuen Benutzer hinterlegen</h2>
-        <p>Der Schlüssel liegt bisher nur bei root. Kopiere das komplette <code>.ssh</code>-Verzeichnis inklusive Besitzrechten zum neuen Benutzer.</p>
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Nutzer und Gerät</span>
+        <h2>Schlüssel hinterlegen<a class="infolink" href="../nachschlagen/schluesselverwaltung.html#geraete" aria-label="Nachschlagen: ein Nutzer, mehrere Geräte" title="Nachschlagen: ein Nutzer, mehrere Geräte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Alle Handgriffe rund um Schlüssel stehen hier an einer Stelle — damit du diesen Schritt später allein aufschlagen kannst, wenn ein neues Gerät, ein neuer Kollege oder ein Deploy-Zugang dazukommt.</p>
+        <p>Der erste Schlüssel für den Admin kommt je nach Ausgangslage von einer anderen Seite:</p>
+        <div class="weiche" data-weiche="zugang">
+          <div class="weiche-wahl" role="group" aria-label="Ausgangslage wählen">
+            <button data-weg="a" class="aktiv">Weg A · Schlüssel hinterlegt</button>
+            <button data-weg="b">Weg B · nur Passwort</button>
+          </div>
+          <div class="weg aktiv" data-weg="a">
+            <p class="wegtext">Dein Schlüssel liegt bereits auf dem Server — allerdings bei root. Er wird zum neuen Konto übernommen, und zwar nur der öffentliche Teil.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Verzeichnis mit den richtigen Rechten und Besitzern anlegen</span>
+install -d -m 700 -o max -g max /home/max/.ssh
+
+<span class="tok-c"># Nur beim ersten Mal! install überschreibt die Zieldatei —</span>
+<span class="tok-c"># weitere Geräte werden weiter unten angehängt, nicht so übernommen.</span>
+install -m 600 -o max -g max /root/.ssh/authorized_keys /home/max/.ssh/authorized_keys</pre>
+            </div>
+            <div class="callout sicher">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+              <div><div class="label">Nicht das ganze Verzeichnis kopieren</div><div class="txt">Der verbreitete Einzeiler <code>rsync --archive --chown=max:max ~/.ssh /home/max</code> nimmt alles mit, was in <code>/root/.ssh</code> liegt — auch einen dort abgelegten <b>privaten</b> Schlüssel. Die <code>authorized_keys</code> allein genügt.</div></div>
+            </div>
+          </div>
+          <div class="weg" data-weg="b">
+            <p class="wegtext">Auf dem Server liegt noch kein Schlüssel. Er wird von deinem Gerät aus hochgeschoben — mit dem Passwort, das du in Schritt 4 für <code>max</code> vergeben hast.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ssh-copy-id max@&lt;SERVER-IP&gt;</pre>
+            </div>
+            <p class="wegtext">Ohne <code>ssh-copy-id</code> (etwa in der Windows-PowerShell) geht es in einem Befehl — er legt Verzeichnis und Rechte gleich mit an:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh max@&lt;SERVER-IP&gt; <span class="tok-s">"install -d -m 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys"</span></pre>
+            </div>
+            <div class="callout achtung">
+              <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+              <div><div class="label">Braucht noch den Passwort-Login</div><div class="txt">Beide Wege melden sich mit Passwort an. Sie funktionieren also nur <b>vor</b> Schritt 7. Wer erst härtet und dann Schlüssel verteilen will, steht vor einer verschlossenen Tür — genau die Falle, die diese Anleitung sonst überall vermeidet.</div></div>
+            </div>
+          </div>
+        </div>
+        <p><b>Für jeden weiteren Nutzer.</b> Dessen öffentlicher Schlüssel entsteht auf dessen Gerät (Schritt 1) und wird dir als Textzeile geschickt. Du legst sie ab — der private Schlüssel bleibt dabei immer beim Besitzer.</p>
         <div class="codebox">
           <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
-          <pre>rsync --archive --chown=max:max ~/.ssh /home/max</pre>
+          <pre>install -d -m 700 -o lena -g lena /home/lena/.ssh
+
+<span class="tok-c"># Die Zeile aus lenas id_ed25519.pub — anhängen, nicht überschreiben</span>
+echo <span class="tok-s">"ssh-ed25519 AAAA… lena@laptop"</span> &gt;&gt; /home/lena/.ssh/authorized_keys
+
+chown lena:lena /home/lena/.ssh/authorized_keys
+chmod 600 /home/lena/.ssh/authorized_keys</pre>
         </div>
-        <div class="callout ergebnis">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
-          <div><div class="label">Ergebnis</div><div class="txt"><code>/home/max/.ssh/authorized_keys</code> enthält denselben Schlüssel wie bei root, gehört aber <code>max</code>. Rechte prüfen: Ordner <code>700</code>, Datei <code>600</code>.</div></div>
-        </div>
+        <p><b>Zweites Gerät desselben Nutzers.</b> Jedes Gerät bekommt ein <b>eigenes</b> Schlüsselpaar nach Schritt 1. Der private Schlüssel wird nie von einem Gerät auf ein anderes kopiert — nur so lässt sich später ein einzelnes Gerät aussperren, ohne allen anderen den Zugang zu nehmen. Angehängt wird die neue Zeile am besten vom Nutzer selbst:</p>
         <div class="codebox">
-          <div class="codebox-head"><span class="fname">Server — Rechte kontrollieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
-          <pre>ls -ld /home/max/.ssh
+          <div class="codebox-head"><span class="fname">Server (als der Nutzer)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>echo <span class="tok-s">"ssh-ed25519 AAAA… max@tablet"</span> &gt;&gt; ~/.ssh/authorized_keys
+
+<span class="tok-c"># Was liegt jetzt drin? Zeigt Fingerabdruck und Kommentar je Zeile</span>
+ssh-keygen -lf ~/.ssh/authorized_keys</pre>
+        </div>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">/home/max/.ssh/authorized_keys — so sieht es aus</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Eine Zeile je Gerät. Der Kommentar am Ende ist die Gerätezuordnung —</span>
+<span class="tok-c"># ohne ihn stehen hier mehrere nicht unterscheidbare Zeilen.</span>
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… max@laptop
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… max@tablet</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Ein Gerät aussperren</div><div class="txt">Die eine Zeile mit dem passenden Kommentar aus der <code>authorized_keys</code> löschen — fertig. Alle anderen Geräte des Nutzers bleiben unberührt. Wäre überall derselbe Schlüssel im Einsatz, müsstest du stattdessen jedem alles neu verteilen.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ls -ld /home/max/.ssh
 ls -l /home/max/.ssh/authorized_keys</pre>
+            </div>
+            <p class="pr-soll">Soll: <code>drwx------</code> für den Ordner, <code>-rw-------</code> für die Datei, und als Besitzer beide Male der Nutzer selbst — nicht root.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fehlt oder stimmt nicht</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Legt das Verzeichnis an, falls es fehlt, und rückt sonst die Rechte gerade</span>
+install -d -m 700 -o max -g max /home/max/.ssh
+
+touch /home/max/.ssh/authorized_keys
+chown max:max /home/max/.ssh/authorized_keys
+chmod 600 /home/max/.ssh/authorized_keys</pre>
+            </div>
+            <p class="pr-soll">Zu weite Rechte sind der häufigste stille Fehler: <code>sshd</code> übergeht die Datei dann kommentarlos, und der Login endet mit <code>Permission denied (publickey)</code> — obwohl der Schlüssel richtig dasteht.</p>
+          </div>
+        </div>
+        <p><b>Eingeschränkter Schlüssel für den Dienst-Nutzer.</b> Ein Schlüssel kann mehr als nur öffnen: Vorangestellte Optionen legen fest, was mit ihm überhaupt möglich ist. Für einen Deploy-Zugang heißt das — genau ein Befehl, keine Shell, keine Tunnel.</p>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">/home/deploy/.ssh/authorized_keys</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># restrict schaltet alles ab (Tunnel, Weiterleitungen, Terminal);</span>
+<span class="tok-c"># command erzwingt genau dieses Skript, egal was der Aufrufer schickt.</span>
+<span class="tok-c"># from nur setzen, wenn die Gegenstelle eine feste IP hat.</span>
+restrict,command="/usr/local/bin/deploy.sh" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… deploy@ci</pre>
         </div>
         <div class="fotozone" data-schritt="ssh-schluessel">
           <div class="fotos"></div>
@@ -155,24 +384,43 @@ ls -l /home/max/.ssh/authorized_keys</pre>
       </div>
     </section>
 
-    <!-- Schritt 5 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">5</div></div>
+    <!-- Schritt 6 -->
+    <section class="step wiederkehrend stufenwechsel">
+      <div class="rail"><div class="step-num">6</div></div>
       <div class="step-body">
-        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
-        <h2>Neuen Zugang testen — root-Sitzung offen lassen</h2>
-        <p>Das ist der wichtigste Schritt der ganzen Anleitung. Öffne ein <b>zweites</b> Terminal-Fenster und logge dich als neuer Benutzer ein. Die root-Sitzung bleibt als Rettungsleine offen.</p>
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Nutzer und Gerät</span>
+        <h2>Alle Rollen testen — auch das, was nicht gehen darf</h2>
+        <p>Der wichtigste Schritt der ganzen Anleitung. Öffne ein <b>zweites</b> Terminal-Fenster; die bestehende Sitzung bleibt als Rettungsleine offen. Beim ersten Durchlauf ist das die root-Sitzung, später die deines Admin-Kontos.</p>
         <div class="codebox">
-          <div class="codebox-head"><span class="fname">Terminal (neues Fenster)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <div class="codebox-head"><span class="fname">Terminal (neues Fenster) — Admin</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>ssh max@&lt;SERVER-IP&gt;
 
 <span class="tok-c"># Läuft sudo? Muss "root" ausgeben</span>
 sudo whoami</pre>
         </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal — eingeschränkter Nutzer</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>ssh lena@&lt;SERVER-IP&gt;
+
+<span class="tok-c"># NEGATIVTEST — muss scheitern:</span>
+<span class="tok-c"># "lena is not in the sudoers file" oder "not allowed to execute"</span>
+sudo whoami
+
+<span class="tok-c"># Und das hier muss laufen: genau die freigegebenen Befehle</span>
+sudo -l
+sudo systemctl status meineapp</pre>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">Terminal — Dienst-Nutzer</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre><span class="tok-c"># Mit erzwungenem Befehl kommt nicht "deploy" zurück, sondern</span>
+<span class="tok-c"># die Ausgabe von deploy.sh — auch das ist ein bestandener Test</span>
+ssh -i ~/.ssh/id_ed25519_deploy deploy@&lt;SERVER-IP&gt; <span class="tok-s">"whoami"</span></pre>
+        </div>
         <div class="callout achtung">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
-          <div><div class="label">Erst weiter, wenn beides klappt</div><div class="txt">Login per Schlüssel <b>und</b> <code>sudo whoami</code> müssen funktionieren. Sonst zurück zu Schritt 4 — die root-Sitzung ist noch offen und rettet dich.</div></div>
+          <div><div class="label">Ein bestandener Negativtest zählt wie ein bestandener Login</div><div class="txt">Klappt der Login und scheitert <code>sudo</code> nicht, ist die Abstufung aus Schritt 4 nur eine Absicht geblieben. Prüfe dann die Gruppen mit <code>id lena</code> und die Regeln mit <code>sudo -l -U lena</code>. Erst weiter, wenn jede Rolle genau so reagiert wie geplant — die alte Sitzung ist noch offen und rettet dich.</div></div>
         </div>
+        <p>Kommt ein weiteres Gerät dazu, wird dieser Test von <b>diesem</b> Gerät aus wiederholt. <code>ssh -v max@&lt;SERVER-IP&gt;</code> zeigt in der Ausgabe, welcher Schlüssel angenommen wurde.</p>
         <div class="fotozone" data-schritt="zugang-test">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
@@ -180,13 +428,32 @@ sudo whoami</pre>
       </div>
     </section>
 
-    <!-- Schritt 6 -->
+    <!-- Schritt 7 -->
     <section class="step einmalig">
-      <div class="rail"><div class="step-num">6</div></div>
+      <div class="rail"><div class="step-num">7</div></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>SSH härten: root-Login und Passwörter sperren</h2>
-        <p>Jetzt wird zugemacht. Die Einstellungen kommen in eine eigene Datei unter <code>/etc/ssh/sshd_config.d/</code> — nicht in die <code>sshd_config</code> selbst.</p>
+        <p>Jetzt wird zugemacht. Vorher steht aber ein Tor: Mit drei Rollen und mehreren Geräten ist der Passwort-Login für mehr Zugänge die letzte offene Tür, als einem beim Setzen des Hakens bewusst ist.</p>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Tor davor: Hat jeder seinen Schlüssel?</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Zählt die hinterlegten Schlüssel je Konto — eine Zeile ist ein Gerät</span>
+<span class="befehl">for d in /root/ /home/*/; do
+  n=$(grep -c <span class="tok-s">'^ssh-'</span> <span class="tok-s">"$d.ssh/authorized_keys"</span> 2&gt;/dev/null)
+  echo <span class="tok-s">"$d ${n:-0}"</span>
+done</span></pre>
+            </div>
+            <p class="pr-soll">Soll: Jedes Konto, das sich später anmelden können muss, steht mit mindestens <code>1</code> da — und für jedes Gerät eine Zeile mehr. Der Dienst-Nutzer zählt mit.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Steht irgendwo 0</div>
+            <p class="pr-soll">Zurück zu Schritt 5 und den fehlenden Schlüssel hinterlegen — solange der Passwort-Login noch steht, ist das eine Minute Arbeit. Danach wäre es ein Fall für die Notfall-Konsole des Anbieters. Konten, die sich nie anmelden sollen (etwa Systemkonten), dürfen selbstverständlich bei 0 bleiben.</p>
+          </div>
+        </div>
+        <p>Die Einstellungen kommen in eine eigene Datei unter <code>/etc/ssh/sshd_config.d/</code> — nicht in die <code>sshd_config</code> selbst.</p>
         <div class="callout gefahr">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Der Dateiname entscheidet</div><div class="txt">Bei SSH gilt: <b>der erste gefundene Wert gewinnt</b>. Cloud-Images legen oft <code>50-cloud-init.conf</code> mit <code>PasswordAuthentication yes</code> an. Eine Datei namens <code>99-…</code> wird später gelesen und bleibt wirkungslos — deshalb hier <code>00-haertung.conf</code>.</div></div>
@@ -213,20 +480,40 @@ sudo whoami</pre>
 <span class="tok-c"># Syntax prüfen — muss stumm bleiben</span>
 sudo sshd -t
 
-<span class="tok-c"># Tatsächlich wirksame Werte anzeigen (entscheidend!)</span>
-sudo sshd -T | grep -Ei <span class="tok-s">'permitrootlogin|passwordauthentication|kbdinteractive'</span>
-
 sudo systemctl restart ssh</pre>
         </div>
-        <div class="callout ergebnis">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
-          <div><div class="label">Soll-Ausgabe</div><div class="txt">Dreimal <code>no</code>. Steht dort <code>passwordauthentication yes</code>, greift ein anderer Schnipsel zuerst — dann den Wert in <code>50-cloud-init.conf</code> anpassen oder die Datei entfernen.</div></div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server — tatsächlich wirksame Werte</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>sudo sshd -T | grep -Ei <span class="tok-s">'permitrootlogin|passwordauthentication|kbdinteractive'</span></pre>
+            </div>
+            <p class="pr-soll">Soll: dreimal <code>no</code>. Das ist die einzige Ausgabe, die zählt — was in deiner Datei steht, kann von einem früher gelesenen Schnipsel überstimmt sein.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Steht dort <code>yes</code></div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server — wer setzt den Wert?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Zeigt Datei und Zeile jedes Vorkommens</span>
+sudo grep -rniE <span class="tok-s">'passwordauthentication|permitrootlogin'</span> /etc/ssh/sshd_config /etc/ssh/sshd_config.d/
+
+<span class="tok-c"># Den früher gelesenen Wert anpassen (meist 50-cloud-init.conf),</span>
+<span class="tok-c"># danach erneut prüfen</span>
+sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf
+sudo systemctl restart ssh</pre>
+            </div>
+          </div>
         </div>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
-          <div><div class="label">Socket-Aktivierung</div><div class="txt">Ubuntu startet <code>sshd</code> seit 22.10 pro Verbindung über <code>ssh.socket</code>. Für Optionen wie diese reicht der Neustart oben — nur beim <b>Port</b> muss zusätzlich der Socket angefasst werden (Schritt 10).</div></div>
+          <div><div class="label">Socket-Aktivierung</div><div class="txt">Ubuntu startet <code>sshd</code> seit 22.10 pro Verbindung über <code>ssh.socket</code>. Für Optionen wie diese reicht der Neustart oben — nur beim <b>Port</b> muss zusätzlich der Socket angefasst werden (Schritt 11).</div></div>
         </div>
-        <p><b>Test vor dem Schließen der root-Sitzung:</b> ein drittes Fenster öffnen, <code>ssh max@&lt;SERVER-IP&gt;</code> muss laufen, <code>ssh root@&lt;SERVER-IP&gt;</code> muss abgewiesen werden.</p>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Noch ein Tor: <code>AllowUsers</code></div><div class="txt">Mit <code>AllowUsers max lena deploy</code> kommt gar nicht erst zur Schlüsselprüfung, wer nicht in der Liste steht. Wirksam, aber mit Merkposten: Jedes neue Konto muss hier nachgetragen werden, sonst kommt es trotz gültigem Schlüssel nicht herein. Nimm die Zeile nur auf, wenn du sie in Schritt 4 mitpflegst.</div></div>
+        </div>
+        <p><b>Test vor dem Schließen der root-Sitzung:</b> ein drittes Fenster öffnen. <code>ssh max@&lt;SERVER-IP&gt;</code> muss laufen, <code>ssh root@&lt;SERVER-IP&gt;</code> muss abgewiesen werden.</p>
         <div class="fotozone" data-schritt="ssh-haertung">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
@@ -234,9 +521,9 @@ sudo systemctl restart ssh</pre>
       </div>
     </section>
 
-    <!-- Schritt 7 -->
+    <!-- Schritt 8 -->
     <section class="step einmalig">
-      <div class="rail"><div class="step-num">7</div></div>
+      <div class="rail"><div class="step-num">8</div></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Firewall einrichten (UFW)</h2>
@@ -252,8 +539,26 @@ sudo ufw allow OpenSSH
 <span class="tok-c"># Bei Webserver zusätzlich:</span>
 <span class="tok-c"># sudo ufw allow 80,443/tcp</span>
 
-sudo ufw enable
-sudo ufw status verbose</pre>
+sudo ufw enable</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>sudo ufw status verbose</pre>
+            </div>
+            <p class="pr-soll">Soll: <code>Status: active</code>, <code>deny (incoming)</code> als Vorgabe und eine <code>ALLOW</code>-Zeile für OpenSSH.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> SSH fehlt in der Liste</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>sudo ufw allow OpenSSH
+sudo ufw reload</pre>
+            </div>
+            <p class="pr-soll">Kommst du gar nicht mehr rein, hilft nur die Konsole im Cloud-Panel des Anbieters — sie hängt nicht an SSH. Dort <code>ufw disable</code>, Regel nachtragen, wieder einschalten.</p>
+          </div>
         </div>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
@@ -266,9 +571,9 @@ sudo ufw status verbose</pre>
       </div>
     </section>
 
-    <!-- Schritt 8 -->
+    <!-- Schritt 9 -->
     <section class="step einmalig">
-      <div class="rail"><div class="step-num">8</div></div>
+      <div class="rail"><div class="step-num">9</div></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Brute-Force-Schutz mit fail2ban</h2>
@@ -281,8 +586,9 @@ sudo nano /etc/fail2ban/jail.local</pre>
         <div class="codebox" data-typ="datei">
           <div class="codebox-head"><span class="fname">/etc/fail2ban/jail.local</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>[DEFAULT]
-<span class="tok-c"># Eigene IP nie sperren (mehrere durch Leerzeichen trennen)</span>
-<span class="tok-k">ignoreip</span> = 127.0.0.1/8 ::1
+<span class="tok-c"># Ab Werk stehen hier nur die lokalen Adressen — die schützen dich</span>
+<span class="tok-c"># nicht. Deine eigene feste IP gehört ausdrücklich dazugeschrieben.</span>
+<span class="tok-k">ignoreip</span> = 127.0.0.1/8 ::1 203.0.113.5
 
 [sshd]
 <span class="tok-k">enabled</span>  = true
@@ -292,17 +598,39 @@ sudo nano /etc/fail2ban/jail.local</pre>
 <span class="tok-k">findtime</span> = 10m
 <span class="tok-k">bantime</span>  = 1h</pre>
         </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Wechselnde IP zu Hause?</div><div class="txt">Dann trag dort nichts ein — eine fremde IP freizustellen ist schlechter, als sich selbst aussperren zu können. Der Rettungsweg ist die Konsole im Cloud-Panel, und entsperren lässt sich jederzeit von Hand.</div></div>
+        </div>
         <div class="codebox">
-          <div class="codebox-head"><span class="fname">Server — starten und kontrollieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <div class="codebox-head"><span class="fname">Server — starten</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>sudo systemctl enable --now fail2ban
-sudo systemctl restart fail2ban
+sudo systemctl restart fail2ban</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>sudo fail2ban-client status sshd</pre>
+            </div>
+            <p class="pr-soll">Soll: Die Jail antwortet mit Zählern; <code>Currently banned</code> zeigt die gesperrten IPs.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Keine Jail — oder du sitzt selbst in der Sperre</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Warum startet die Jail nicht? Meist ein Tippfehler in jail.local</span>
+sudo journalctl -u fail2ban -n 30 --no-pager
 
-<span class="tok-c"># Läuft die Jail? Zeigt auch gesperrte IPs</span>
-sudo fail2ban-client status sshd</pre>
+<span class="tok-c"># Eigene IP wieder freigeben (auch aus der Anbieter-Konsole heraus)</span>
+sudo fail2ban-client set sshd unbanip 203.0.113.5</pre>
+            </div>
+          </div>
         </div>
         <div class="callout info">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
-          <div><div class="label">Einordnung</div><div class="txt">Der große Sicherheitsgewinn kam schon in Schritt 6 — ohne Passwort-Login läuft ein Rateangriff ins Leere. fail2ban hält zusätzlich die Logs sauber und bremst Dauerscanner aus.</div></div>
+          <div><div class="label">Einordnung</div><div class="txt">Der große Sicherheitsgewinn kam schon in Schritt 7 — ohne Passwort-Login läuft ein Rateangriff ins Leere. fail2ban hält zusätzlich die Logs sauber und bremst Dauerscanner aus.</div></div>
         </div>
         <div class="fotozone" data-schritt="fail2ban">
           <div class="fotos"></div>
@@ -311,9 +639,9 @@ sudo fail2ban-client status sshd</pre>
       </div>
     </section>
 
-    <!-- Schritt 9 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">9</div></div>
+    <!-- Schritt 10 -->
+    <section class="step einmalig stufenwechsel">
+      <div class="rail"><div class="step-num">10</div></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Automatische Sicherheitsupdates</h2>
@@ -321,13 +649,33 @@ sudo fail2ban-client status sshd</pre>
         <div class="codebox">
           <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>sudo apt install unattended-upgrades -y
-sudo dpkg-reconfigure --priority=low unattended-upgrades
+sudo dpkg-reconfigure --priority=low unattended-upgrades</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>cat /etc/apt/apt.conf.d/20auto-upgrades
 
-<span class="tok-c"># Kontrolle: beide Werte müssen "1" sein</span>
-cat /etc/apt/apt.conf.d/20auto-upgrades
-
-<span class="tok-c"># Trockenlauf</span>
+<span class="tok-c"># Trockenlauf — zeigt, was tatsächlich gezogen würde</span>
 sudo unattended-upgrades --dry-run --debug</pre>
+            </div>
+            <p class="pr-soll">Soll: beide Werte stehen auf <code>"1"</code>.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Datei fehlt oder steht auf 0</div>
+            <div class="codebox" data-typ="datei">
+              <div class="codebox-head"><span class="fname">/etc/apt/apt.conf.d/20auto-upgrades</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>APT::Periodic::Update-Package-Lists <span class="tok-s">"1"</span>;
+APT::Periodic::Unattended-Upgrade <span class="tok-s">"1"</span>;</pre>
+            </div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server — anlegen und übernehmen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>sudo nano /etc/apt/apt.conf.d/20auto-upgrades
+sudo systemctl restart unattended-upgrades</pre>
+            </div>
+          </div>
         </div>
         <div class="fotozone" data-schritt="auto-updates">
           <div class="fotos"></div>
@@ -336,12 +684,12 @@ sudo unattended-upgrades --dry-run --debug</pre>
       </div>
     </section>
 
-    <!-- Schritt 10 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">10</div></div>
+    <!-- Schritt 11 -->
+    <section class="step optional">
+      <div class="rail"><div class="step-num">11</div></div>
       <div class="step-body">
-        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Optional</span>
-        <h2>Optional: SSH-Port verlegen</h2>
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg> Optional</span>
+        <h2>SSH-Port verlegen</h2>
         <p>Bringt keine echte Sicherheit, aber deutlich weniger Rauschen in den Logs. Unter Ubuntu 24.04 reicht der Eintrag in der Konfiguration <b>nicht</b> — der Socket lauscht sonst weiter auf 22.</p>
         <div class="codebox">
           <div class="codebox-head"><span class="fname">Server — Port in der SSH-Konfiguration</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
@@ -363,10 +711,29 @@ sudo unattended-upgrades --dry-run --debug</pre>
           <pre>sudo ufw allow 2222/tcp
 
 sudo systemctl daemon-reload
-sudo systemctl restart ssh.socket
+sudo systemctl restart ssh.socket</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>sudo ss -tuln | grep 2222</pre>
+            </div>
+            <p class="pr-soll">Soll: eine Zeile mit <code>:2222</code> im Zustand <code>LISTEN</code>.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Keine Ausgabe — oder weiterhin 22</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre><span class="tok-c"># Ist der Override wirklich angekommen?</span>
+systemctl cat ssh.socket
 
-<span class="tok-c"># Lauscht er wirklich auf 2222?</span>
-sudo ss -tuln | grep 2222</pre>
+<span class="tok-c"># Fehlt die leere ListenStream-Zeile, lauscht er auf beiden Ports</span>
+sudo systemctl daemon-reload
+sudo systemctl restart ssh.socket</pre>
+            </div>
+          </div>
         </div>
         <div class="callout gefahr">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
@@ -385,15 +752,21 @@ sudo ss -tuln | grep 2222</pre>
   <div class="checkliste">
     <header>
       <h2>Abschluss-Checkliste</h2>
-      <span class="fortschritt" id="chkStand">0 / 8</span>
+      <span class="fortschritt" id="chkStand">0 / 14</span>
     </header>
-    <div class="check" data-check="basis"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">System aktualisiert, Hostname und Zeitzone gesetzt</span></div>
-    <div class="check" data-check="benutzer-sudo"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Benutzer angelegt und in der Gruppe <code>sudo</code></span></div>
+    <div class="check" data-check="lokaler-schluessel"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Jedes Gerät hat ein eigenes Schlüsselpaar; kein privater Schlüssel wurde kopiert</span></div>
+    <div class="check" data-check="weg-b-passwort"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Weg B: erzwungener Passwortwechsel erledigt, Passwort sicher abgelegt (auf Weg A entfällt der Punkt)</span></div>
+    <div class="check" data-check="basis"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">System aktualisiert, Hostname und Zeitzone geprüft</span></div>
+    <div class="check" data-check="rollen-angelegt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Drei Rollen angelegt: Admin mit <code>sudo</code>, eingeschränkter Nutzer ohne, Dienst-Nutzer ohne Passwort</span></div>
+    <div class="check" data-check="docker-gruppe-geprueft"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">In der Gruppe <code>docker</code> steht niemand, dem du nicht auch root zutraust</span></div>
+    <div class="check" data-check="schluessel-je-nutzer"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Jeder Nutzer hat seine eigene <code>authorized_keys</code>, jedes Gerät eine eigene Zeile mit Kommentar</span></div>
     <div class="check" data-check="schluessel-rechte"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">SSH-Schlüssel beim Benutzer, Rechte 700/600</span></div>
-    <div class="check" data-check="login-test"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Login als Benutzer und <code>sudo whoami</code> getestet</span></div>
+    <div class="check" data-check="rollen-getestet"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Alle Rollen von jedem Gerät aus eingeloggt und getestet</span></div>
+    <div class="check" data-check="negativtest-bestanden"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Negativtest bestanden: <code>sudo</code> scheitert beim eingeschränkten Nutzer</span></div>
+    <div class="check" data-check="passwort-tor"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Vor dem Sperren geprüft: jedes Konto und jedes Gerät hat seinen Schlüssel</span></div>
     <div class="check" data-check="sshd-gehaertet"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>sshd -T</code> zeigt root- und Passwort-Login als <code>no</code></span></div>
     <div class="check" data-check="ufw-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">UFW aktiv, SSH freigegeben</span></div>
-    <div class="check" data-check="fail2ban-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">fail2ban läuft, <code>status sshd</code> geprüft</span></div>
+    <div class="check" data-check="fail2ban-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">fail2ban läuft, <code>ignoreip</code> bewusst gesetzt, <code>status sshd</code> geprüft</span></div>
     <div class="check" data-check="auto-updates-aktiv"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Sicherheitsupdates aktiv</span></div>
   </div>
 
