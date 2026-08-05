@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<meta name="description" content="SSH-Schlüssel nachschlagen: privater und öffentlicher Teil, Ablage pro Nutzer, mehrere Geräte je Person, Widerruf einzelner Geräte, Rechte und Einschränkungen.">
+<meta name="hefter-untertitel" content="Schlüsselpaare, Ablage pro Nutzer, mehrere Geräte, Widerruf, Rechte">
+<meta name="hefter-stichworte" content="ssh schluessel schluesselpaar ed25519 rsa passphrase ssh-agent authorized_keys fingerabdruck known_hosts rechte strictmodes rollen sudo sudoers docker gruppe geraete zweitgeraet widerruf aussperren sperren optionen command from restrict no-pty deploy permission denied publickey fehlersuche nachschlagen">
+<title>Schlüsselverwaltung · Hefter</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="schluesselverwaltung" data-basis="../">
+
+<div class="appbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+
+  <header class="guide-head">
+    <span class="chip">Server</span>
+    <span class="sorte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg> Nachschlagen</span>
+    <h1>Schlüsselverwaltung</h1>
+    <div class="meta">
+      <span>Aktualisiert <b>05.08.2026</b></span>
+      <span><span class="mono">OpenSSH</span> · Linux, macOS, Windows</span>
+    </div>
+    <p class="lead">Keine Schritt-für-Schritt-Anleitung, sondern die Seite zum Nachschlagen: Wie Schlüssel funktionieren, wo sie liegen, warum jedes Gerät sein eigenes Paar bekommt und wie man ein einzelnes wieder aussperrt.</p>
+    <div class="callout info">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+      <div><div class="label">Die Handgriffe der Reihe nach</div><div class="txt">stehen in der Anleitung <a href="../anleitungen/server-ersteinrichtung.html">Server-Erst-Einrichtung &amp; Absicherung</a> — Schritt 1 legt das Paar an, Schritt 5 hinterlegt es.</div></div>
+    </div>
+    <nav class="sprungmarken" aria-label="Abschnitte">
+      <a href="#paar">Privat &amp; öffentlich</a>
+      <a href="#ablage">Ablage pro Nutzer</a>
+      <a href="#rollen">Rollen &amp; Rechte</a>
+      <a href="#geraete">Mehrere Geräte</a>
+      <a href="#widerruf">Widerruf</a>
+      <a href="#optionen">Schlüssel einschränken</a>
+      <a href="#fehler">Wenn nichts geht</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="thema" id="paar">
+      <h2>Privater und öffentlicher Schlüssel</h2>
+      <p>Ein Schlüsselpaar sind zwei Dateien, die zusammengehören. Der <b>private</b> Teil bleibt auf dem Gerät, auf dem er entstanden ist. Der <b>öffentliche</b> Teil darf überall hin — er ist nicht geheim, aus ihm lässt sich der private nicht zurückrechnen.</p>
+      <p>Beim Login stellt der Server eine Aufgabe, die sich nur mit dem privaten Schlüssel lösen lässt. Der Schlüssel selbst geht dabei nie über die Leitung. Genau das ist der Unterschied zum Passwort: Ein Passwort schickst du der Gegenstelle — und damit auch einer falschen.</p>
+
+      <h3>Welche Datei ist was</h3>
+      <ul>
+        <li><code>~/.ssh/id_ed25519</code> — <b>privat</b>, Rechte <code>600</code>, verlässt das Gerät nie</li>
+        <li><code>~/.ssh/id_ed25519.pub</code> — <b>öffentlich</b>, eine einzige Textzeile, darf verschickt werden</li>
+        <li><code>~/.ssh/known_hosts</code> — Gegenstellen, die du schon gesehen hast; warnt, wenn sich der Server ändert</li>
+        <li><code>~/.ssh/config</code> — Kurznamen und Optionen je Server</li>
+        <li><code>~/.ssh/authorized_keys</code> — nur auf dem <b>Server</b>: wer bei diesem Konto herein darf</li>
+      </ul>
+
+      <h3>Verfahren</h3>
+      <p><code>ed25519</code> ist die Vorgabe: kurz, schnell, sicher. <code>rsa</code> nur, wenn eine alte Gegenstelle nichts anderes kann — dann mit <code>-b 4096</code>. <code>dsa</code> ist abgeschafft, <code>ecdsa</code> gibt es ohne Not keinen Grund zu nehmen.</p>
+
+      <h3>Passphrase und Agent</h3>
+      <p>Der private Schlüssel ist eine Datei. Ohne Passphrase reicht ein kopierter Ordner, um dein Konto zu übernehmen — mit Passphrase ist die Datei allein wertlos. Damit du sie nicht bei jedem Login tippst, hält der <code>ssh-agent</code> den entsperrten Schlüssel für die Sitzung.</p>
+      <div class="codebox">
+        <div class="codebox-head"><span class="fname">Terminal (lokal)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Schlüssel in den Agent legen (einmal je Sitzung)</span>
+ssh-add ~/.ssh/id_ed25519
+
+<span class="tok-c"># Was liegt gerade im Agent?</span>
+ssh-add -l
+
+<span class="tok-c"># Passphrase nachträglich setzen oder ändern</span>
+ssh-keygen -p -f ~/.ssh/id_ed25519
+
+<span class="tok-c"># Fingerabdruck — die Kurzform, an der du einen Schlüssel wiedererkennst</span>
+ssh-keygen -lf ~/.ssh/id_ed25519.pub</pre>
+      </div>
+      <p>Der Fingerabdruck ist für privaten und öffentlichen Teil derselbe. Damit lässt sich prüfen, ob eine Zeile auf dem Server zu dem Schlüssel gehört, den du gerade in der Hand hast.</p>
+    </section>
+
+    <section class="thema" id="ablage">
+      <h2>Ablage pro Nutzer statt global</h2>
+      <p>Es gibt keine zentrale Liste erlaubter Schlüssel, die für den ganzen Server gilt. Jedes Konto hat seine eigene: <code>/home/&lt;nutzer&gt;/.ssh/authorized_keys</code>. Das ist keine Umständlichkeit, sondern der Sinn der Sache — jede Tür hat ihr eigenes Schloss, und wer bei einem Konto eingetragen ist, kommt deshalb noch lange nicht in ein anderes.</p>
+      <p>Eine Folge davon: Wer einen zweiten Nutzer anlegt, muss dessen Schlüssel <b>getrennt</b> hinterlegen. Der Schlüssel im root-Konto gilt für root, sonst für niemanden.</p>
+
+      <h3>Rechte — der häufigste stille Fehler</h3>
+      <p><code>sshd</code> prüft mit <code>StrictModes yes</code> (Standard), ob die Dateien niemand anderem offenstehen. Passt etwas nicht, wird die <code>authorized_keys</code> <b>kommentarlos übergangen</b>: Der Login endet mit <code>Permission denied (publickey)</code>, obwohl der Schlüssel richtig dort steht.</p>
+      <div class="codebox">
+        <div class="codebox-head"><span class="fname">Server — Soll-Zustand herstellen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Home darf nicht für die Gruppe schreibbar sein</span>
+chmod 750 /home/max
+
+install -d -m 700 -o max -g max /home/max/.ssh
+chown max:max /home/max/.ssh/authorized_keys
+chmod 600 /home/max/.ssh/authorized_keys
+
+<span class="tok-c"># Kontrolle: drwx------ und -rw-------, Besitzer beide Male max</span>
+ls -ld /home/max/.ssh
+ls -l /home/max/.ssh/authorized_keys</pre>
+      </div>
+
+      <h3>Doch zentral?</h3>
+      <p>Über <code>AuthorizedKeysFile /etc/ssh/authorized_keys.d/%u</code> lässt sich die Ablage aus den Home-Verzeichnissen herausziehen — dann verwaltet nur noch root, wer herein darf. Für eine Handvoll Konten ist das mehr Verwaltung als Nutzen; ab vielen Servern nimmt man ohnehin ein Werkzeug dafür oder steigt auf SSH-Zertifikate um.</p>
+    </section>
+
+    <section class="thema" id="rollen">
+      <h2>Rollen und Rechte</h2>
+      <p>Wer hereinkommt, soll genau das können, wofür er da ist. Drei Rollen decken den Normalfall ab:</p>
+      <table class="tab">
+        <thead><tr><th>Rolle</th><th>sudo</th><th>Passwort</th><th>wofür</th></tr></thead>
+        <tbody>
+          <tr><td>Admin</td><td>Gruppe <code>sudo</code></td><td>ja — als Bremse</td><td>Systemänderungen</td></tr>
+          <tr><td>Eingeschränkt</td><td>nein oder gezielt</td><td>ja</td><td>Alltag, eigene Dateien</td></tr>
+          <tr><td>Dienst</td><td>nein</td><td>keins</td><td>Deploys, ohne Mensch davor</td></tr>
+        </tbody>
+      </table>
+      <p>Die Gruppe <code>sudo</code> ist der Alles-Schalter: erlaubt jeden Befehl, fragt einmal nach dem eigenen Passwort. Dazwischen liegt die nützlichste Stufe — einzelne Befehle, festgeschrieben in einer Datei unter <code>/etc/sudoers.d/</code>.</p>
+      <div class="codebox">
+        <div class="codebox-head"><span class="fname">Server — was darf wer?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Gruppen eines Kontos</span>
+id lena
+
+<span class="tok-c"># Die einzige verlässliche Auskunft über sudo-Rechte</span>
+sudo -l -U lena
+
+<span class="tok-c"># Alle Regeln gegenlesen — muss "parsed OK" melden</span>
+sudo visudo -c</pre>
+      </div>
+
+      <h3>Vier Regeln für <code>sudoers.d</code></h3>
+      <ul>
+        <li><b>Immer <code>visudo -f</code></b> statt eines Editors: prüft beim Speichern und legt <code>0440</code> an. Ein Syntaxfehler sperrt sonst jedes <code>sudo</code> im System aus.</li>
+        <li><b>Kein Punkt im Dateinamen.</b> <code>sudoers.d</code> überliest jede Datei mit <code>.</code> oder <code>~</code> im Namen — <code>50-lena.conf</code> wirkt nie, ohne Fehlermeldung.</li>
+        <li><b>Volle Pfade</b> zu den erlaubten Befehlen. Ohne Pfad ließe sich ein gleichnamiges Programm im eigenen Verzeichnis unterschieben.</li>
+        <li><b>Keine Editoren, Shells oder offenen Werkzeuge.</b> Aus <code>vi</code>, <code>less</code>, <code>find</code> oder einem uneingeschränkten <code>systemctl</code> heraus lässt sich alles Weitere starten — die Beschränkung ist dann nur noch Zierde.</li>
+      </ul>
+      <div class="callout gefahr">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+        <div><div class="label">Die Gruppe <code>docker</code> ist root</div><div class="txt">Wer Container starten darf, kann sich einen mit dem Wurzelverzeichnis des Servers geben — ohne Passwortabfrage und ohne Spur in den sudo-Logs. Dasselbe gilt für Schreibrechte an Skripten, die per <code>sudo</code> laufen. Jede Abstufung darüber ist wirkungslos.</div></div>
+      </div>
+      <p>Gruppenwechsel greifen erst bei der <b>nächsten</b> Anmeldung. Wer gerade eingeloggt ist, behält seine alten Rechte bis zum Neuanmelden.</p>
+    </section>
+
+    <section class="thema" id="geraete">
+      <h2>Ein Nutzer, mehrere Geräte</h2>
+      <p>Das Konto steht für die Person, nicht für den Laptop. Kommt ein zweites Gerät dazu, entsteht kein zweites Konto — es kommt eine weitere Zeile in dieselbe <code>authorized_keys</code>.</p>
+      <p><b>Jedes Gerät bekommt sein eigenes Paar.</b> Der private Schlüssel wird nie von einem Gerät auf ein anderes kopiert. Drei Gründe:</p>
+      <ul>
+        <li>Ein verlorenes Gerät lässt sich einzeln aussperren, ohne allen anderen den Zugang zu nehmen.</li>
+        <li>Der private Schlüssel muss nie über eine Leitung, einen Chat oder einen USB-Stick — er kann unterwegs also auch nicht abhandenkommen.</li>
+        <li>In den Logs steht, welches Gerät sich angemeldet hat, nicht nur welche Person.</li>
+      </ul>
+      <p>Umgekehrt gilt: Ein Gerät braucht <b>nicht</b> je Server ein eigenes Paar. Derselbe öffentliche Schlüssel darf auf beliebig vielen Servern liegen.</p>
+      <div class="codebox" data-typ="datei">
+        <div class="codebox-head"><span class="fname">/home/max/.ssh/authorized_keys</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Eine Zeile je Gerät. Der Kommentar am Ende ist die Gerätezuordnung —</span>
+<span class="tok-c"># ohne ihn stehen hier mehrere nicht unterscheidbare Zeilen.</span>
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… max@laptop
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… max@tablet</pre>
+      </div>
+      <p>Der Kommentar ist reiner Text und lässt sich jederzeit nachträglich ändern — er wandert nur beim Anlegen automatisch mit (<code>ssh-keygen -C "max@tablet"</code>).</p>
+
+      <h3>Am fremden Rechner</h3>
+      <p>Dort keinen Schlüssel anlegen und schon gar keinen hinkopieren. Zwei Wege ohne bleibende Spuren: <code>ssh -A</code> reicht den Agent des eigenen Geräts durch (nur zu Servern, denen du traust — wer dort root ist, kann ihn mitbenutzen), oder der Schlüssel liegt auf einem mitgeführten Datenträger. Der Weg dahin steht in <a href="../anleitungen/git-ssd.html">Git von der portablen SSD nutzen</a>.</p>
+    </section>
+
+    <section class="thema" id="widerruf">
+      <h2>Ein Gerät wieder aussperren</h2>
+      <p>Gerät verloren, Laptop weitergegeben, Kollege ausgeschieden — hier zahlt sich aus, dass jede Zeile für genau ein Gerät steht.</p>
+      <div class="codebox">
+        <div class="codebox-head"><span class="fname">Server</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Welche Zeile ist welche? Zeigt Fingerabdruck und Kommentar</span>
+ssh-keygen -lf ~/.ssh/authorized_keys
+
+<span class="tok-c"># Die betroffene Zeile löschen</span>
+nano ~/.ssh/authorized_keys
+
+<span class="tok-c"># Läuft noch eine Sitzung von diesem Gerät?</span>
+who
+sudo pkill -KILL -u lena</pre>
+      </div>
+      <p>Das Löschen wirkt sofort für <b>neue</b> Verbindungen — eine bereits offene Sitzung läuft weiter, bis sie beendet wird. Bei einem verlorenen Gerät gehört das Beenden dazu.</p>
+
+      <h3>Ein ganzes Konto stilllegen</h3>
+      <div class="callout achtung">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+        <div><div class="label"><code>usermod -L</code> allein genügt nicht</div><div class="txt">Es sperrt nur das <b>Passwort</b>. Der Schlüssel-Login funktioniert weiter — und der ist auf einem gehärteten Server ohnehin der einzige Weg herein. Das Konto muss ablaufen oder die Schlüsselliste leer sein.</div></div>
+      </div>
+      <div class="codebox">
+        <div class="codebox-head"><span class="fname">Server (als root)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Konto auf abgelaufen setzen — sperrt auch den Schlüssel-Login</span>
+usermod --expiredate 1 lena
+
+<span class="tok-c"># Kontrolle</span>
+chage -l lena
+
+<span class="tok-c"># Wieder öffnen</span>
+usermod --expiredate <span class="tok-s">""</span> lena</pre>
+      </div>
+      <p>Und noch ein Punkt, den man leicht übersieht: Derselbe öffentliche Schlüssel liegt womöglich auf weiteren Servern und bei GitHub. Ein verlorenes Gerät ist erst dann erledigt, wenn seine Zeile überall verschwunden ist — der Kommentar hilft beim Suchen.</p>
+    </section>
+
+    <section class="thema" id="optionen">
+      <h2>Was ein Schlüssel dürfen darf</h2>
+      <p>Vor dem Schlüssel können in derselben Zeile Optionen stehen, durch Komma getrennt. Sie gelten nur für diese eine Zeile — derselbe Nutzer kann also einen vollen und einen eingeschränkten Zugang haben.</p>
+      <ul>
+        <li><code>restrict</code> — schaltet alles ab (Terminal, Tunnel, Weiterleitungen). Der beste Anfang; einzelne Fähigkeiten lassen sich danach wieder zulassen (<code>restrict,pty</code>).</li>
+        <li><code>command="…"</code> — erzwingt genau diesen Befehl, egal was der Aufrufer schickt. Dessen ursprünglicher Wunsch steht in <code>$SSH_ORIGINAL_COMMAND</code>, falls ein Skript ihn auswerten will.</li>
+        <li><code>from="203.0.113.5"</code> — nur von dieser Adresse. Nützlich bei fester IP, unbrauchbar bei wechselnder.</li>
+        <li><code>no-pty</code>, <code>no-port-forwarding</code>, <code>no-agent-forwarding</code> — einzeln, wenn <code>restrict</code> zu viel wäre.</li>
+        <li><code>expiry-time="20271231"</code> — läuft von selbst ab. Für Zugänge auf Zeit besser als ein Kalendereintrag.</li>
+      </ul>
+      <div class="codebox" data-typ="datei">
+        <div class="codebox-head"><span class="fname">/home/deploy/.ssh/authorized_keys</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Ein Deploy-Zugang: genau ein Skript, keine Shell, keine Tunnel.</span>
+<span class="tok-c"># Optionen und Schlüssel stehen in EINER Zeile.</span>
+restrict,command="/usr/local/bin/deploy.sh" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… deploy@ci</pre>
+      </div>
+      <p>Ein so eingeschränkter Zugang ist der Grund, warum ein Dienst-Nutzer kein Sicherheitsrisiko sein muss: Selbst wer den privaten Schlüssel erbeutet, bekommt keine Shell — nur das eine Skript.</p>
+    </section>
+
+    <section class="thema" id="fehler">
+      <h2>Wenn der Login nicht geht</h2>
+      <p><code>Permission denied (publickey)</code> ist die eine Meldung für ein Dutzend Ursachen. Der Reihe nach:</p>
+      <ul>
+        <li><b>Richtiges Konto?</b> <code>ssh max@…</code> statt <code>ssh root@…</code> — auf einem gehärteten Server ist root gesperrt.</li>
+        <li><b>Wird der richtige Schlüssel angeboten?</b> <code>ssh -v</code> zeigt jede <code>Offering public key</code>-Zeile; mit <code>-i</code> lässt sich gezielt einer wählen.</li>
+        <li><b>Rechte auf dem Server</b> — siehe <a href="#ablage">Ablage pro Nutzer</a>. Der häufigste Fall, und der leiseste.</li>
+        <li><b>Zeile umgebrochen?</b> Beim Kopieren über Chat oder Mail bricht die Schlüsselzeile gern um. <code>ssh-keygen -lf ~/.ssh/authorized_keys</code> zählt dann weniger Schlüssel als erwartet.</li>
+        <li><b><code>AllowUsers</code> oder <code>AllowGroups</code> gesetzt?</b> Wer nicht in der Liste steht, kommt gar nicht erst zur Schlüsselprüfung.</li>
+        <li><b>Konto abgelaufen oder gesperrt?</b> <code>chage -l max</code> und <code>passwd -S max</code>.</li>
+        <li><b>fail2ban?</b> Typisches Zeichen: Die Verbindung läuft in einen Timeout, statt abgewiesen zu werden. <code>sudo fail2ban-client status sshd</code>.</li>
+      </ul>
+      <div class="codebox">
+        <div class="codebox-head"><span class="fname">Beide Seiten mitlesen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+        <pre><span class="tok-c"># Lokal: was wird angeboten, was sagt die Gegenstelle?</span>
+ssh -v max@&lt;SERVER-IP&gt;
+
+<span class="tok-c"># Auf dem Server, aus einer noch offenen Sitzung heraus</span>
+sudo journalctl -u ssh -f</pre>
+      </div>
+      <p>Sperrst du dich komplett aus, bleibt die Konsole im Cloud-Panel des Anbieters. Sie hängt nicht an SSH, verlangt aber ein Konto mit Passwort — ein Grund, das root-Passwort aufzuheben, auch wenn der root-Login über SSH gesperrt ist.</p>
+    </section>
+
+  </main>
+
+  <p class="foot">Design und Fortschritt werden lokal auf diesem Gerät gespeichert.</p>
+</div>
+
+<script src="../hefter.js"></script>
+</body>
+</html>

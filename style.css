@@ -182,6 +182,16 @@ a { color: inherit; }
 .eintrag .pfeil svg { width: 18px; height: 18px; display: block; }
 .leer { color: var(--text-muted); text-align: center; padding: 32px 0; display: none; }
 
+/* Nachschlage-Übersichten: eigener Block am Ende des Registers.
+   Abgesetzt statt eingereiht — sie sind keine Anleitung, die man
+   durchläuft, und sollen auch nicht so gesucht werden. */
+.kategorie.nachschlagen { border-top: 1px solid var(--border); padding-top: 20px; }
+.kategorie.nachschlagen > h2 { color: var(--text-muted); }
+.kategorie .kat-sub { color: var(--text-muted); font-size: 13px; margin: -4px 0 12px; }
+.eintrag.uebersicht { grid-template-columns: auto 1fr auto; }
+.eintrag .sorte-ico { display: flex; color: var(--text-muted); }
+.eintrag .sorte-ico svg { width: 20px; height: 20px; display: block; }
+
 /* ---------- Anleitungs-Kopf ---------- */
 .chip {
   display: inline-block; padding: 4px 11px; border-radius: 999px;
@@ -199,6 +209,56 @@ a { color: inherit; }
 .meta b { color: var(--text); font-weight: 600; }
 .meta .mono { font-size: 13px; }
 .lead { margin-top: 16px; color: var(--text-muted); font-size: 17px; }
+
+/* ---------- Nachschlage-Übersicht ----------
+   Zweite Seitensorte: keine Rail, keine Schritte, kein Fortschritt.
+   Die Marke neben dem Kategorie-Chip bleibt bewusst farblos — der
+   Akzent gehört den Anleitungen, an denen entlang gearbeitet wird. */
+.sorte {
+  display: inline-flex; align-items: center; gap: 6px; margin-left: 6px;
+  padding: 4px 11px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border);
+}
+.sorte svg { width: 13px; height: 13px; }
+
+.sprungmarken { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.sprungmarken a {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 13px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 11px;
+  color: var(--text-muted); text-decoration: none; font-size: 13.5px; font-weight: 600;
+  transition: border-color .2s, color .2s;
+}
+.sprungmarken a:hover { border-color: var(--accent); color: var(--text); }
+
+/* scroll-margin: sonst schiebt die klebende App-Bar die angesprungene
+   Überschrift unter sich — bei jedem Sprung aus einer Anleitung heraus. */
+.thema { padding: 24px 0; border-top: 1px solid var(--border); scroll-margin-top: 72px; }
+.thema:first-of-type { border-top: none; }
+.thema > h2 { font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+.thema > h3 { font-size: 15.5px; font-weight: 600; margin: 18px 0 2px; }
+.thema p, .thema ul { color: var(--text-muted); margin: 8px 0; }
+.thema ul { margin-left: 2px; padding-left: 18px; }
+.thema li { margin: 5px 0; }
+.thema b { color: var(--text); font-weight: 600; }
+.thema code:not(pre code) {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1px 6px; font-size: 13px; color: var(--text);
+}
+/* Angesprungener Abschnitt bleibt kurz erkennbar — bei sieben Themen
+   auf einer Seite sonst schwer zu sagen, wo man gelandet ist. */
+.thema:target > h2 { color: var(--accent-ink); }
+
+/* Vergleichstabelle (Rollen, Rechte). display:block, damit sie auf dem
+   Telefon für sich scrollt statt die Seite breit zu ziehen. */
+.tab {
+  display: block; overflow-x: auto; width: 100%;
+  border-collapse: collapse; margin: 14px 0; font-size: 14.5px;
+}
+.tab th, .tab td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.tab th { color: var(--text-muted); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; }
+.tab td { color: var(--text-muted); }
+.tab td:first-child { color: var(--text); font-weight: 600; }
 
 /* ---------- Schritt-Rail ---------- */
 .step { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 22px 0; }
