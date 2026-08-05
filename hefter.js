@@ -104,6 +104,7 @@ const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
   checks: id => "hefter:checks:" + id,
+  weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
 
@@ -573,6 +574,51 @@ function stufenfilterAktivieren() {
 }
 
 /* ============================================================
+   A/B-WEICHE  (Varianten eines Schritts)
+   Ein Schritt, zwei Ausgangslagen — sichtbar ist immer nur einer
+   der Wege. Weichen mit gleichem data-weiche schalten gemeinsam:
+   wer oben "Weg B" wählt, bekommt ihn auch weiter unten, ohne die
+   Wahl zu wiederholen. Gemerkt wird sie je Seite und Weiche.
+   ============================================================ */
+function weichenAktivieren() {
+  const weichen = [...document.querySelectorAll(".weiche")];
+  if (!weichen.length) return;
+  const seite = document.body.dataset.seite;
+  /* Ohne data-weiche laufen alle Weichen einer Seite gemeinsam —
+     besser als ein "undefined", das keinen Weg mehr findet. */
+  const name = w => w.dataset.weiche || "standard";
+  const knoepfe = w => w.querySelectorAll(":scope > .weiche-wahl button");
+
+  const setzen = (weichenName, weg, speichern = true) => {
+    if (!weg) return;
+    weichen.filter(w => name(w) === weichenName).forEach(w => {
+      knoepfe(w).forEach(b => {
+        b.classList.toggle("aktiv", b.dataset.weg === weg);
+        b.setAttribute("aria-pressed", b.dataset.weg === weg);
+      });
+      w.querySelectorAll(":scope > .weg").forEach(p =>
+        p.classList.toggle("aktiv", p.dataset.weg === weg));
+    });
+    if (speichern && seite) {
+      try { localStorage.setItem(KEY.weg(seite, weichenName), weg); } catch {}
+    }
+  };
+
+  weichen.forEach(w => knoepfe(w).forEach(b =>
+    b.addEventListener("click", () => setzen(name(w), b.dataset.weg))));
+
+  for (const weichenName of new Set(weichen.map(name))) {
+    let gewaehlt = null;
+    if (seite) { try { gewaehlt = localStorage.getItem(KEY.weg(seite, weichenName)); } catch {} }
+    /* Fällt die gemerkte Wahl weg (Weg umbenannt oder entfernt), greift
+       der erste Weg der Weiche — nie ein leerer Schritt. */
+    const wege = weichen.find(w => name(w) === weichenName).querySelectorAll(":scope > .weg");
+    const bekannt = [...wege].some(p => p.dataset.weg === gewaehlt);
+    setzen(weichenName, bekannt ? gewaehlt : wege[0]?.dataset.weg, false);
+  }
+}
+
+/* ============================================================
    EINSTELLUNGEN  (Icon-Galerie)
    ============================================================ */
 function einstellungenAufbauen() {
@@ -602,6 +648,7 @@ einstellungenAufbauen();
    die iconAnwenden als aktiv markiert. */
 iconAnwenden(iconAktiv(), false);
 kopierenAktivieren();
+weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
 fotosAktivieren();

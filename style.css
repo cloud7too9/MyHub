@@ -230,10 +230,14 @@ a { color: inherit; }
   border-radius: 6px; padding: 1px 6px; font-size: 13px; color: var(--text);
 }
 
-/* ---------- Schritt-Stufen: einmalig vs. wiederkehrend ----------
-   Unterschieden wird über Form, nicht über eine zweite Farbe:
-   einmalig = gestrichelt und zurückgenommen (Aufbau, einmal erledigt)
-   wiederkehrend = gefüllt und durchgezogen (der Weg bei jedem Mal)     */
+/* ---------- Schritt-Stufen: drei Stufen ----------
+   Unterschieden wird über Form, nicht über drei Farben:
+   einmalig      = gestrichelt und zurückgenommen (Aufbau, einmal erledigt)
+   wiederkehrend = gefüllt und durchgezogen — der Weg, den du wiederholst.
+                   Wofür er wiederholt wird, beschriftet jede Seite selbst
+                   (pro Repo, pro App, pro Nutzer bzw. Gerät …).
+   optional      = gepunktet und leer (kann man machen, muss man nicht)
+   Der Filter zeigt nur die mittlere Stufe; einmalig und optional gehen. */
 .stufe {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
@@ -265,6 +269,21 @@ a { color: inherit; }
 .step.wiederkehrend .rail::after {
   background: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
+/* Optional: die leiseste der drei Stufen — gepunktet und ohne Füllung.
+   Sichtbar anders als "einmalig", damit ein übersprungener Schritt nicht
+   wie ein vergessener Pflichtschritt aussieht. */
+.step.optional .stufe {
+  color: var(--text-muted); background: none; border: 1px dotted var(--border);
+}
+.step.optional .step-num {
+  color: var(--text-muted); background: none;
+  border: 1px dotted var(--border);
+}
+.step.optional .rail::after {
+  background: none !important;
+  border-left: 1px dotted var(--border);
+}
+
 /* Letzter Schritt eines Abschnitts: keine Linie ins Nichts */
 .step.stufenwechsel .rail::after { display: none; }
 
@@ -281,7 +300,8 @@ a { color: inherit; }
 .stufenfilter button:hover { color: var(--text); }
 .stufenfilter button.aktiv { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
 .stufen-hinweis { color: var(--text-muted); font-size: 13px; margin-top: 8px; display: none; }
-body.nur-wiederkehrend .step.einmalig { display: none; }
+body.nur-wiederkehrend .step.einmalig,
+body.nur-wiederkehrend .step.optional { display: none; }
 body.nur-wiederkehrend .stufen-hinweis { display: block; }
 
 /* ---------- Codebox (bleibt in beiden Themes dunkel) ---------- */
@@ -366,6 +386,77 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .callout.achtung   { --c: var(--warning); }
 .callout.ergebnis  { --c: var(--success); }
 .callout.gefahr    { --c: var(--danger); }
+
+/* ---------- A/B-Weiche: zwei Wege durch einen Schritt ----------
+   Für Schritte, die je nach Ausgangslage anders laufen. Geschaltet
+   von hefter.js; mehrere Weichen mit gleichem data-weiche bewegen
+   sich gemeinsam, damit die Seite einer einmal getroffenen Wahl folgt.
+   Ohne JS bleibt der in der Datei als .aktiv markierte Weg stehen. */
+.weiche {
+  margin: 14px 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; overflow: hidden;
+}
+.weiche-wahl {
+  display: flex; gap: 4px; padding: 4px;
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+}
+.weiche-wahl button {
+  flex: 1; min-height: 44px; padding: 6px 10px; cursor: pointer;
+  background: none; color: var(--text-muted); border: none; border-radius: 10px;
+  font: inherit; font-weight: 600; font-size: 13.5px; line-height: 1.25;
+  transition: background .2s, color .2s;
+}
+.weiche-wahl button:hover { color: var(--text); }
+.weiche-wahl button.aktiv {
+  background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--border);
+}
+.weg { padding: 4px 14px 14px; }
+.weg:not(.aktiv) { display: none; }
+.weg > .wegtext { color: var(--text-muted); font-size: 14.5px; margin: 10px 0; }
+.weg > .codebox:first-child { margin-top: 12px; }
+.weg > :last-child { margin-bottom: 0; }
+
+/* ---------- Prüfen plus Reparieren ----------
+   Feste Paarung: jeder Verifikations-Befehl bringt den Zweig für
+   "fehlt oder stimmt nicht" gleich mit. Ein Prüfbefehl allein lässt
+   einen genau dann stehen, wenn das Ergebnis schlecht ausfällt. */
+.pruefblock {
+  margin: 14px 0; border: 1px solid var(--border);
+  border-radius: 13px; overflow: hidden;
+}
+.pruefblock > div { padding: 11px 13px 13px; }
+.pruefblock .pr-kopf {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.pruefblock .pr-kopf svg { width: 14px; height: 14px; flex: none; }
+.pruefblock .pr-soll { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+.pruefblock .pr-soll code, .weg .wegtext code {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1px 6px; font-size: 13px; color: var(--text);
+}
+.pruefblock .reparatur {
+  border-top: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--warning) 7%, transparent);
+}
+.pruefblock .reparatur .pr-kopf { color: var(--warning); }
+.pruefblock .codebox { margin: 9px 0 0; }
+
+/* ---------- Info-Symbol: Verweis in die Nachschlage-Übersicht ----------
+   Hält die Anleitung schlank — der Tiefgang ist einen Tap entfernt.
+   inline-flex mit negativen Rändern: sitzt in der Überschrift, ohne
+   deren Zeilenhöhe aufzublähen. */
+.infolink {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; margin: -8px 0 -8px 7px; vertical-align: middle;
+  border-radius: 10px; text-decoration: none;
+  color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border);
+  transition: color .2s, border-color .2s;
+}
+.infolink:hover { color: var(--accent-ink); border-color: var(--accent); }
+.infolink svg { width: 17px; height: 17px; }
 
 /* ---------- Foto anfügen (16:9) ---------- */
 .fotozone { margin: 14px 0 2px; }
