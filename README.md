@@ -223,6 +223,7 @@ node bauen.mjs
   | Weiche mit weniger als zwei Wegen oder ohne genau einen `aktiv` | ohne JavaScript leer oder doppelt |
   | unbekannte Callout-Art (`info · sicher · achtung · ergebnis · gefahr`) | die Box nimmt still den Akzent als Farbe und hört auf die falsche Anzeige-Einstellung |
   | `.reparatur` ohne `.pr-kopf` | eingeklappt gibt es keinen Griff mehr, mit dem der Zweig aufgeht |
+  | `data-haken-balken` fehlt, obwohl alle Schritte `einmalig` sind — oder steht da, obwohl nicht | eine Seite wechselt mit einem neuen Schritt stumm ihren Charakter, und der Balken bleibt falsch |
 - Scannt alle Projektdateien und erzeugt die Precache-Liste der `sw.js`.
 - Setzt die Service-Worker-`VERSION` als SHA-256-Hash über alle Inhalte —
   jede Änderung ergibt automatisch eine neue Version.
@@ -298,7 +299,10 @@ node bauen.mjs
 - Am Ende jedes Schritt-Rumpfes der Knopf **Schritt abgeschlossen** — siehe
   unten.
 - Abschluss-Checkliste mit Fortschrittszähler: die Ergebnisse der ganzen
-  Seite zum Abhaken, kein eigener Vorgang.
+  Seite zum Abhaken, kein eigener Vorgang. Einen **Balken** bekommt sie nur
+  auf Anleitungen, deren Schritte durchweg `einmalig` sind — dort ist die
+  Liste am Ende das Maß der Dinge, während sonst der Kopfbalken den Schritten
+  gehört. Der Build hält beide Richtungen fest (siehe Prüf-Tabelle).
 
 ## Bausteine einer Nachschlage-Übersicht
 

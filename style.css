@@ -952,7 +952,11 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 
 /* ---------- Checkliste ---------- */
 .checkliste { margin-top: 30px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
-.checkliste header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+/* gap statt nur space-between: auf einer rein einmaligen Anleitung steht
+   zwischen Überschrift und Zähler noch der Balken (flex:1), und der frisst
+   den Zwischenraum, den space-between sonst verteilt. Ohne Balken ändert
+   das gap nichts. */
+.checkliste header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
 .checkliste h2 { font-size: 18px; font-weight: 600; }
 .checkliste .fortschritt { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--text-muted); }
 .check {

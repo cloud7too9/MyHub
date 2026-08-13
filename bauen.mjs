@@ -256,6 +256,27 @@ function calloutArtenPruefen(html, datei) {
     throw new Error(`${datei}: unbekannte Callout-Art — ${[...new Set(falsch)].join(", ")} (erlaubt: ${CALLOUT_ARTEN.join(", ")})`);
 }
 
+/* Der Balken an der Abschluss-Checkliste steht nur auf Anleitungen, die man
+   genau einmal durchläuft — dort ist die Liste am Ende das Maß der Dinge. Auf
+   allen anderen führt der Kopfbalken die Schritte, und ein zweiter Balken für
+   eine Handvoll Haken wäre Zierde.
+   Ohne diese Prüfung wüsste beim nächsten Mal niemand mehr, warum neun Seiten
+   keinen haben — und vor allem: eine Seite, die durch einen neuen
+   wiederkehrenden Schritt ihren Charakter wechselt, behielte ihn stumm. Der
+   Zusammenhang steht in keiner Datei, nur hier. */
+function hakenBalkenPruefen(html, datei, art) {
+  if (art !== "anleitung") return;
+  const alle = (html.match(/<section class="step[ "]/g) || []).length;
+  const einmalige = (html.match(/<section class="step einmalig[ "]/g) || []).length;
+  if (!alle) return;
+  const reinEinmalig = alle === einmalige;
+  const hatBalken = /data-haken-balken/.test(html);
+  if (reinEinmalig && !hatBalken)
+    throw new Error(`${datei}: alle ${alle} Schritte sind einmalig — die Abschluss-Checkliste braucht ihren Balken (<span class="balken"><i data-haken-balken></i></span> im <header>)`);
+  if (!reinEinmalig && hatBalken)
+    throw new Error(`${datei}: ${alle - einmalige} von ${alle} Schritten sind nicht einmalig — der Balken an der Abschluss-Checkliste gehört hier nicht hin`);
+}
+
 /* Die Kopfzeile ist der Griff, mit dem ein eingeklappter Reparaturzweig wieder
    aufgeht. Fehlt sie, ist der Reparaturweg in der sparsamen Anzeige nicht mehr
    erreichbar — und zwar lautlos: die Seite sieht nur kürzer aus. */
@@ -352,6 +373,7 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
     codeboxTypenPruefen(h, f);
     calloutArtenPruefen(h, f);
     reparaturKoepfePruefen(h, f);
+    hakenBalkenPruefen(h, f, art);
     zaehlerPruefen(h, f, "chkStand", /id="chkStand">\s*0\s*\/\s*(\d+)\s*</, /class="check[ "]/g);
     zaehlerPruefen(h, f, "Schritt-Zähler", /data-fs-zahl>\s*0\s*\/\s*(\d+)\s*</, /<section class="step[ "]/g);
     schrittIdsPruefen(h, f);

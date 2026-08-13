@@ -131,6 +131,7 @@ Datei und Ursache im Klartext:
 | Weiche mit < 2 Wegen, ≠ 1 `aktiv`, oder Knopf ohne passenden Weg | ohne JavaScript leer oder doppelt |
 | unbekannte Callout-Art (nur `info · sicher · achtung · ergebnis · gefahr`) | Box nimmt still den Akzent und hört auf die falsche Anzeige-Einstellung |
 | `.reparatur` ohne `.pr-kopf` | eingeklappt fehlt der Griff, mit dem der Zweig aufgeht |
+| `data-haken-balken` fehlt bei durchweg `einmalig`en Schritten — oder steht da, obwohl nicht | die Seite wechselt mit einem neuen Schritt stumm ihren Charakter, der Balken bleibt falsch |
 | Verweis auf Datei oder `#anker`, die es nicht gibt | der Sprung passiert einfach nicht |
 | `hefter-kuerzel` fehlt oder ist doppelt | zwei gleiche Plaketten in der Leiste |
 | gleiche Seiten-id in beiden Ordnern | zwei Register-Einträge teilen sich die Speicherung |
@@ -181,6 +182,22 @@ gemeinsam; genau ein Weg `aktiv` in der Datei), `.pruefblock` mit
 Callouts `info` / `sicher` / `achtung` / `ergebnis` / `gefahr`,
 Abschluss-Checkliste mit `.check` und `#chkStand` (die Ergebnisse der ganzen
 Seite zum Abhaken — **kein** Vorgang, siehe unten).
+
+**Zwei Balken, zwei Marken.** Der Kopfbalken einer Anleitung gehört den
+Schritten (`data-fs-balken`, dazu `data-fs-zahl` und `data-fs-reset`); der
+Haken-Balken gehört den `.check` (`data-haken-balken`, dazu `data-haken-reset`).
+Getrennte Marken, weil eine gemeinsame sich auf Seiten mit beidem gegenseitig
+überschriebe. Wo sie stehen:
+
+| Seite | `data-fs-balken` | `data-haken-balken` |
+|---|---|---|
+| Anleitung, Schritte gemischt | im Kopf | — |
+| Anleitung, Schritte durchweg `einmalig` | im Kopf | im `<header>` der Checkliste |
+| `werkzeugkasten.html` | — | im Kopf (führt die 25 Karten) |
+
+Die mittlere Zeile ist die Regel, die der Build erzwingt: läuft man eine
+Anleitung genau einmal durch, ist die Liste am Ende das Maß der Dinge und
+verdient einen Balken; sonst wäre er für eine Handvoll Haken bloß Zierde.
 
 **Regel für Prüf-Bausteine:** Jeder Verifikations-Befehl bringt seinen
 Reparaturzweig mit („fehlt oder stimmt nicht"), inklusive Weg zur Datei und
