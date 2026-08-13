@@ -258,7 +258,9 @@ function weichenPruefen(html, datei) {
    Eine Seite, die hier fehlt, bricht den Build; so wird die Einordnung beim
    Anlegen erzwungen statt vergessen. */
 const REIHENFOLGE = [
-  /* Git — erst der eigene Rechner */
+  /* Arbeitsplatz — der eigene Rechner, bevor irgendetwas anderes kommt */
+  "werkzeugkasten",
+  /* Git */
   "git-zugang-privat",
   "vscode-git-workflow",
   "git-ssd",
@@ -286,7 +288,7 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
     eindeutigPruefen(h, f, "data-check");
     eindeutigPruefen(h, f, "data-schritt");
     codeboxTypenPruefen(h, f);
-    zaehlerPruefen(h, f, "chkStand", /id="chkStand">\s*0\s*\/\s*(\d+)\s*</, /class="check"/g);
+    zaehlerPruefen(h, f, "chkStand", /id="chkStand">\s*0\s*\/\s*(\d+)\s*</, /class="check[ "]/g);
     zaehlerPruefen(h, f, "Schritt-Zähler", /data-fs-zahl>\s*0\s*\/\s*(\d+)\s*</, /<section class="step[ "]/g);
     schrittIdsPruefen(h, f);
     weichenPruefen(h, f);
@@ -302,7 +304,7 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
       /* Nenner der Fortschrittsbalken in der Leiste: Anleitungen zählen ihre
          Schritte, Übersichten ihre Haken. */
       schritte: zaehlen(/class="step[ "]/g),
-      checks: zaehlen(/class="check"/g)
+      checks: zaehlen(/class="check[ "]/g)
     };
   })
 ).sort((a, b) => REIHENFOLGE.indexOf(a.id) - REIHENFOLGE.indexOf(b.id));

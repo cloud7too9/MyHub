@@ -28,7 +28,7 @@ auf.
 | Sorte | Ordner | wofür |
 |-------|--------|-------|
 | **Anleitung** | `/anleitungen` | zum Durchlaufen: nummerierte Schritte, Stufenfilter, Abschluss-Checkliste. Wird mit Übung schlanker. |
-| **Nachschlage-Übersicht** | `/nachschlagen` | zum Nachschlagen: Themen-Abschnitte mit Sprungmarken, kein Fortschritt. Darf ausführlich sein. |
+| **Nachschlage-Übersicht** | `/nachschlagen` | zum Nachschlagen: Themen-Abschnitte mit Sprungmarken. Darf ausführlich sein. |
 
 Welche Sorte eine Seite ist, sagt allein ihr **Ordner** — es gibt kein
 Meta-Tag, das man beim Kopieren einer Vorlage zu ändern vergessen könnte.
@@ -227,6 +227,14 @@ aufgeschlagen. Codeboxen und Callouts sind dieselben wie in Anleitungen.
   Sprungmarken **und** der Info-Symbole aus den Anleitungen; sie gehört
   damit zu den stabilen IDs. `.tab` ist eine schmale Vergleichstabelle, die
   auf dem Telefon für sich scrollt.
+- **Werkzeug-Karte** (`article.wz`) für Übersichten, bei denen die Frage
+  „was steht schon, was fehlt noch" lautet — der Werkzeugkasten nutzt sie
+  25-mal. Aufgeklappt wird über `<details>`: das geht ohne JavaScript und
+  braucht keinen eigenen Zustandsspeicher. Der Haken je Karte ist ein
+  gewöhnlicher `.check` und speist damit auch den Balken in der Leiste.
+  Springt ein Info-Symbol auf eine Karte, klappt sie von selbst auf.
+  Der Prüfblock einer Karte hat nur den `.pruefung`-Zweig: der
+  Reparaturweg sind die Einrichtungs-Schritte, die direkt darüber stehen.
 
 ## Speicherung (alles lokal auf dem Gerät)
 

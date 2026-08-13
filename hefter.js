@@ -12,6 +12,18 @@
 /* REGISTER-START */
 const REGISTER = [
   {
+    "id": "werkzeugkasten",
+    "art": "uebersicht",
+    "titel": "Werkzeugkasten",
+    "kuerzel": "WK",
+    "untertitel": "Fundament, Ausliefern, Prüfen, Beschleuniger — mit Einrichtung und Prüfschritt",
+    "kategorie": "Arbeitsplatz",
+    "datei": "nachschlagen/werkzeugkasten.html",
+    "stichworte": "git gh vscode terminal powershell winget scoop node fnm pnpm uv python ssh docker actions netlify caddy systemd devtools curl bruno jq regex ripgrep fzf just bat eza prettier eslint editorconfig werkzeuge tooling",
+    "schritte": 0,
+    "checks": 25
+  },
+  {
     "id": "git-zugang-privat",
     "art": "anleitung",
     "titel": "Zugang zu privaten Repositories einrichten",
@@ -602,14 +614,26 @@ function checklisteAktivieren() {
   }
   checks.forEach(c => { if (gespeichert.includes(c.dataset.check)) c.classList.add("done"); });
 
+  /* Anleitungen haben beides: Schritt-Haken und eine Abschluss-Checkliste.
+     Der Balken im Kopf gehört dort den Schritten — deshalb hat jeder seine
+     eigene Marke, sonst überschrieben sich die beiden gegenseitig. */
+  const balken = document.querySelector("[data-haken-balken]");
+
   const aktualisieren = () => {
     checks.forEach(c => c.setAttribute("aria-checked", c.classList.contains("done")));
-    if (stand) stand.textContent = checks.filter(c => c.classList.contains("done")).length + " / " + checks.length;
+    const fertig = checks.filter(c => c.classList.contains("done"));
+    if (stand) stand.textContent = fertig.length + " / " + checks.length;
+    if (balken) balken.style.width = (fertig.length / checks.length * 100) + "%";
     if (seite) {
-      const done = checks.filter(c => c.classList.contains("done")).map(c => c.dataset.check).filter(Boolean);
+      const done = fertig.map(c => c.dataset.check).filter(Boolean);
       try { localStorage.setItem(KEY.checks(seite), JSON.stringify(done)); } catch {}
     }
   };
+
+  document.querySelector("[data-haken-reset]")?.addEventListener("click", () => {
+    checks.forEach(c => c.classList.remove("done"));
+    aktualisieren();
+  });
   /* Die Häkchen sind <div>s — Rolle, Fokus und Tastatur werden hier
      zentral nachgerüstet, damit die Anleitungs-HTMLs schlicht bleiben. */
   if (stand) stand.setAttribute("aria-live", "polite");
@@ -623,6 +647,30 @@ function checklisteAktivieren() {
     });
   });
   aktualisieren();
+}
+
+/* ============================================================
+   KARTE AUFKLAPPEN, WENN MAN AUF SIE SPRINGT
+   Ein Info-Symbol aus einer Anleitung zeigt auf #wz-git. Ohne das
+   hier landete man auf einer zugeklappten Karte und müsste noch
+   einmal tippen, um das zu sehen, weswegen man gekommen ist.
+   ============================================================ */
+function sprungzielAufklappen() {
+  const oeffnen = () => {
+    if (!location.hash) return;
+    /* Ein Hash muss kein gültiger Selektor sein — querySelector wirft dann. */
+    let ziel = null;
+    try { ziel = document.querySelector(location.hash); } catch { return; }
+    if (!ziel) return;
+    const klapp = ziel.matches("details") ? ziel : ziel.querySelector("details");
+    if (!klapp) return;
+    klapp.open = true;
+    /* Nach dem Aufklappen wächst die Karte — der Browser hat da schon
+       gescrollt, also noch einmal nachziehen. */
+    ziel.scrollIntoView({ block: "start" });
+  };
+  addEventListener("hashchange", oeffnen);
+  oeffnen();
 }
 
 /* ============================================================
@@ -640,7 +688,7 @@ function schritteAktivieren() {
   if (!schritte.length) return;
   const seite = document.body.dataset.seite;
   const zahl = document.querySelector("[data-fs-zahl]");
-  const balken = document.querySelector(".schrittstand .balken i");
+  const balken = document.querySelector("[data-fs-balken]");
 
   const erledigt = new Set(gelesen(KEY.schritte(seite), []) || []);
 
@@ -957,6 +1005,7 @@ weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
 schritteAktivieren();
+sprungzielAufklappen();
 fotosAktivieren();
 
 /* Erst wenn alles steht, werden Übergänge wieder zugelassen — bis hierher
