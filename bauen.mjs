@@ -205,18 +205,27 @@ function codeboxTypenPruefen(html, datei) {
     throw new Error(`${datei}: unbekanntes data-typ an einer Codebox — ${[...new Set(falsch)].join(", ")}`);
 }
 
-/* Die Zahl im Kopf der Abschluss-Checkliste ist Handarbeit und fällt nur auf,
-   wenn man sie sucht: sie steht vor dem ersten Klick da und wird von hefter.js
+/* Die beiden Zahlen im Seitenkopf sind Handarbeit und fallen nur auf, wenn
+   man sie sucht: sie stehen vor dem ersten Klick da und werden von hefter.js
    erst danach überschrieben. */
-function checklistenZaehlerPruefen(html, datei) {
-  const m = html.match(/id="chkStand">\s*0\s*\/\s*(\d+)\s*</);
-  const punkte = (html.match(/class="check"/g) || []).length;
+function zaehlerPruefen(html, datei, wo, muster, klasse) {
+  const m = html.match(muster);
+  const punkte = (html.match(klasse) || []).length;
   if (!m) {
-    if (punkte) throw new Error(`${datei}: ${punkte} Checklisten-Punkte, aber kein id="chkStand"`);
+    if (punkte) throw new Error(`${datei}: ${punkte} Punkte für "${wo}", aber der Zähler fehlt`);
     return;
   }
   if (Number(m[1]) !== punkte)
-    throw new Error(`${datei}: chkStand nennt ${m[1]} Punkte, gezählt sind ${punkte}`);
+    throw new Error(`${datei}: ${wo} nennt ${m[1]}, gezählt sind ${punkte}`);
+}
+
+/* Ohne data-schritt lässt sich ein Schritt nicht abhaken und seine Fotos
+   fänden ihre Zone nicht — beides bliebe im Browser stumm. */
+function schrittIdsPruefen(html, datei) {
+  const alle = (html.match(/<section class="step[ "]/g) || []).length;
+  const mitId = (html.match(/<section class="step[^"]*" data-schritt="[^"]+"/g) || []).length;
+  if (alle !== mitId)
+    throw new Error(`${datei}: ${alle - mitId} von ${alle} Schritten ohne data-schritt`);
 }
 
 /* Eine Weiche ohne aktiven Weg ist ohne JavaScript ein leerer Schritt, eine
@@ -277,7 +286,9 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
     eindeutigPruefen(h, f, "data-check");
     eindeutigPruefen(h, f, "data-schritt");
     codeboxTypenPruefen(h, f);
-    checklistenZaehlerPruefen(h, f);
+    zaehlerPruefen(h, f, "chkStand", /id="chkStand">\s*0\s*\/\s*(\d+)\s*</, /class="check"/g);
+    zaehlerPruefen(h, f, "Schritt-Zähler", /data-fs-zahl>\s*0\s*\/\s*(\d+)\s*</, /<section class="step[ "]/g);
+    schrittIdsPruefen(h, f);
     weichenPruefen(h, f);
     return {
       id: f.replace(/\.html$/, ""),

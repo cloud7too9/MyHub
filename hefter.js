@@ -167,7 +167,9 @@ function gelesen(schluessel, ersatz) {
     return roh === null ? ersatz : JSON.parse(roh);
   } catch { return ersatz; }
 }
-function gespeichert(schluessel, wert) {
+/* Heißt bewusst nicht "gespeichert": so nennt checklisteAktivieren seine
+   eigene Liste, und ein verdeckter Name ist beim Lesen eine Falle. */
+function merken(schluessel, wert) {
   try { localStorage.setItem(schluessel, JSON.stringify(wert)); } catch {}
 }
 
@@ -376,7 +378,7 @@ function leisteAufbauen() {
     WURZEL_HTML.classList.toggle("schmal", an);
     const knopf = document.querySelector("[data-klapp]");
     if (knopf) knopf.setAttribute("aria-label", an ? "Leiste ausklappen" : "Leiste einklappen");
-    if (speichern) gespeichert(KEY.leiste, zustand);
+    if (speichern) merken(KEY.leiste, zustand);
   };
   const istSchmalerSchirm = () => matchMedia("(max-width: 860px)").matches;
   const auszugSetzen = an => {
@@ -412,7 +414,7 @@ function leisteAufbauen() {
     const name = kopf.dataset.fach;
     const i = zustand.zu.indexOf(name);
     i === -1 ? zustand.zu.push(name) : zustand.zu.splice(i, 1);
-    gespeichert(KEY.leiste, zustand);
+    merken(KEY.leiste, zustand);
     zeichnen();
   });
 
@@ -624,6 +626,56 @@ function checklisteAktivieren() {
 }
 
 /* ============================================================
+   SCHRITT-HAKEN
+   Die Schrittnummer ist zugleich der Haken — man markiert dort,
+   wo man gerade steht, statt am Seitenende in einer Liste. Die
+   Abschluss-Checkliste bleibt daneben: sie hakt Ergebnisse ab,
+   nicht Handgriffe.
+   Gezählt werden immer alle Schritte der Seite, auch die vom
+   Stufenfilter ausgeblendeten — sonst spränge die Zahl beim
+   Umschalten des Filters, ohne dass sich etwas getan hätte.
+   ============================================================ */
+function schritteAktivieren() {
+  const schritte = [...document.querySelectorAll(".step[data-schritt]")];
+  if (!schritte.length) return;
+  const seite = document.body.dataset.seite;
+  const zahl = document.querySelector("[data-fs-zahl]");
+  const balken = document.querySelector(".schrittstand .balken i");
+
+  const erledigt = new Set(gelesen(KEY.schritte(seite), []) || []);
+
+  const anzeigen = () => {
+    let fertig = 0;
+    for (const s of schritte) {
+      const an = erledigt.has(s.dataset.schritt);
+      if (an) fertig++;
+      s.classList.toggle("erledigt", an);
+      s.querySelector(".step-num")?.setAttribute("aria-pressed", String(an));
+    }
+    if (zahl) zahl.textContent = fertig + " / " + schritte.length;
+    if (balken) balken.style.width = (fertig / schritte.length * 100) + "%";
+  };
+
+  for (const s of schritte) {
+    s.querySelector(".step-num")?.addEventListener("click", () => {
+      const id = s.dataset.schritt;
+      erledigt.has(id) ? erledigt.delete(id) : erledigt.add(id);
+      if (seite) merken(KEY.schritte(seite), [...erledigt]);
+      anzeigen();
+    });
+  }
+
+  document.querySelector("[data-fs-reset]")?.addEventListener("click", () => {
+    erledigt.clear();
+    if (seite) merken(KEY.schritte(seite), []);
+    anzeigen();
+  });
+
+  if (zahl) zahl.setAttribute("aria-live", "polite");
+  anzeigen();
+}
+
+/* ============================================================
    FOTO ANFÜGEN
    16:9-Editor · Ablage in IndexedDB als Blob (kein 5-MB-Limit,
    kein base64-Aufschlag) · Zuordnung über data-schritt-IDs.
@@ -633,6 +685,16 @@ function fotosAktivieren() {
   const zonen = [...document.querySelectorAll(".fotozone")];
   if (!zonen.length) return;
   const seite = document.body.dataset.seite;
+  /* Die Schritt-ID steht am <section class="step">, nicht mehr an der
+     Fotozone — dort ist sie zugleich die ID des Schritt-Hakens. Sie wird
+     hier einmal an die Zone durchgereicht, damit alles Weitere wie bisher
+     zone.dataset.schritt liest. Die Werte sind dieselben geblieben:
+     angehängte Fotos bleiben, wo sie waren. */
+  zonen.forEach(z => {
+    const schritt = z.closest(".step[data-schritt]");
+    if (schritt) z.dataset.schritt = schritt.dataset.schritt;
+  });
+
   const zonenNachSchritt = {};
   zonen.forEach(z => { if (z.dataset.schritt) zonenNachSchritt[z.dataset.schritt] = z; });
 
@@ -894,6 +956,7 @@ kopierenAktivieren();
 weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
+schritteAktivieren();
 fotosAktivieren();
 
 /* Erst wenn alles steht, werden Übergänge wieder zugelassen — bis hierher

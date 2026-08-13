@@ -478,17 +478,45 @@ a { color: inherit; }
 .tab td { color: var(--text-muted); }
 .tab td:first-child { color: var(--text); font-weight: 600; }
 
+/* ---------- Fortschritt einer Anleitung ----------
+   Zählt immer alle Schritte der Seite, auch die vom Stufenfilter
+   ausgeblendeten — sonst spränge die Zahl beim Umschalten des Filters. */
+.schrittstand {
+  display: flex; align-items: center; gap: 12px; margin-top: 14px;
+  font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text-muted);
+}
+.balken { flex: 1; height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.balken i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; transition: width .3s ease; }
+.fs-reset {
+  flex: none; min-height: 30px; padding: 4px 9px; cursor: pointer;
+  background: none; color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 7px;
+  font: inherit; font-family: "JetBrains Mono", monospace; font-size: 11px;
+  transition: color .2s, border-color .2s;
+}
+.fs-reset:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+
 /* ---------- Schritt-Rail ---------- */
 .step { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 22px 0; }
 .step + .step { border-top: 1px solid var(--border); }
 .rail { position: relative; }
+/* Die Schrittnummer ist zugleich der Haken: ein Klick markiert den Schritt
+   als erledigt. Die 32px sind der sichtbare Kreis; die Trefferfläche darum
+   ist über das ::before auf 44px gezogen, ohne das Raster zu verschieben. */
 .step-num {
-  width: 32px; height: 32px; border-radius: 10px;
+  position: relative;
+  width: 32px; height: 32px; border-radius: 10px; padding: 0; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 15px;
   color: var(--accent-ink); background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  transition: background .2s, border-color .2s, color .2s;
 }
+.step-num::before {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+}
+.step-num:hover { border-color: var(--accent); }
 /* top = Höhe der Nummer + 6px Luft; bei jeder Größenänderung mitziehen */
 .step:not(:last-of-type) .rail::after {
   content: ""; position: absolute; left: 50%; top: 38px; bottom: -22px;
@@ -561,6 +589,30 @@ a { color: inherit; }
   background: none !important;
   border-left: 1px dotted var(--border);
 }
+
+/* Erledigt: gefüllte Perle mit Haken statt Zahl. Die Zahl bleibt im Markup
+   und wird nur durchsichtig, damit die Perle ihre Größe behält.
+   Steht bewusst nach den drei Stufen: die färben die Perle je nach Stufe
+   ein, und "erledigt" sticht das aus — sonst bliebe eine abgehakte
+   einmalige Perle grau. */
+.step.erledigt .step-num,
+.step.einmalig.erledigt .step-num,
+.step.optional.erledigt .step-num {
+  background: var(--accent); border: 1px solid var(--accent); color: transparent;
+}
+.step.erledigt .step-num::after {
+  content: ""; position: absolute; left: 50%; top: 46%;
+  width: 6px; height: 11px; margin: -7px 0 0 -3px;
+  border: solid var(--bg); border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.step.erledigt .rail::after {
+  background: color-mix(in srgb, var(--accent) 40%, var(--border)) !important;
+  border-left-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+/* Der Text tritt zurück, verschwindet aber nicht — man liest später nach,
+   was man getan hat. */
+.step.erledigt .step-body > h2 { color: var(--text-muted); }
 
 /* Letzter Schritt eines Abschnitts: keine Linie ins Nichts */
 .step.stufenwechsel .rail::after { display: none; }

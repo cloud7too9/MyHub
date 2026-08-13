@@ -32,8 +32,9 @@ auf.
 
 Welche Sorte eine Seite ist, sagt allein ihr **Ordner** — es gibt kein
 Meta-Tag, das man beim Kopieren einer Vorlage zu ändern vergessen könnte.
-Im Register stehen die Übersichten in einem abgesetzten Block unter den
-Anleitungen; die Suche läuft über beide.
+In der Leiste stehen beide Sorten in ihrem Fach nebeneinander, unterschieden
+durch die Zeile „Durchlaufen" bzw. „Nachschlagen" unter dem Titel; die Suche
+läuft über beide.
 
 ## Struktur
 
@@ -74,7 +75,7 @@ hefter/
    - `<meta name="hefter-untertitel">` und `<meta name="hefter-stichworte">`
    - `<meta name="hefter-kuerzel">` — zwei bis drei Zeichen für die
      eingeklappte Leiste; doppelt vergeben bricht der Build ab
-   - `data-schritt="…"` an jeder `.fotozone`, `data-check="…"` an jedem
+   - `data-schritt="…"` an jedem `<section class="step">`, `data-check="…"` an jedem
      Checklisten-Punkt — **stabile, beliebige IDs**; nie wiederverwenden,
      sonst wandern Fotos/Haken mit. Duplikate innerhalb einer Seite fängt
      das Build-Skript mit einer klaren Fehlermeldung ab.
@@ -142,7 +143,8 @@ node bauen.mjs
   | `hefter-kuerzel` fehlt oder ist doppelt | zwei gleiche Plaketten in der Leiste |
   | Seite fehlt in `REIHENFOLGE` | sie rutscht stumm an den Anfang |
   | Verweis auf Datei oder `#anker`, die es nicht gibt | der Sprung passiert einfach nicht |
-  | `chkStand` nennt eine andere Zahl als es `.check` gibt | falscher Stand bis zum ersten Klick |
+  | `chkStand` oder der Schritt-Zähler nennt eine andere Zahl als gezählt | falscher Stand bis zum ersten Klick |
+  | `<section class="step">` ohne `data-schritt` | der Schritt lässt sich nicht abhaken, seine Fotos finden ihre Zone nicht |
   | Weiche mit weniger als zwei Wegen oder ohne genau einen `aktiv` | ohne JavaScript leer oder doppelt |
 - Scannt alle Projektdateien und erzeugt die Precache-Liste der `sw.js`.
 - Setzt die Service-Worker-`VERSION` als SHA-256-Hash über alle Inhalte —
@@ -159,6 +161,13 @@ node bauen.mjs
   | `step einmalig` | gestrichelt, zurückgenommen | Aufbau, einmal erledigt |
   | `step wiederkehrend` | Cyan, durchgezogen | der Weg, den du wiederholst |
   | `step optional` | gepunktet, ohne Füllung | kann man machen, muss man nicht |
+
+  Die **Schrittnummer ist zugleich der Haken**: ein Klick markiert den Schritt
+  als erledigt, die Perle füllt sich und das Rail-Stück färbt sich ein. Kopf
+  und Seitenleiste zeigen den Stand. Gezählt werden immer alle Schritte der
+  Seite, auch die vom Filter ausgeblendeten — sonst spränge die Zahl beim
+  Umschalten, ohne dass sich etwas getan hätte. Die `data-schritt`-ID sitzt
+  dafür am `<section class="step">`; die Fotozone darin liest sie von dort.
 
   Wofür die mittlere Stufe wiederholt wird, beschriftet jede Seite selbst
   (pro Repo, pro App, pro Nutzer bzw. Gerät …) — im Badge des Schritts, im
@@ -225,10 +234,12 @@ aufgeschlagen. Codeboxen und Callouts sind dieselben wie in Anleitungen.
 |------------------------------|--------------------------------------|
 | Fotos                        | IndexedDB `hefter` → Store `fotos` (Blobs, an `data-schritt`-IDs) |
 | Checklisten-Haken            | `localStorage` `hefter:checks:<seite>` (Array von `data-check`-IDs) |
+| Erledigte Schritte           | `localStorage` `hefter:schritte:<seite>` (Array von `data-schritt`-IDs) |
 | Design (dunkel/hell)         | `localStorage` `hefter:theme`        |
 | App-Icon-Wahl                | `localStorage` `hefter:icon`         |
 | Stufenfilter je Seite        | `localStorage` `hefter:stufe:<seite>`|
 | Weichen-Wahl (Weg A/B)       | `localStorage` `hefter:weg:<seite>:<weiche>` |
+| Zustand der Seitenleiste     | `localStorage` `hefter:leiste` (eingeklappt, zugeklappte Fächer) |
 
 Kein Server, keine Konten, keine Übertragung — Backup/Export auf ein zweites
 Gerät gibt es (noch) nicht.

@@ -96,6 +96,12 @@ try {
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12M6 21v-2M18 21V9M18 3v2M6 15a6 6 0 0 0 12-6"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/></svg></span>
       <div><div class="label">Zwei Ausgangslagen</div><div class="txt"><b>Weg A:</b> Beim Erstellen des Servers war dein öffentlicher Schlüssel schon hinterlegt. <b>Weg B:</b> Der Server kennt nur ein Passwort. Wo sich die Wege unterscheiden, steht ein Umschalter im Schritt — die Wahl gilt dann für die ganze Seite.</div></div>
     </div>
+    <div class="schrittstand">
+      <span class="fs-zahl" data-fs-zahl>0 / 11</span>
+      <span class="balken"><i></i></span>
+      <button class="fs-reset" type="button" data-fs-reset>zurücksetzen</button>
+    </div>
+
 
     <div class="stufenfilter" role="group" aria-label="Schritte filtern">
       <button data-filter="alle" class="aktiv">Alle Schritte</button>
@@ -107,8 +113,8 @@ try {
   <main>
 
     <!-- Schritt 1 -->
-    <section class="step wiederkehrend stufenwechsel">
-      <div class="rail"><div class="step-num">1</div></div>
+    <section class="step wiederkehrend stufenwechsel" data-schritt="schluesselpaar-lokal">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 1">1</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Gerät</span>
         <h2>Lokales Schlüsselpaar prüfen — sonst anlegen<a class="infolink" href="../nachschlagen/schluesselverwaltung.html#paar" aria-label="Nachschlagen: privater und öffentlicher Schlüssel" title="Nachschlagen: privater und öffentlicher Schlüssel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
@@ -144,7 +150,7 @@ ssh-keygen -t ed25519 -C <span class="tok-s">"max@laptop"</span></pre>
           <div><div class="label">Passphrase: ja</div><div class="txt">Der private Schlüssel ist eine Datei — ohne Passphrase genügt ein kopierter Ordner, um dein Konto zu übernehmen. Mit <code>ssh-agent</code> tippst du sie einmal je Sitzung, nicht bei jedem Login.</div></div>
         </div>
         <p><b>Weg A oder B?</b> Auf Weg B ist dieser Schritt zwingend — ohne öffentlichen Schlüssel gibt es in Schritt 5 nichts zu hinterlegen. Auf Weg A ist er längst erledigt, sonst hättest du den Server nicht mit Schlüssel erstellen können.</p>
-        <div class="fotozone" data-schritt="schluesselpaar-lokal">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -152,8 +158,8 @@ ssh-keygen -t ed25519 -C <span class="tok-s">"max@laptop"</span></pre>
     </section>
 
     <!-- Schritt 2 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">2</div></div>
+    <section class="step einmalig" data-schritt="system-update">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 2">2</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Als root einloggen und System aktualisieren</h2>
@@ -189,7 +195,7 @@ ssh-keygen -t ed25519 -C <span class="tok-s">"max@laptop"</span></pre>
 <span class="tok-c"># Neustart nötig? Datei existiert nur, wenn ja</span>
 [ -f /var/run/reboot-required ] <span class="tok-k">&amp;&amp;</span> reboot</pre>
         </div>
-        <div class="fotozone" data-schritt="system-update">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -197,8 +203,8 @@ ssh-keygen -t ed25519 -C <span class="tok-s">"max@laptop"</span></pre>
     </section>
 
     <!-- Schritt 3 -->
-    <section class="step einmalig stufenwechsel">
-      <div class="rail"><div class="step-num">3</div></div>
+    <section class="step einmalig stufenwechsel" data-schritt="hostname-zeit">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 3">3</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Hostname und Zeitzone ansehen</h2>
@@ -226,7 +232,7 @@ grep -q web01 /etc/hosts <span class="tok-k">||</span> echo <span class="tok-s">
             </div>
           </div>
         </div>
-        <div class="fotozone" data-schritt="hostname-zeit">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -234,8 +240,8 @@ grep -q web01 /etc/hosts <span class="tok-k">||</span> echo <span class="tok-s">
     </section>
 
     <!-- Schritt 4 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">4</div></div>
+    <section class="step wiederkehrend" data-schritt="benutzer">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 4">4</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Nutzer</span>
         <h2>Identität und Rechte<a class="infolink" href="../nachschlagen/schluesselverwaltung.html#rollen" aria-label="Nachschlagen: Rollen und Rechte" title="Nachschlagen: Rollen und Rechte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
@@ -309,7 +315,7 @@ sudo -l -U lena</pre>
           <div><div class="label">Die Gruppe <code>docker</code> hebelt alles aus</div><div class="txt">Wer in der Gruppe <code>docker</code> ist, kann sich einen Container mit dem Wurzelverzeichnis des Servers geben — und ist damit faktisch root, ohne Passwortabfrage und ohne Eintrag in den sudo-Logs. Jede Abstufung darüber ist dann Zierde. Nimm in die Gruppe nur auf, wem du auch <code>sudo</code> ohne Passwort geben würdest; für Deploys lieber gezielte Rechte auf die Compose-Befehle.</div></div>
         </div>
         <p><b>Ein Nutzer, mehrere Geräte.</b> Das Konto steht für die Person, nicht für den Laptop. Kommt ein zweites Gerät dazu, entsteht kein zweites Konto — es kommt eine weitere Schlüsselzeile in dieselbe Datei des Nutzers. Der Vorteil zeigt sich beim Verlust: Ein Gerät fliegt raus, das Konto und alle anderen Geräte bleiben. Die Handgriffe dazu stehen in Schritt 5.</p>
-        <div class="fotozone" data-schritt="benutzer">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -317,8 +323,8 @@ sudo -l -U lena</pre>
     </section>
 
     <!-- Schritt 5 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">5</div></div>
+    <section class="step wiederkehrend" data-schritt="ssh-schluessel">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 5">5</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Nutzer und Gerät</span>
         <h2>Schlüssel hinterlegen<a class="infolink" href="../nachschlagen/schluesselverwaltung.html#geraete" aria-label="Nachschlagen: ein Nutzer, mehrere Geräte" title="Nachschlagen: ein Nutzer, mehrere Geräte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
@@ -424,7 +430,7 @@ chmod 600 /home/max/.ssh/authorized_keys</pre>
 <span class="tok-c"># from nur setzen, wenn die Gegenstelle eine feste IP hat.</span>
 restrict,command="/usr/local/bin/deploy.sh" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI… deploy@ci</pre>
         </div>
-        <div class="fotozone" data-schritt="ssh-schluessel">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -432,8 +438,8 @@ restrict,command="/usr/local/bin/deploy.sh" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA
     </section>
 
     <!-- Schritt 6 -->
-    <section class="step wiederkehrend stufenwechsel">
-      <div class="rail"><div class="step-num">6</div></div>
+    <section class="step wiederkehrend stufenwechsel" data-schritt="zugang-test">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 6">6</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Nutzer und Gerät</span>
         <h2>Alle Rollen testen — auch das, was nicht gehen darf</h2>
@@ -468,7 +474,7 @@ ssh -i ~/.ssh/id_ed25519_deploy deploy@&lt;SERVER-IP&gt; <span class="tok-s">"wh
           <div><div class="label">Ein bestandener Negativtest zählt wie ein bestandener Login</div><div class="txt">Klappt der Login und scheitert <code>sudo</code> nicht, ist die Abstufung aus Schritt 4 nur eine Absicht geblieben. Prüfe dann die Gruppen mit <code>id lena</code> und die Regeln mit <code>sudo -l -U lena</code>. Erst weiter, wenn jede Rolle genau so reagiert wie geplant — die alte Sitzung ist noch offen und rettet dich.</div></div>
         </div>
         <p>Kommt ein weiteres Gerät dazu, wird dieser Test von <b>diesem</b> Gerät aus wiederholt. <code>ssh -v max@&lt;SERVER-IP&gt;</code> zeigt in der Ausgabe, welcher Schlüssel angenommen wurde.</p>
-        <div class="fotozone" data-schritt="zugang-test">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -476,8 +482,8 @@ ssh -i ~/.ssh/id_ed25519_deploy deploy@&lt;SERVER-IP&gt; <span class="tok-s">"wh
     </section>
 
     <!-- Schritt 7 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">7</div></div>
+    <section class="step einmalig" data-schritt="ssh-haertung">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 7">7</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>SSH härten: root-Login und Passwörter sperren</h2>
@@ -561,7 +567,7 @@ sudo systemctl restart ssh</pre>
           <div><div class="label">Noch ein Tor: <code>AllowUsers</code></div><div class="txt">Mit <code>AllowUsers max lena deploy</code> kommt gar nicht erst zur Schlüsselprüfung, wer nicht in der Liste steht. Wirksam, aber mit Merkposten: Jedes neue Konto muss hier nachgetragen werden, sonst kommt es trotz gültigem Schlüssel nicht herein. Nimm die Zeile nur auf, wenn du sie in Schritt 4 mitpflegst.</div></div>
         </div>
         <p><b>Test vor dem Schließen der root-Sitzung:</b> ein drittes Fenster öffnen. <code>ssh max@&lt;SERVER-IP&gt;</code> muss laufen, <code>ssh root@&lt;SERVER-IP&gt;</code> muss abgewiesen werden.</p>
-        <div class="fotozone" data-schritt="ssh-haertung">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -569,8 +575,8 @@ sudo systemctl restart ssh</pre>
     </section>
 
     <!-- Schritt 8 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">8</div></div>
+    <section class="step einmalig" data-schritt="ufw">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 8">8</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Firewall einrichten (UFW)</h2>
@@ -611,7 +617,7 @@ sudo ufw reload</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Zweite Ebene</div><div class="txt">Die Cloud-Firewall bei Hetzner arbeitet <b>vor</b> dem Server und kostet nichts. Beide zu nutzen ist sinnvoll — aber dann Regeln an beiden Stellen pflegen, sonst suchst du Fehler an der falschen Stelle.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ufw">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -619,8 +625,8 @@ sudo ufw reload</pre>
     </section>
 
     <!-- Schritt 9 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">9</div></div>
+    <section class="step einmalig" data-schritt="fail2ban">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 9">9</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Brute-Force-Schutz mit fail2ban</h2>
@@ -679,7 +685,7 @@ sudo fail2ban-client set sshd unbanip 203.0.113.5</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Einordnung</div><div class="txt">Der große Sicherheitsgewinn kam schon in Schritt 7 — ohne Passwort-Login läuft ein Rateangriff ins Leere. fail2ban hält zusätzlich die Logs sauber und bremst Dauerscanner aus.</div></div>
         </div>
-        <div class="fotozone" data-schritt="fail2ban">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -687,8 +693,8 @@ sudo fail2ban-client set sshd unbanip 203.0.113.5</pre>
     </section>
 
     <!-- Schritt 10 -->
-    <section class="step einmalig stufenwechsel">
-      <div class="rail"><div class="step-num">10</div></div>
+    <section class="step einmalig stufenwechsel" data-schritt="auto-updates">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 10">10</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Automatische Sicherheitsupdates</h2>
@@ -724,7 +730,7 @@ sudo systemctl restart unattended-upgrades</pre>
             </div>
           </div>
         </div>
-        <div class="fotozone" data-schritt="auto-updates">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -732,8 +738,8 @@ sudo systemctl restart unattended-upgrades</pre>
     </section>
 
     <!-- Schritt 11 -->
-    <section class="step optional">
-      <div class="rail"><div class="step-num">11</div></div>
+    <section class="step optional" data-schritt="ssh-port">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 11">11</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg> Optional</span>
         <h2>SSH-Port verlegen</h2>
@@ -786,7 +792,7 @@ sudo systemctl restart ssh.socket</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Sitzung offen lassen</div><div class="txt">Erst mit <code>ssh -p 2222 max@&lt;SERVER-IP&gt;</code> aus einem zweiten Fenster testen. Klappt es, kann die alte Regel weg: <code>sudo ufw delete allow OpenSSH</code>. Klappt es nicht, hilft die Konsole im Hetzner-Cloud-Panel.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssh-port">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
