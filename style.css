@@ -52,6 +52,7 @@
   --accent-ink:    #00e5ff;
   --text:          #e6e9ef;
   --text-muted:    #8a93a6;
+  --text-dim:      #5c6475;
   --success:       #2ee6a6;
   --warning:       #ffb454;
   --danger:        #ff3b5c;
@@ -67,6 +68,7 @@
   --accent-ink:    #0091a7;
   --text:          #10131a;
   --text-muted:    #5a6376;
+  --text-dim:      #8590a3;
   --success:       #0f9d70;
   --warning:       #b76e00;
   --danger:        #d5203f;
@@ -95,27 +97,243 @@ a { color: inherit; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
-/* ---------- App-Bar ---------- */
-.appbar {
+/* ============================================================
+   SEITENLEISTE
+   Das Register steht auf jeder Seite, nicht nur auf der Startseite:
+   breit mit Titeln, eingeklappt als Kürzel-Leiste, unter 860px als
+   Auszug über dem Inhalt. Die Zustandsklassen hängen an <html> statt
+   am <body> — nur dort kann das Script im <head> sie setzen, bevor
+   das erste Bild steht. Sonst blitzt die breite Leiste kurz auf.
+   ============================================================ */
+:root {
+  --leiste-breit: 272px;
+  --leiste-schmal: 64px;
+  --ikopf: 56px;
+}
+/* Bis das erste Bild steht, laufen keine Übergänge — sonst schöbe sich
+   die Leiste beim Laden sichtbar in ihre gemerkte Breite. */
+.laedt * { transition: none !important; }
+
+.leiste {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 40;
+  width: var(--leiste-breit);
+  display: flex; flex-direction: column;
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding-top: env(safe-area-inset-top);
+  transition: width .22s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1);
+}
+:root.schmal .leiste { width: var(--leiste-schmal); }
+
+.l-kopf {
+  display: flex; align-items: center; gap: 9px; flex: none;
+  min-height: var(--ikopf); padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+.l-marke { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; text-decoration: none; }
+.logo {
+  flex: none; width: 30px; height: 30px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo img { width: 20px; height: 20px; display: block; }
+.wortmarke { min-width: 0; overflow: hidden; white-space: nowrap; }
+.wortmarke b { display: block; font-size: 15px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+.wortmarke small { font-size: 9.5px; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; }
+
+.klapp {
+  flex: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center;
+  transition: color .15s, border-color .15s;
+}
+.klapp:hover { color: var(--accent-ink); border-color: var(--accent); }
+.klapp svg { width: 14px; height: 14px; transition: transform .22s; }
+:root.schmal .klapp svg { transform: rotate(180deg); }
+
+.l-suche { flex: none; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.l-suche input {
+  width: 100%; min-height: 38px; padding: 0 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font: inherit; font-size: 14px; outline: none;
+}
+.l-suche input::placeholder { color: var(--text-dim); }
+.l-suche input:focus { border-color: var(--accent); }
+.lupe {
+  display: none; width: 100%; min-height: 38px; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text-dim); align-items: center; justify-content: center;
+}
+.lupe:hover { color: var(--accent-ink); }
+.lupe svg { width: 16px; height: 16px; }
+
+.l-register { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 8px 14px; scrollbar-width: thin; }
+.l-leer { display: none; padding: 18px 12px; color: var(--text-dim); font-size: 13px; text-align: center; }
+
+.fach { margin-bottom: 2px; }
+.fach-kopf {
+  display: flex; align-items: center; gap: 7px; width: 100%;
+  min-height: 36px; padding: 8px; border-radius: 8px; cursor: pointer;
+  background: none; border: none; text-align: left;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--text-dim); transition: color .15s;
+}
+.fach-kopf:hover { color: var(--text-muted); }
+.fach-kopf .pfeil { flex: none; width: 9px; height: 9px; transition: transform .2s; }
+.fach.zu .fach-kopf .pfeil { transform: rotate(-90deg); }
+.fach-kopf .name { flex: 1; overflow: hidden; white-space: nowrap; }
+.fach-kopf .anz { font-size: 9.5px; letter-spacing: 0; }
+.fach.zu .fach-inhalt { display: none; }
+
+.l-eintrag {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  min-height: 44px; padding: 7px 8px; border-radius: 8px;
+  color: var(--text-muted); text-decoration: none;
+  transition: background .14s, color .14s;
+}
+.l-eintrag:hover { background: var(--surface-2); color: var(--text); }
+.l-eintrag.aktiv { background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent-ink); }
+.l-eintrag.aktiv::before {
+  content: ""; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; background: var(--accent); border-radius: 0 2px 2px 0;
+}
+.kuerzel {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px;
+  color: var(--text-dim); transition: color .14s, border-color .14s, background .14s;
+}
+.kuerzel svg { width: 15px; height: 15px; }
+.l-eintrag.aktiv .kuerzel,
+.f-btn:hover .kuerzel { border-color: var(--accent); color: var(--accent-ink); }
+.e-text { flex: 1; min-width: 0; }
+.e-titel { display: block; font-size: 13.5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.e-unten { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.e-unten .typ {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 9px; letter-spacing: .06em; color: var(--text-dim);
+}
+.mini { flex: 1; max-width: 56px; height: 2px; border-radius: 1px; background: var(--border); overflow: hidden; }
+.mini i { display: block; height: 100%; background: var(--accent); border-radius: 1px; }
+
+.l-fuss { flex: none; border-top: 1px solid var(--border); padding: 8px; }
+.f-btn {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  min-height: 44px; padding: 7px 8px; border-radius: 8px;
+  color: var(--text-dim); text-decoration: none; font-size: 13.5px;
+  transition: background .14s, color .14s;
+}
+.f-btn:hover { background: var(--surface-2); color: var(--text); }
+.f-text { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; }
+
+/* --- Eingeklappt: nur noch Kürzel --- */
+:root.schmal .wortmarke,
+:root.schmal .e-text,
+:root.schmal .f-text,
+:root.schmal .fach-kopf .name,
+:root.schmal .fach-kopf .anz,
+:root.schmal .fach-kopf .pfeil,
+:root.schmal .l-suche input { display: none; }
+:root.schmal .lupe { display: flex; }
+/* Logo und Klapp-Knopf passen nebeneinander nicht in 64 px. Im
+   Schmal-Zustand bleibt der Knopf — er ist der Weg zurück in die
+   breite Leiste; die Wortmarke führt ohnehin nur aufs Register, das
+   einen Eintrag weiter unten ebenfalls steht. */
+:root.schmal .l-kopf { justify-content: center; padding: 0 8px; }
+:root.schmal .l-marke { display: none; }
+:root.schmal .l-eintrag,
+:root.schmal .f-btn { justify-content: center; padding: 7px 0; }
+:root.schmal .fach-kopf { justify-content: center; min-height: 20px; padding: 6px 0; }
+/* Ein Strich statt des Fachnamens: die Gruppen bleiben unterscheidbar,
+   ohne dass ein abgeschnittenes Wort danebensteht. */
+:root.schmal .fach-kopf::after { content: ""; width: 16px; height: 1px; background: var(--border); }
+/* Zugeklappte Fächer bleiben im Schmal-Zustand sichtbar — sonst wären
+   ihre Einträge unerreichbar, ohne vorher aufzuklappen. */
+:root.schmal .fach.zu .fach-inhalt { display: block; }
+
+/* Fest im Bild statt neben dem Eintrag: .l-register scrollt und schneidet
+   mit overflow ab — eine Blase im Kasten wäre genau an der Kante abgehackt.
+   Die Höhe setzt hefter.js beim Überfahren, waagerecht steht sie immer
+   direkt neben der Leiste. */
+.blase {
+  position: fixed; left: calc(var(--leiste-schmal) + 10px); z-index: 60;
+  transform: translateY(-50%) scale(.96);
+  padding: 6px 10px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text); font-size: 13px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity .13s, transform .13s;
+}
+:root:not(.schmal) .blase { display: none; }
+:root.schmal .l-eintrag:hover .blase,
+:root.schmal .l-eintrag:focus-visible .blase,
+:root.schmal .f-btn:hover .blase,
+:root.schmal .f-btn:focus-visible .blase { opacity: 1; transform: translateY(-50%) scale(1); }
+
+/* ---------- Inhalt und sein Kopf ---------- */
+.inhalt {
+  margin-left: var(--leiste-breit);
+  transition: margin-left .22s cubic-bezier(.4,0,.2,1);
+}
+:root.schmal .inhalt { margin-left: var(--leiste-schmal); }
+
+.i-kopf {
   position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top));
+  display: flex; align-items: center; gap: 10px;
+  min-height: var(--ikopf); padding: 6px 16px;
+  padding-top: calc(6px + env(safe-area-inset-top));
   background: color-mix(in srgb, var(--bg) 86%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-.appbar .back {
-  display: inline-flex; align-items: center; gap: 6px;
-  min-height: 44px; padding: 0 6px;
-  color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 15px;
+.brenner {
+  display: none; flex: none; width: 40px; height: 40px; border-radius: 9px;
+  background: none; border: 1px solid var(--border); color: var(--text-muted);
+  cursor: pointer; align-items: center; justify-content: center;
 }
-.appbar .back:hover { color: var(--text); }
-.appbar .spacer { flex: 1; }
-.appbar .marke {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-weight: 700; font-size: 16px; letter-spacing: -.01em; text-decoration: none;
+.brenner svg { width: 18px; height: 18px; }
+.krumen {
+  flex: 1; min-width: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px; color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.appbar .marke img { width: 28px; height: 28px; border-radius: 7px; display: block; }
+.krumen b { color: var(--text-muted); font-weight: 400; }
+
+.schleier {
+  position: fixed; inset: 0; z-index: 35;
+  background: rgba(3, 4, 6, .72);
+  opacity: 0; pointer-events: none; transition: opacity .22s;
+}
+
+/* --- Unter 860px: die Leiste wird zum Auszug --- */
+@media (max-width: 860px) {
+  /* !important, weil der Schmal-Zustand vom großen Bildschirm gemerkt
+     bleibt — auf dem Telefon gibt es ihn nicht, dort ist die Leiste
+     entweder ganz da oder ganz weg. */
+  .leiste { width: var(--leiste-breit) !important; transform: translateX(-100%); box-shadow: var(--shadow); }
+  :root.auf .leiste { transform: translateX(0); }
+  :root.auf .schleier { opacity: 1; pointer-events: auto; }
+  .inhalt { margin-left: 0 !important; }
+  .brenner { display: flex; }
+  .klapp { display: none; }
+  :root.schmal .wortmarke,
+  :root.schmal .e-text,
+  :root.schmal .f-text,
+  :root.schmal .fach-kopf .name,
+  :root.schmal .fach-kopf .anz,
+  :root.schmal .fach-kopf .pfeil,
+  :root.schmal .l-suche input { display: revert; }
+  :root.schmal .lupe { display: none; }
+  :root.schmal .l-kopf { justify-content: flex-start; padding: 0 10px; }
+  :root.schmal .l-marke { display: flex; }
+  :root.schmal .l-eintrag,
+  :root.schmal .f-btn { justify-content: flex-start; padding: 7px 8px; }
+  :root.schmal .fach-kopf { justify-content: flex-start; min-height: 36px; padding: 8px; }
+  :root.schmal .fach-kopf::after { display: none; }
+  :root.schmal .fach.zu .fach-inhalt { display: none; }
+  .blase { display: none; }
+}
 
 .iconbtn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;

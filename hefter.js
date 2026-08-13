@@ -12,94 +12,124 @@
 /* REGISTER-START */
 const REGISTER = [
   {
-    "id": "hetzner-deploy",
+    "id": "git-zugang-privat",
     "art": "anleitung",
-    "titel": "Automatisches Deploy auf Hetzner per GitHub Actions",
-    "untertitel": "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
-    "kategorie": "Deployment",
-    "datei": "anleitungen/hetzner-deploy.html",
-    "stichworte": "ssh github actions hetzner deploy key secrets workflow ci cd"
-  },
-  {
-    "id": "git-ssd",
-    "art": "anleitung",
-    "titel": "Git von der portablen SSD nutzen",
-    "untertitel": "SSH-Schlüssel und Konfiguration unterwegs dabei",
+    "titel": "Zugang zu privaten Repositories einrichten",
+    "kuerzel": "GZ",
+    "untertitel": "Browser-Login, Token oder SSH-Schlüssel",
     "kategorie": "Git",
-    "datei": "anleitungen/git-ssd.html",
-    "stichworte": "ssd portable ssh schluessel config git ssh command fremder rechner unterwegs stick mobil workflow"
+    "datei": "anleitungen/git-zugang-privat.html",
+    "stichworte": "github privat authentifizierung anmeldung token pat ssh schluessel login vscode zugriff credentials fine-grained",
+    "schritte": 5,
+    "checks": 3
   },
   {
     "id": "vscode-git-workflow",
     "art": "anleitung",
     "titel": "Repo in VS Code klonen & Änderungen hochladen",
+    "kuerzel": "VG",
     "untertitel": "Klonen, committen, synchronisieren — UI und Terminal",
     "kategorie": "Git",
     "datei": "anleitungen/vscode-git-workflow.html",
-    "stichworte": "vscode git clone commit push pull sync quellcodeverwaltung stagen repository workflow hochladen"
+    "stichworte": "vscode git clone commit push pull sync quellcodeverwaltung stagen repository workflow hochladen",
+    "schritte": 5,
+    "checks": 4
   },
   {
-    "id": "git-zugang-privat",
+    "id": "git-ssd",
     "art": "anleitung",
-    "titel": "Zugang zu privaten Repositories einrichten",
-    "untertitel": "Browser-Login, Token oder SSH-Schlüssel",
+    "titel": "Git von der portablen SSD nutzen",
+    "kuerzel": "SD",
+    "untertitel": "SSH-Schlüssel und Konfiguration unterwegs dabei",
     "kategorie": "Git",
-    "datei": "anleitungen/git-zugang-privat.html",
-    "stichworte": "github privat authentifizierung anmeldung token pat ssh schluessel login vscode zugriff credentials fine-grained"
-  },
-  {
-    "id": "coolify-einrichtung",
-    "art": "anleitung",
-    "titel": "Coolify einrichten & Projekte ausrollen",
-    "untertitel": "Installation, GitHub-Anbindung, erste App",
-    "kategorie": "Server",
-    "datei": "anleitungen/coolify-einrichtung.html",
-    "stichworte": "coolify paas self hosted docker traefik proxy deploy github app webhook auto deploy umgebungsvariablen env secrets domain buildpack nixpacks dockerfile compose dashboard port 8000 rollback persistent storage hetzner update"
-  },
-  {
-    "id": "docker-einrichtung",
-    "art": "anleitung",
-    "titel": "Docker einrichten & pro Repository integrieren",
-    "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
-    "kategorie": "Server",
-    "datei": "anleitungen/docker-einrichtung.html",
-    "stichworte": "docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx"
-  },
-  {
-    "id": "domain-einrichtung",
-    "art": "anleitung",
-    "titel": "Domain einrichten & per HTTPS ausliefern",
-    "untertitel": "Nameserver, A/AAAA-Records, Let's Encrypt",
-    "kategorie": "Server",
-    "datei": "anleitungen/domain-einrichtung.html",
-    "stichworte": "domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung"
-  },
-  {
-    "id": "server-ersteinrichtung",
-    "art": "anleitung",
-    "titel": "Server-Erst-Einrichtung & Absicherung",
-    "untertitel": "Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban",
-    "kategorie": "Server",
-    "datei": "anleitungen/server-ersteinrichtung.html",
-    "stichworte": "ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port"
+    "datei": "anleitungen/git-ssd.html",
+    "stichworte": "ssd portable ssh schluessel config git ssh command fremder rechner unterwegs stick mobil workflow",
+    "schritte": 6,
+    "checks": 5
   },
   {
     "id": "vscode-remote-ssh",
     "art": "anleitung",
     "titel": "VS Code mit dem Hetzner-Server verbinden",
+    "kuerzel": "VR",
     "untertitel": "Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche",
     "kategorie": "Werkzeuge",
     "datei": "anleitungen/vscode-remote-ssh.html",
-    "stichworte": "vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban"
+    "stichworte": "vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban",
+    "schritte": 11,
+    "checks": 8
+  },
+  {
+    "id": "server-ersteinrichtung",
+    "art": "anleitung",
+    "titel": "Server-Erst-Einrichtung & Absicherung",
+    "kuerzel": "SE",
+    "untertitel": "Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban",
+    "kategorie": "Server",
+    "datei": "anleitungen/server-ersteinrichtung.html",
+    "stichworte": "ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port",
+    "schritte": 11,
+    "checks": 14
   },
   {
     "id": "schluesselverwaltung",
     "art": "uebersicht",
     "titel": "Schlüsselverwaltung",
+    "kuerzel": "SK",
     "untertitel": "Schlüsselpaare, Ablage pro Nutzer, mehrere Geräte, Widerruf, Rechte",
     "kategorie": "Server",
     "datei": "nachschlagen/schluesselverwaltung.html",
-    "stichworte": "ssh schluessel schluesselpaar ed25519 rsa passphrase ssh-agent authorized_keys fingerabdruck known_hosts rechte strictmodes rollen sudo sudoers docker gruppe geraete zweitgeraet widerruf aussperren sperren optionen command from restrict no-pty deploy permission denied publickey fehlersuche nachschlagen"
+    "stichworte": "ssh schluessel schluesselpaar ed25519 rsa passphrase ssh-agent authorized_keys fingerabdruck known_hosts rechte strictmodes rollen sudo sudoers docker gruppe geraete zweitgeraet widerruf aussperren sperren optionen command from restrict no-pty deploy permission denied publickey fehlersuche nachschlagen",
+    "schritte": 0,
+    "checks": 0
+  },
+  {
+    "id": "docker-einrichtung",
+    "art": "anleitung",
+    "titel": "Docker einrichten & pro Repository integrieren",
+    "kuerzel": "DO",
+    "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
+    "kategorie": "Server",
+    "datei": "anleitungen/docker-einrichtung.html",
+    "stichworte": "docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx",
+    "schritte": 12,
+    "checks": 8
+  },
+  {
+    "id": "domain-einrichtung",
+    "art": "anleitung",
+    "titel": "Domain einrichten & per HTTPS ausliefern",
+    "kuerzel": "DN",
+    "untertitel": "Nameserver, A/AAAA-Records, Let's Encrypt",
+    "kategorie": "Server",
+    "datei": "anleitungen/domain-einrichtung.html",
+    "stichworte": "domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung",
+    "schritte": 9,
+    "checks": 7
+  },
+  {
+    "id": "coolify-einrichtung",
+    "art": "anleitung",
+    "titel": "Coolify einrichten & Projekte ausrollen",
+    "kuerzel": "CO",
+    "untertitel": "Installation, GitHub-Anbindung, erste App",
+    "kategorie": "Server",
+    "datei": "anleitungen/coolify-einrichtung.html",
+    "stichworte": "coolify paas self hosted docker traefik proxy deploy github app webhook auto deploy umgebungsvariablen env secrets domain buildpack nixpacks dockerfile compose dashboard port 8000 rollback persistent storage hetzner update",
+    "schritte": 12,
+    "checks": 10
+  },
+  {
+    "id": "hetzner-deploy",
+    "art": "anleitung",
+    "titel": "Automatisches Deploy auf Hetzner per GitHub Actions",
+    "kuerzel": "DP",
+    "untertitel": "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
+    "kategorie": "Deployment",
+    "datei": "anleitungen/hetzner-deploy.html",
+    "stichworte": "ssh github actions hetzner deploy key secrets workflow ci cd",
+    "schritte": 4,
+    "checks": 5
   }
 ];
 /* REGISTER-ENDE */
@@ -121,10 +151,25 @@ const BASIS = document.body.dataset.basis || "";
 const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
+  leiste: "hefter:leiste",
   checks: id => "hefter:checks:" + id,
+  schritte: id => "hefter:schritte:" + id,
+  stufe: id => "hefter:stufe:" + id,
   weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
+
+/* localStorage kann werfen (privater Modus, volles Kontingent) und liefert
+   beim ersten Besuch nichts — beides darf keine Seite lahmlegen. */
+function gelesen(schluessel, ersatz) {
+  try {
+    const roh = localStorage.getItem(schluessel);
+    return roh === null ? ersatz : JSON.parse(roh);
+  } catch { return ersatz; }
+}
+function gespeichert(schluessel, wert) {
+  try { localStorage.setItem(schluessel, JSON.stringify(wert)); } catch {}
+}
 
 function neueId() {
   try { return crypto.randomUUID(); }
@@ -239,28 +284,183 @@ function registerAufbauen() {
       ${uebersichten.map(eintrag).join("")}
     </section>` : "");
 
-  const feld = document.getElementById("sucheFeld");
-  if (!feld) return;
-  feld.addEventListener("input", () => {
-    const q = feld.value.trim().toLowerCase();
+}
+
+/* ============================================================
+   SEITENLEISTE  (Register auf jeder Seite)
+   Fächer sind die Kategorien, in der Reihenfolge, die bauen.mjs
+   festlegt. Der Zustand — eingeklappt, welche Fächer zu — liegt
+   unter hefter:leiste und wird schon im <head> gelesen, damit die
+   Leiste nicht in ihrer gemerkten Breite aufblitzt.
+   ============================================================ */
+const WURZEL_HTML = document.documentElement;
+
+/* Nenner des Fortschritts: eine Anleitung zählt ihre Schritte, eine
+   Übersicht ihre Haken. Ein entfernter Punkt kann in der Speicherung
+   zurückbleiben, deshalb wird der Anteil gedeckelt. */
+function fortschritt(e) {
+  const uebersicht = e.art === "uebersicht";
+  const gesamt = uebersicht ? e.checks : e.schritte;
+  if (!gesamt) return null;
+  const erledigt = (gelesen(uebersicht ? KEY.checks(e.id) : KEY.schritte(e.id), []) || []).length;
+  return { erledigt: Math.min(erledigt, gesamt), gesamt };
+}
+
+function leisteAufbauen() {
+  const ziel = document.getElementById("leisteRegister");
+  if (!ziel) return;
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const hier = document.body.dataset.seite || "";
+  const feld = document.getElementById("leisteSuche");
+  const leer = document.getElementById("leisteLeer");
+  const schleier = document.querySelector("[data-schleier]");
+  const zustand = Object.assign({ schmal: false, zu: [] }, gelesen(KEY.leiste, {}));
+  let suchtext = "";
+
+  /* Fächer in der Reihenfolge ihres ersten Auftretens im REGISTER —
+     die Leseordnung steckt schon in der Sortierung von bauen.mjs. */
+  const faecher = [];
+  for (const e of REGISTER) {
+    let f = faecher.find(x => x.name === e.kategorie);
+    if (!f) faecher.push(f = { name: e.kategorie, seiten: [] });
+    f.seiten.push(e);
+  }
+
+  const passt = e => !suchtext ||
+    (e.titel + " " + e.untertitel + " " + e.kategorie + " " + e.stichworte).toLowerCase().includes(suchtext);
+
+  const eintrag = e => {
+    const aktiv = e.id === hier;
+    const fs = fortschritt(e);
+    return `
+      <a class="l-eintrag${aktiv ? " aktiv" : ""}" href="${BASIS}${e.datei}"${aktiv ? ' aria-current="page"' : ""}>
+        <span class="kuerzel" aria-hidden="true">${esc(e.kuerzel)}</span>
+        <span class="e-text">
+          <span class="e-titel">${esc(e.titel)}</span>
+          <span class="e-unten">
+            <span class="typ">${e.art === "uebersicht" ? "Nachschlagen" : "Durchlaufen"}</span>
+            ${fs ? `<span class="mini" title="${fs.erledigt} von ${fs.gesamt}"><i style="width:${Math.round(fs.erledigt / fs.gesamt * 100)}%"></i></span>` : ""}
+          </span>
+        </span>
+        <span class="blase">${esc(e.titel)}</span>
+      </a>`;
+  };
+
+  function zeichnen() {
+    let html = "";
     let treffer = 0;
-    ziel.querySelectorAll(".eintrag").forEach(a => {
-      const zeigt = !q || a.dataset.such.includes(q);
-      a.style.display = zeigt ? "" : "none";
-      if (zeigt) treffer++;
-    });
-    ziel.querySelectorAll(".kategorie").forEach(k => {
-      k.style.display = [...k.querySelectorAll(".eintrag")].some(a => a.style.display !== "none") ? "" : "none";
-    });
-    const leer = document.getElementById("keineTreffer");
+    for (const f of faecher) {
+      const seiten = f.seiten.filter(passt);
+      if (!seiten.length) continue;
+      treffer += seiten.length;
+      /* Während gesucht wird, sind alle Fächer offen — sonst bliebe ein
+         Treffer in einem zugeklappten Fach unsichtbar. */
+      const zu = !suchtext && zustand.zu.includes(f.name);
+      html += `
+        <div class="fach${zu ? " zu" : ""}">
+          <button class="fach-kopf" data-fach="${esc(f.name)}" aria-expanded="${!zu}">
+            <svg class="pfeil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="name">${esc(f.name)}</span>
+            <span class="anz">${seiten.length}</span>
+          </button>
+          <div class="fach-inhalt">${seiten.map(eintrag).join("")}</div>
+        </div>`;
+    }
+    ziel.innerHTML = html;
     if (leer) leer.style.display = treffer ? "none" : "block";
+  }
+
+  /* ---- Zustand ---- */
+  const schmalSetzen = (an, speichern = true) => {
+    zustand.schmal = an;
+    WURZEL_HTML.classList.toggle("schmal", an);
+    const knopf = document.querySelector("[data-klapp]");
+    if (knopf) knopf.setAttribute("aria-label", an ? "Leiste ausklappen" : "Leiste einklappen");
+    if (speichern) gespeichert(KEY.leiste, zustand);
+  };
+  const istSchmalerSchirm = () => matchMedia("(max-width: 860px)").matches;
+  const auszugSetzen = an => {
+    WURZEL_HTML.classList.toggle("auf", an);
+    const brenner = document.querySelector("[data-brenner]");
+    if (brenner) brenner.setAttribute("aria-expanded", String(an));
+  };
+
+  /* Auf dem Telefon klappt derselbe Knopf den Auszug auf statt die Breite
+     umzustellen — dort gibt es den Schmal-Zustand nicht. */
+  const umschalten = () => istSchmalerSchirm()
+    ? auszugSetzen(!WURZEL_HTML.classList.contains("auf"))
+    : schmalSetzen(!zustand.schmal);
+
+  schmalSetzen(zustand.schmal, false);
+  zeichnen();
+
+  /* ---- Ereignisse ---- */
+  document.querySelector("[data-klapp]")?.addEventListener("click", umschalten);
+  document.querySelector("[data-brenner]")?.addEventListener("click", umschalten);
+  schleier?.addEventListener("click", () => auszugSetzen(false));
+
+  /* Die Lupe im Schmal-Zustand klappt erst auf und setzt dann den Fokus —
+     ins ausgeblendete Feld zu springen brächte nichts. */
+  document.querySelector("[data-lupe]")?.addEventListener("click", () => {
+    schmalSetzen(false);
+    feld?.focus();
   });
-  /* Ctrl+K bzw. / fokussiert die Suche */
+
+  ziel.addEventListener("click", e => {
+    const kopf = e.target.closest("[data-fach]");
+    if (!kopf) return;
+    const name = kopf.dataset.fach;
+    const i = zustand.zu.indexOf(name);
+    i === -1 ? zustand.zu.push(name) : zustand.zu.splice(i, 1);
+    gespeichert(KEY.leiste, zustand);
+    zeichnen();
+  });
+
+  feld?.addEventListener("input", () => { suchtext = feld.value.trim().toLowerCase(); zeichnen(); });
+
+  /* Die Sprechblase steht fest im Bild (siehe .blase in style.css) — ihre
+     Höhe muss deshalb beim Überfahren gesetzt werden. Nur im Schmal-Zustand
+     nötig, sonst steht der Titel ohnehin daneben. */
+  const blaseSetzen = ev => {
+    if (!WURZEL_HTML.classList.contains("schmal")) return;
+    const eintrag = ev.target.closest(".l-eintrag, .f-btn");
+    const blase = eintrag?.querySelector(".blase");
+    if (!blase) return;
+    const kasten = eintrag.getBoundingClientRect();
+    blase.style.top = Math.round(kasten.top + kasten.height / 2) + "px";
+  };
+  for (const bereich of [ziel, document.querySelector(".l-fuss")]) {
+    bereich?.addEventListener("mouseover", blaseSetzen);
+    bereich?.addEventListener("focusin", blaseSetzen);
+  }
+
   addEventListener("keydown", e => {
-    if ((e.ctrlKey && e.key.toLowerCase() === "k") || (e.key === "/" && document.activeElement !== feld)) {
-      e.preventDefault(); feld.focus(); feld.select();
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") { e.preventDefault(); umschalten(); return; }
+    if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") ||
+        (e.key === "/" && document.activeElement !== feld && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName))) {
+      e.preventDefault();
+      if (istSchmalerSchirm()) auszugSetzen(true); else schmalSetzen(false);
+      feld?.focus(); feld?.select();
+      return;
+    }
+    if (e.key === "Escape") {
+      if (WURZEL_HTML.classList.contains("auf")) auszugSetzen(false);
+      else if (document.activeElement === feld && feld.value) { feld.value = ""; suchtext = ""; zeichnen(); }
     }
   });
+
+  /* Vom Telefon auf den großen Schirm gedreht: der Auszug hat dort keine
+     Entsprechung und bliebe sonst als Schleier über der Seite liegen. */
+  addEventListener("resize", () => { if (!istSchmalerSchirm()) auszugSetzen(false); });
+
+  /* Brotkrume im Inhalts-Kopf */
+  const krumen = document.querySelector("[data-krumen]");
+  if (krumen) {
+    const e = REGISTER.find(x => x.id === hier);
+    krumen.innerHTML = e
+      ? esc(e.kategorie) + " <b>/</b> " + esc(e.titel)
+      : esc(document.querySelector("h1")?.textContent.trim() || "Hefter");
+  }
 }
 
 /* ============================================================
@@ -596,7 +796,7 @@ function stufenfilterAktivieren() {
   const filter = document.querySelector(".stufenfilter");
   if (!filter) return;
   const seite = document.body.dataset.seite;
-  const schluessel = "hefter:stufe:" + seite;
+  const schluessel = KEY.stufe(seite);
 
   const setzen = (modus, speichern = true) => {
     document.body.classList.toggle("nur-wiederkehrend", modus === "wiederkehrend");
@@ -684,6 +884,7 @@ function einstellungenAufbauen() {
    START
    ============================================================ */
 themeLaden();
+leisteAufbauen();
 registerAufbauen();
 einstellungenAufbauen();
 /* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
@@ -694,6 +895,11 @@ weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
 fotosAktivieren();
+
+/* Erst wenn alles steht, werden Übergänge wieder zugelassen — bis hierher
+   hält "laedt" sie an, damit die gemerkte Leistenbreite nicht sichtbar
+   eingefahren kommt. Das <head>-Script setzt die Klasse. */
+requestAnimationFrame(() => document.documentElement.classList.remove("laedt"));
 
 /* ============================================================
    UPDATE-FLUSS

@@ -33,7 +33,6 @@ const SORTEN = [
   { ordner: "anleitungen", art: "anleitung" },
   { ordner: "nachschlagen", art: "uebersicht" }
 ];
-const RANG = { anleitung: 0, uebersicht: 1 };
 
 const seitenDateien = ordner =>
   readdirSync(join(WURZEL, ordner)).filter(f => f.endsWith(".html")).sort();
@@ -63,22 +62,66 @@ const kopf = (basis, seite) => `${KOPF_START}
 <link rel="apple-touch-icon" href="${basis}icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="${basis}style.css">
 <script>
-try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
 </script>
 </head>
-<body data-seite="${seite}" data-basis="${basis}">
+<body${seite ? ` data-seite="${seite}"` : ""} data-basis="${basis}">
 
-<div class="appbar">
-  <a class="back" href="${basis}index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-    Register
-  </a>
-  <span class="spacer"></span>
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="${basis}index.html">
+      <span class="logo"><img data-appicon src="${basis}icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="${basis}einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
   <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
     <span class="lbl">Dunkel</span>
   </button>
-</div>
+</header>
 
 <div class="wrap">
 ${KOPF_ENDE}`;
@@ -86,13 +129,16 @@ ${KOPF_ENDE}`;
 /* Anleitungen speichern Fotos und Haken, Übersichten nur den Fortschritt —
    der Satz im Fuß nennt deshalb je Sorte etwas anderes. */
 const FUSSTEXT = {
-  anleitung: "Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.",
-  uebersicht: "Design und Fortschritt werden lokal auf diesem Gerät gespeichert."
+  anleitung: "Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.",
+  uebersicht: "Haken und Design werden lokal auf diesem Gerät gespeichert.",
+  register: "Alles bleibt auf diesem Gerät — kein Server, keine Konten, keine Übertragung.",
+  einstellungen: "Gespeichert wird lokal auf diesem Gerät."
 };
 
 const fuss = (basis, art) => `${FUSS_START}
   <p class="foot">${FUSSTEXT[art]}</p>
-</div>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
 
 <script src="${basis}hefter.js"></script>
 </body>
@@ -111,15 +157,24 @@ function rahmenSetzen(html, datei, basis, seite, art) {
   return html.replace(kopfRe, () => kopf(basis, seite)).replace(fussRe, () => fuss(basis, art));
 }
 
+/* Register und Einstellungen stehen nicht im REGISTER, tragen aber denselben
+   Rahmen — die Leiste gehört auf jede Seite. */
+const RAHMENSEITEN = [
+  { rel: "index.html", basis: "", seite: "", art: "register" },
+  { rel: "einstellungen.html", basis: "", seite: "", art: "einstellungen" },
+  ...SORTEN.flatMap(({ ordner, art }) => seitenDateien(ordner).map(f => ({
+    rel: ordner + "/" + f, basis: "../", seite: f.replace(/\.html$/, ""), art
+  })))
+];
+
 let rahmenGeaendert = 0;
-for (const { ordner, art } of SORTEN)
-  for (const f of seitenDateien(ordner)) {
-    const pfad = join(WURZEL, ordner, f);
-    const alt = readFileSync(pfad, "utf8");
-    const neu = rahmenSetzen(alt, f, "../", f.replace(/\.html$/, ""), art);
-    if (neu !== alt) { writeFileSync(pfad, neu); rahmenGeaendert++; }
-  }
-console.log(`Seitenrahmen: ${rahmenGeaendert} von ${SORTEN.reduce((n, s) => n + seitenDateien(s.ordner).length, 0)} Seiten neu geschrieben`);
+for (const { rel, basis, seite, art } of RAHMENSEITEN) {
+  const pfad = join(WURZEL, rel);
+  const alt = readFileSync(pfad, "utf8");
+  const neu = rahmenSetzen(alt, rel, basis, seite, art);
+  if (neu !== alt) { writeFileSync(pfad, neu); rahmenGeaendert++; }
+}
+console.log(`Seitenrahmen: ${rahmenGeaendert} von ${RAHMENSEITEN.length} Seiten neu geschrieben`);
 
 /* Checklisten-Fortschritt und Fotos werden über diese IDs zugeordnet.
    Ein Duplikat legt zwei Häkchen bzw. zwei Fotozonen still zusammen —
@@ -150,6 +205,66 @@ function codeboxTypenPruefen(html, datei) {
     throw new Error(`${datei}: unbekanntes data-typ an einer Codebox — ${[...new Set(falsch)].join(", ")}`);
 }
 
+/* Die Zahl im Kopf der Abschluss-Checkliste ist Handarbeit und fällt nur auf,
+   wenn man sie sucht: sie steht vor dem ersten Klick da und wird von hefter.js
+   erst danach überschrieben. */
+function checklistenZaehlerPruefen(html, datei) {
+  const m = html.match(/id="chkStand">\s*0\s*\/\s*(\d+)\s*</);
+  const punkte = (html.match(/class="check"/g) || []).length;
+  if (!m) {
+    if (punkte) throw new Error(`${datei}: ${punkte} Checklisten-Punkte, aber kein id="chkStand"`);
+    return;
+  }
+  if (Number(m[1]) !== punkte)
+    throw new Error(`${datei}: chkStand nennt ${m[1]} Punkte, gezählt sind ${punkte}`);
+}
+
+/* Eine Weiche ohne aktiven Weg ist ohne JavaScript ein leerer Schritt, eine
+   mit zwei aktiven zeigt beide Wege gleichzeitig — im Browser mit JavaScript
+   fällt beides nicht auf, weil hefter.js es beim Start geraderückt. */
+function weichenPruefen(html, datei) {
+  /* Zerlegt wird an den Weichen-Anfängen: .weg und button[data-weg] kommen
+     nur innerhalb einer Weiche vor, deshalb genügt das zum Zählen — ein
+     Klammer-Zähler über verschachtelte <div> wäre hier zu viel Apparat. */
+  const weichen = [...html.matchAll(/<div class="weiche" data-weiche="([^"]*)"([\s\S]*?)(?=<div class="weiche" data-weiche=|$)/g)];
+  for (const [, name, rumpf] of weichen) {
+    const wege = [...rumpf.matchAll(/<div class="weg( aktiv)?" data-weg="([^"]*)"/g)];
+    const knoepfe = [...rumpf.matchAll(/<button data-weg="([^"]*)"/g)].map(m => m[1]);
+    if (wege.length < 2)
+      throw new Error(`${datei}: Weiche "${name}" hat ${wege.length} Weg(e) — mindestens zwei nötig`);
+    const aktiv = wege.filter(w => w[1]).length;
+    if (aktiv !== 1)
+      throw new Error(`${datei}: Weiche "${name}" hat ${aktiv} aktive Wege — genau einer muss es sein`);
+    const wegNamen = wege.map(w => w[2]);
+    const ohneWeg = knoepfe.filter(k => !wegNamen.includes(k));
+    if (ohneWeg.length)
+      throw new Error(`${datei}: Weiche "${name}" — Knopf ohne Weg: ${ohneWeg.join(", ")}`);
+  }
+}
+
+/* Die Leseordnung. Alphabetisch sortiert stand die Server-Erst-Einrichtung
+   als letzte der Server-Seiten, obwohl die anderen drei sie voraussetzen.
+   Diese Liste bestimmt beides: die Ordnung innerhalb eines Fachs und — über
+   das erste Auftreten einer Kategorie — die Ordnung der Fächer in der Leiste.
+   Eine Seite, die hier fehlt, bricht den Build; so wird die Einordnung beim
+   Anlegen erzwungen statt vergessen. */
+const REIHENFOLGE = [
+  /* Git — erst der eigene Rechner */
+  "git-zugang-privat",
+  "vscode-git-workflow",
+  "git-ssd",
+  /* Werkzeuge */
+  "vscode-remote-ssh",
+  /* Server — die Erst-Einrichtung ist die Voraussetzung der übrigen drei */
+  "server-ersteinrichtung",
+  "schluesselverwaltung",
+  "docker-einrichtung",
+  "domain-einrichtung",
+  "coolify-einrichtung",
+  /* Deployment */
+  "hetzner-deploy"
+];
+
 const register = SORTEN.flatMap(({ ordner, art }) =>
   seitenDateien(ordner).map(f => {
     const h = readFileSync(join(WURZEL, ordner, f), "utf8");
@@ -158,22 +273,74 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
       if (!m) throw new Error(`${f}: ${was} nicht gefunden`);
       return entitaetenAufloesen(m[1].trim());
     };
+    const zaehlen = re => (h.match(re) || []).length;
     eindeutigPruefen(h, f, "data-check");
     eindeutigPruefen(h, f, "data-schritt");
     codeboxTypenPruefen(h, f);
+    checklistenZaehlerPruefen(h, f);
+    weichenPruefen(h, f);
     return {
       id: f.replace(/\.html$/, ""),
       art,
       titel: greifen(/<h1>([\s\S]*?)<\/h1>/, "<h1>"),
+      kuerzel: greifen(/<meta name="hefter-kuerzel" content="([^"]*)"/, "meta hefter-kuerzel"),
       untertitel: greifen(/<meta name="hefter-untertitel" content="([^"]*)"/, "meta hefter-untertitel"),
       kategorie: greifen(/<span class="chip">([\s\S]*?)<\/span>/, "Kategorie-Chip"),
       datei: ordner + "/" + f,
-      stichworte: greifen(/<meta name="hefter-stichworte" content="([^"]*)"/, "meta hefter-stichworte")
+      stichworte: greifen(/<meta name="hefter-stichworte" content="([^"]*)"/, "meta hefter-stichworte"),
+      /* Nenner der Fortschrittsbalken in der Leiste: Anleitungen zählen ihre
+         Schritte, Übersichten ihre Haken. */
+      schritte: zaehlen(/class="step[ "]/g),
+      checks: zaehlen(/class="check"/g)
     };
   })
-).sort((a, b) => RANG[a.art] - RANG[b.art]
-  || a.kategorie.localeCompare(b.kategorie, "de")
-  || a.titel.localeCompare(b.titel, "de"));
+).sort((a, b) => REIHENFOLGE.indexOf(a.id) - REIHENFOLGE.indexOf(b.id));
+
+/* Ohne diese Prüfung landete eine neue Seite still an Position -1, also ganz
+   vorn — und die Fächer-Ordnung stünde kopf. */
+const unbekannt = register.filter(e => !REIHENFOLGE.includes(e.id)).map(e => e.id);
+if (unbekannt.length)
+  throw new Error(`Seite fehlt in REIHENFOLGE (bauen.mjs) — ${unbekannt.join(", ")}`);
+const verwaist = REIHENFOLGE.filter(id => !register.some(e => e.id === id));
+if (verwaist.length)
+  throw new Error(`REIHENFOLGE nennt Seiten, die es nicht gibt — ${verwaist.join(", ")}`);
+
+const kuerzel = register.map(e => e.kuerzel);
+const doppelteKuerzel = [...new Set(kuerzel.filter((k, i) => kuerzel.indexOf(k) !== i))];
+if (doppelteKuerzel.length)
+  throw new Error(`hefter-kuerzel mehrfach vergeben — ${doppelteKuerzel.join(", ")}`);
+
+/* ---------- Verweise: Ziel-Datei und Anker müssen es geben ----------
+   Ein Info-Symbol, das ins Leere zeigt, springt im Browser einfach nicht —
+   ohne Meldung, ohne Spur. Bei einem Netz aus Verweisen zwischen Anleitungen
+   und Nachschlage-Übersichten ist das die Prüfung, die sich am schnellsten
+   auszahlt. */
+const seitenTexte = new Map(
+  RAHMENSEITEN.map(({ rel }) => [rel, readFileSync(join(WURZEL, rel), "utf8")])
+);
+const ankerJeSeite = new Map(
+  [...seitenTexte].map(([rel, h]) => [rel, new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]))])
+);
+
+const verweisFehler = [];
+for (const [rel, html] of seitenTexte) {
+  const ordner = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : ".";
+  for (const [, ziel] of html.matchAll(/<a [^>]*href="([^"]+)"/g)) {
+    if (/^(https?:|mailto:|tel:)/.test(ziel)) continue;
+    const [pfad, anker] = ziel.split("#");
+    const zielSeite = pfad === ""
+      ? rel
+      : relative(WURZEL, join(WURZEL, ordner, pfad)).split(sep).join("/");
+    if (!seitenTexte.has(zielSeite)) {
+      verweisFehler.push(`${rel}: "${ziel}" — Datei ${zielSeite} gibt es nicht`);
+      continue;
+    }
+    if (anker && !ankerJeSeite.get(zielSeite).has(anker))
+      verweisFehler.push(`${rel}: "${ziel}" — Anker #${anker} steht nicht in ${zielSeite}`);
+  }
+}
+if (verweisFehler.length)
+  throw new Error("Verweise ins Leere:\n  " + verweisFehler.join("\n  "));
 
 /* Gleicher Dateiname in beiden Ordnern: im Register stünden dann zwei
    Einträge mit derselben id. Fällt im Browser nicht auf, deshalb hier. */

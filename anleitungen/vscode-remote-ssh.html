@@ -5,6 +5,7 @@
 <meta name="description" content="VS Code unter Windows per Remote-SSH mit dem Hetzner-Server verbinden: SSH-Alias, erste Verbindung, Extensions, Git, Port-Weiterleitung, Dev Containers und Fehlersuche.">
 <meta name="hefter-untertitel" content="Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche">
 <meta name="hefter-stichworte" content="vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban">
+<meta name="hefter-kuerzel" content="VR">
 <title>VS Code mit dem Hetzner-Server verbinden · Hefter</title>
 <!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -14,22 +15,66 @@
 <link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="../style.css">
 <script>
-try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
 </script>
 </head>
 <body data-seite="vscode-remote-ssh" data-basis="../">
 
-<div class="appbar">
-  <a class="back" href="../index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-    Register
-  </a>
-  <span class="spacer"></span>
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="../index.html">
+      <span class="logo"><img data-appicon src="../icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="../einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
   <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
     <span class="lbl">Dunkel</span>
   </button>
-</div>
+</header>
 
 <div class="wrap">
 <!-- KOPF-ENDE -->
@@ -455,8 +500,9 @@ rm -rf ~/.vscode-server</pre>
   </div>
 
 <!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
-</div>
+  <p class="foot">Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
 
 <script src="../hefter.js"></script>
 </body>

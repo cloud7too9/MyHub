@@ -2,7 +2,26 @@
 
 Digitaler Hefter für Schritt-für-Schritt-Anleitungen — als installierbare PWA für Mobil und Desktop, mobile-first, komplett ohne Framework und ohne Backend.
 
-Jede Seite ist eine eigenständige HTML-Datei. Das Register (`index.html`) ist der Einstieg mit Suche; ein Build-Skript hält Register und Service Worker automatisch aktuell.
+Jede Seite ist eine eigenständige HTML-Datei. Das Register steht als
+**Seitenleiste** auf jeder Seite; ein Build-Skript hält Leiste, Register und
+Service Worker automatisch aktuell.
+
+## Navigation
+
+Die Leiste zeigt alle Seiten nach Fächern (den Kategorien), in der Reihenfolge,
+die `bauen.mjs` festlegt — nicht alphabetisch, sondern in Leseordnung. Je
+Eintrag stehen dort Kürzel, Titel, Sorte und ein Fortschrittsbalken.
+
+| Bedienung | |
+|---|---|
+| `Strg+B` oder der Pfeil im Kopf | klappt die Leiste auf eine Kürzel-Spalte ein (Sprechblase beim Überfahren) |
+| `Strg+K` oder `/` | springt ins Suchfeld der Leiste — von jeder Seite aus |
+| `Esc` | leert die Suche, schließt auf dem Telefon den Auszug |
+| unter 860 px | wird die Leiste zum Auszug über dem Inhalt, geöffnet über das Brenner-Symbol |
+
+Eingeklappter Zustand und zugeklappte Fächer werden gemerkt und schon im
+`<head>` gesetzt — die Leiste blitzt beim Laden nicht in der falschen Breite
+auf.
 
 ## Zwei Seitensorten
 
@@ -51,8 +70,10 @@ hefter/
    `/nachschlagen`. Der Zielordner entscheidet über die Sorte.
 2. Inhalt schreiben; dabei anpassen:
    - `<title>` und `<h1>` — der `<h1>` wird zum Register-Titel
-   - `<span class="chip">` — wird zur Register-Kategorie
+   - `<span class="chip">` — wird zur Register-Kategorie, also zum Fach
    - `<meta name="hefter-untertitel">` und `<meta name="hefter-stichworte">`
+   - `<meta name="hefter-kuerzel">` — zwei bis drei Zeichen für die
+     eingeklappte Leiste; doppelt vergeben bricht der Build ab
    - `data-schritt="…"` an jeder `.fotozone`, `data-check="…"` an jedem
      Checklisten-Punkt — **stabile, beliebige IDs**; nie wiederverwenden,
      sonst wandern Fotos/Haken mit. Duplikate innerhalb einer Seite fängt
@@ -62,8 +83,11 @@ hefter/
      Ein **Befehl über mehrere Zeilen** (Heredoc, `for`-Schleife,
      Backslash-Fortsetzung) wird in `<span class="befehl">…</span>`
      geklammert, damit er als ein Befehl kopiert wird.
-3. `node bauen.mjs` ausführen.
-4. Committen und pushen.
+3. Die Seite in `REIHENFOLGE` (in `bauen.mjs`) an ihren Platz stellen — die
+   Liste bestimmt die Reihenfolge in der Leiste. Fehlt sie dort, bricht der
+   Build ab; die Einordnung lässt sich also nicht vergessen.
+4. `node bauen.mjs` ausführen.
+5. Committen und pushen.
 
 Das Register in `hefter.js` und die `sw.js` werden dabei vollständig aus den
 Seiten-Dateien beider Ordner erzeugt — nichts davon von Hand pflegen.
@@ -108,10 +132,18 @@ node bauen.mjs
 - Liest Titel, Kategorie, Untertitel und Stichworte aus jeder Seite, ergänzt
   die Sorte aus dem Ordner (`art`) und schreibt das `REGISTER` zwischen die
   Marker in `hefter.js`.
-- Bricht mit klarer Meldung ab, wenn `data-check` oder `data-schritt`
-  innerhalb einer Seite doppelt vergeben sind, ein `data-typ` an einer
-  Codebox unbekannt ist, oder zwei Seiten dieselbe id bekämen (gleicher
-  Dateiname in beiden Ordnern). Im Browser fiele nichts davon auf.
+- Bricht mit klarer Meldung ab bei allem, was im Browser stumm bliebe:
+
+  | Prüfung | was sonst passiert |
+  |---|---|
+  | `data-check` / `data-schritt` doppelt in einer Seite | zwei Häkchen bzw. Fotozonen liegen still zusammen |
+  | unbekanntes `data-typ` an einer Codebox | die Box verhält sich klaglos wie eine Befehlsbox |
+  | gleiche Seiten-id in beiden Ordnern | zwei Register-Einträge teilen sich die Speicherung |
+  | `hefter-kuerzel` fehlt oder ist doppelt | zwei gleiche Plaketten in der Leiste |
+  | Seite fehlt in `REIHENFOLGE` | sie rutscht stumm an den Anfang |
+  | Verweis auf Datei oder `#anker`, die es nicht gibt | der Sprung passiert einfach nicht |
+  | `chkStand` nennt eine andere Zahl als es `.check` gibt | falscher Stand bis zum ersten Klick |
+  | Weiche mit weniger als zwei Wegen oder ohne genau einen `aktiv` | ohne JavaScript leer oder doppelt |
 - Scannt alle Projektdateien und erzeugt die Precache-Liste der `sw.js`.
 - Setzt die Service-Worker-`VERSION` als SHA-256-Hash über alle Inhalte —
   jede Änderung ergibt automatisch eine neue Version.
