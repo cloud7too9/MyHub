@@ -179,7 +179,8 @@ ihrer Schritte), `.weiche` mit `data-weiche` (gleicher Name = schaltet
 gemeinsam; genau ein Weg `aktiv` in der Datei), `.pruefblock` mit
 `.pruefung` + `.reparatur`, `a.infolink` in der `<h2>`,
 Callouts `info` / `sicher` / `achtung` / `ergebnis` / `gefahr`,
-Abschluss-Checkliste mit `.check` und `#chkStand`.
+Abschluss-Checkliste mit `.check` und `#chkStand` (die Ergebnisse der ganzen
+Seite zum Abhaken — **kein** Vorgang, siehe unten).
 
 **Regel für Prüf-Bausteine:** Jeder Verifikations-Befehl bringt seinen
 Reparaturzweig mit („fehlt oder stimmt nicht"), inklusive Weg zur Datei und
@@ -199,25 +200,43 @@ JavaScript und ohne eigenen Zustandsspeicher.
 
 ### Vorgang abschließen
 
-Ein **Container** ist ein Block mit eigenem Haken, der einen Vorgang
-beschreibt. Welche das sind, steht als Konstante in `hefter.js` und wird
-nicht aus dem Markup geraten:
+Ein Vorgang ist das, was man an einem Stück erledigt. Der Knopf steht am Ende
+seines Inhalts — dort, wo man fertig wird, statt dort, wo man anfängt. **Beide
+Knöpfe werden erzeugt** und stehen in keiner HTML-Datei, wie die Kopier-Knöpfe
+der Codeboxen auch. Je Seitensorte ist der Vorgang etwas anderes, und die
+beiden Fälle teilen nur das Aussehen, nicht die Mechanik:
+
+| Sorte | Vorgang | erzeugt in | setzt |
+|---|---|---|---|
+| Anleitung | `.step` | `schritteAktivieren()` | die `.step-num` |
+| Übersicht | `.wz` | `vorgaengeAktivieren()` | die `.check` des Containers |
+
+Gesetzt wird in beiden Fällen über `.click()` auf den vorhandenen Haken,
+nie über einen zweiten Pfad — Speichern, Zähler und der Balken in der Leiste
+bleiben damit in `schritteAktivieren` bzw. `checklisteAktivieren`.
+
+Welche Container als Vorgang zählen, steht als Konstante in `hefter.js` und
+wird nicht aus dem Markup geraten:
 
 ```js
-const VORGANG = ".wz, .checkliste";
+const VORGANG = ".wz";
 ```
 
-Jeder bekommt am Ende seines Inhalts den Knopf „Vorgang abgeschlossen"
-(bei `.wz` in `.wz-inhalt`, also im `<details>`-Rumpf und damit nur
-aufgeklappt sichtbar; unter dem Prüfblock, weil der zum Vorgang gehört).
-**Der Knopf wird erzeugt** — `vorgaengeAktivieren()` in `hefter.js` —, er
-steht in keiner HTML-Datei, wie die Kopier-Knöpfe der Codeboxen auch.
-Gesetzt wird über `.click()` auf die Haken selbst, damit Speichern, Zähler
-und der Balken in der Leiste allein in `checklisteAktivieren` bleiben.
+Der Knopf der Karte sitzt in `.wz-inhalt`, also im `<details>`-Rumpf und damit
+nur aufgeklappt sichtbar, und unter dem Prüfblock, weil der zum Vorgang
+gehört. Der Knopf des Schritts sitzt am Ende von `.step-body`, hinter der
+Fotozone.
+
+**Die Abschluss-Checkliste ist kein Vorgang.** Sie stand einmal in `VORGANG`,
+und das war ein Denkfehler: sie ist der einzige Container ihrer Seite, das
+Sinken lief also ins Leere, `data-folge` ebenso, und übrig blieb ein Knopf, der
+3 bis 14 Haken auf einmal setzte. Wer sie wieder aufnimmt, nimmt das zurück.
 
 Abgeschlossene Container sinken ans Ende ihrer Gruppe (das Elternelement,
 also die `<section class="thema">`), untereinander in der Ursprungsordnung
-aus `dataset.ordnung`. Ein Fach, in dem eines auf dem anderen aufbaut,
+aus `dataset.ordnung`. **Schritte sinken nicht** — ihre Reihenfolge ist die
+Anleitung; genau deshalb liegt ihr Knopf in `schritteAktivieren` und nicht in
+`vorgaengeAktivieren`. Ein Fach, in dem eines auf dem anderen aufbaut,
 bekommt `data-folge` an der Section: dann ist nur der erste noch offene
 Vorgang an der Reihe, die übrigen Knöpfe sind ausgegraut (`.gesperrt` +
 `aria-disabled`, **nicht** `disabled` — ein `disabled`-Knopf feuert keinen

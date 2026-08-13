@@ -1004,23 +1004,27 @@ function checklisteAktivieren() {
 }
 
 /* ============================================================
-   VORGANG ABSCHLIESSEN
-   Ein Container mit eigenem Haken beschreibt einen Vorgang: die
-   Werkzeug-Karte einen einzurichtenden Posten, die Abschluss-
-   Checkliste den Rest einer Anleitung. Sein Haken saß bisher
-   allein oben an der Karte — also genau dort nicht, wo man mit
-   dem Vorgang fertig wird. Der Knopf steht deshalb unten rechts
-   am Ende des Inhalts, und Abgeschlossenes sinkt ans Ende seines
-   Fachs: oben steht, was noch offen ist.
+   VORGANG ABSCHLIESSEN  (Werkzeug-Karte)
+   Eine Karte beschreibt einen einzurichtenden Posten. Ihr Haken
+   saß allein oben an der Karte — also genau dort nicht, wo man
+   mit dem Vorgang fertig wird. Der Knopf steht deshalb unten
+   rechts am Ende des Inhalts, und Abgeschlossenes sinkt ans Ende
+   seines Fachs: oben steht, was noch offen ist.
    Erzeugt statt in den Seiten gepflegt — derselbe Weg wie bei den
    Kopier-Knöpfen der Codeboxen.
+
+   Die Abschluss-Checkliste einer Anleitung stand hier einmal mit
+   drin, und das war ein Denkfehler: sie ist der einzige Container
+   ihrer Seite. Das Sinken lief ins Leere, die Folge-Sperre auch,
+   und übrig blieb ein Knopf, der drei bis vierzehn Haken auf
+   einmal setzt — kein abgeschlossener Vorgang, sondern "alle
+   abhaken". Der Vorgang einer Anleitung ist der Schritt; sein
+   Knopf steht in schritteAktivieren.
    ============================================================ */
 
-/* Container mit eigenem Vorgang: die Werkzeug-Karte (ein Haken) und die
-   Abschluss-Checkliste einer Anleitung (mehrere Haken, ein Vorgang). Eine
-   Liste an einer Stelle statt "alles, was einen .check enthält" — sonst
-   entschiede die Verschachtelung des Markups darüber mit. */
-const VORGANG = ".wz, .checkliste";
+/* Eine Liste an einer Stelle statt "alles, was einen .check enthält" —
+   sonst entschiede die Verschachtelung des Markups darüber mit. */
+const VORGANG = ".wz";
 
 const hakenVon = container => [...container.querySelectorAll(".check")];
 const istFertig = container => {
@@ -1209,13 +1213,36 @@ function schritteAktivieren() {
 
   const erledigt = new Set(gelesen(KEY.schritte(seite), []) || []);
 
+  /* Der Knopf am Ende des Schritt-Rumpfes — dort, wo man mit dem Schritt
+     fertig wird, statt oben an der Nummer. Derselbe Gedanke wie bei der
+     Werkzeug-Karte, aber eigene Mechanik: hier sinkt nichts ans Ende, denn
+     die Reihenfolge der Schritte ist die Anleitung. Deshalb steht das hier
+     und nicht in vorgaengeAktivieren.
+     Erzeugt statt gepflegt — 96 Schritte über zehn Seiten liefen von Hand
+     beim ersten Nachziehen auseinander. */
+  for (const s of schritte) {
+    const platz = document.createElement("div");
+    platz.className = "abschluss";
+    platz.innerHTML =
+      '<button class="iconbtn abschlussbtn" type="button" aria-pressed="false">' +
+      `<span class="haken">${HAKEN_ICON}</span>Schritt abgeschlossen</button>`;
+    (s.querySelector(".step-body") || s).appendChild(platz);
+    /* Gesetzt wird über die Nummer selbst: Speichern, Zähler und Balken
+       hängen an ihrem Klick. Ein zweiter Pfad dorthin liefe beim ersten
+       Nachziehen auseinander. */
+    platz.querySelector(".abschlussbtn").addEventListener("click", () =>
+      s.querySelector(".step-num")?.click());
+  }
+
   const anzeigen = () => {
     let fertig = 0;
     for (const s of schritte) {
       const an = erledigt.has(s.dataset.schritt);
       if (an) fertig++;
       s.classList.toggle("erledigt", an);
+      /* Zwei Bedienelemente, ein Zustand — beide müssen ihn melden. */
       s.querySelector(".step-num")?.setAttribute("aria-pressed", String(an));
+      s.querySelector(".abschlussbtn")?.setAttribute("aria-pressed", String(an));
     }
     if (zahl) zahl.textContent = fertig + " / " + schritte.length;
     if (balken) balken.style.width = (fertig / schritte.length * 100) + "%";
