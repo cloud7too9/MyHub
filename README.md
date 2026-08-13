@@ -286,6 +286,104 @@ Die App zeigt unten „Neue Version verfügbar" — erst der Klick auf
 Aktualisieren aktiviert sie und lädt neu. So treffen nie alte und neue
 Dateien aufeinander.
 
+## Geplant
+
+Notizen für später. **Nichts davon ist umgesetzt** — sie stehen hier, damit
+sie beim nächsten Mal dort liegen, wo ohnehin nachgesehen wird.
+
+### Drei Ansichten: Computer, iPad, iPhone
+
+Heute hängt das Layout an einer einzigen Schwelle: ab 860 px steht die Leiste
+fest, darunter wird sie zum Auszug. Dazwischen liegt das Tablet, und es bekommt
+dort entweder zu viel oder zu wenig.
+
+Künftig drei benannte Ansichten statt einer Schwelle:
+
+| Ansicht | Leiste | Inhalt |
+|---|---|---|
+| **Computer** | fest, breit oder als Kürzelspalte | Maus und Tastatur, Sprechblasen, `Strg+B` |
+| **iPad** | fest als Kürzelspalte, größere Trefferflächen | breiter Satz, aber kein Verlass auf Hover |
+| **iPhone** | Auszug über dem Inhalt | einspaltig, Bedienung in Daumenreichweite |
+
+Der Unterschied ist nicht nur die Breite. Auf dem iPad gibt es kein Hover — die
+Sprechblase, die in der eingeklappten Leiste den Titel nachreicht, trägt dort
+also nicht und braucht einen anderen Weg.
+
+### Die Ansicht wird geraten, bleibt aber einstellbar
+
+Beim ersten Start aus Bildschirmbreite **und Zeigegerät** geschätzt
+(`pointer: coarse`, `hover: none` — die Breite allein verwechselt ein kleines
+Fenster am Rechner mit einem Tablet). Das Geratene ist nur der Startwert: in
+den Einstellungen stehen alle drei Ansichten plus „Automatisch" zur Wahl,
+gespeichert wie das Design.
+
+Zwei Fallen, die dabei zu bedenken sind:
+
+- Die Wahl muss wie Theme und Leistenzustand **schon im `<head>`-Script**
+  gesetzt werden, sonst blitzt beim Laden die falsche Ansicht auf.
+- Media Queries allein reichen dann nicht mehr. Die Ansicht wird zu einem
+  `data-ansicht` am `<html>`; die Media Queries liefern nur noch den
+  Startwert, entscheiden aber nicht mehr über die Darstellung.
+
+### Speicherung bündeln
+
+Jeder Zustand liegt heute in einem eigenen Schlüssel je Seite —
+`hefter:checks:<seite>`, `hefter:schritte:<seite>`, `hefter:stufe:<seite>`,
+`hefter:weg:<seite>:<weiche>`, dazu die Fotos in IndexedDB. Bei zwölf Seiten
+sind das schnell fünfzig Schlüssel, und niemand kann sie zusammen sichern.
+
+Statt vieler Silos ein Datensatz je Gerät, mit einem Eintrag je Seite. Das ist
+die Voraussetzung für **Backup und Export auf ein zweites Gerät**, das es bis
+heute nicht gibt. Der Umstieg braucht einen Migrationspfad wie damals bei den
+Checklisten-Indizes: beim ersten Start die alten Schlüssel einlesen,
+zusammenführen, danach nur noch den neuen schreiben.
+
+### Inhalte zusammenführen statt in jede Übersicht kopieren
+
+Jede Nachschlage-Übersicht erklärt heute alles selbst. Sobald ein Thema in
+mehreren auftaucht — Firewall und Ports, Docker-Grundbegriffe,
+Umgebungsvariablen und Secrets —, steht es doppelt da und läuft beim ersten
+Nachziehen auseinander.
+
+Gesucht ist die Form, in der ein Abschnitt an **einer** Stelle steht und von
+mehreren Seiten aus erreichbar ist, ohne dass daraus ein Wiki wird. Das
+Info-Symbol ist der Anfang davon: es hält die Anleitung schlank, weil der
+Tiefgang woanders liegt.
+
+### Anzeige je Baustein einstellbar
+
+Wer eine Anleitung zum dritten Mal durchläuft, braucht die Begründungen nicht
+mehr — nur die Befehle. Statt eines einzelnen „minimal"-Schalters bekommen die
+Einstellungen mehrere Häkchen, je Baustein eins:
+
+- Fotozonen
+- Hinweis- und Info-Kästen
+- Begründungen und Soll-Ausgaben
+- Reparaturzweige — sie klappen dann bei Bedarf auf
+
+**Gefahr-Kästen bleiben immer stehen.** Sie warnen vor etwas, das sich nicht
+rückgängig machen lässt; das darf keine Einstellung wegnehmen können.
+
+Umgesetzt über Klassen am `<html>`, wie der Stufenfilter über
+`body.nur-wiederkehrend`: keine zweite Darstellung, nur ausblenden. Die Wahl
+gilt geräteweit und wird wie das Design gespeichert.
+
+### Kleinere offene Punkte
+
+- **`.pruefblock` im Bestand nachziehen** — acht der zehn Anleitungen prüfen
+  noch mit `callout ergebnis` ohne Reparaturzweig (15 Stellen). Ein
+  Prüfbefehl allein lässt einen genau dann stehen, wenn das Ergebnis schlecht
+  ausfällt. `arbeitsplatz-einrichten.html` macht es an 21 Stellen vor.
+- **Übersicht „Firewall & Ports"** — das Thema wird heute in fünf Anleitungen
+  parallel erklärt, inklusive eines eigenen Schritts zur UFW-Falle.
+- **Weitere Anleitungen**: Backup & Restore (der Fingerzeig steht schon in
+  `coolify-einrichtung.html` — „das gehört ins Backup", ohne Zielseite),
+  Datenbank betreiben, Monitoring & Logs, Deploy-Rollback ohne Coolify.
+- **Kategorien neu schneiden** — „Deployment" und „Werkzeuge" haben je eine
+  Seite, und die beiden VS-Code-Seiten stehen in verschiedenen Fächern.
+- **CI-Action**, die `node bauen.mjs` erzwingt. Seit der Rahmen erzeugt wird,
+  wiegt ein vergessener Build schwerer als vorher.
+
 ## Entwicklung & Deployment
 
 Lokal testen (Service Worker braucht http, nicht `file://`):
