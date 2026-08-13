@@ -517,7 +517,7 @@ function reparaturGriffe() {
    beantwortet stattdessen "wo stehe ich": zuletzt geöffnete
    Seite, angefangene Seiten, und darunter alle Seiten mit ihrem
    Stand. Diese Liste ist zugleich der vollständige Weg zu jeder
-   Seite: unter 860px ist die Leiste zugeklappt, und ohne sie
+   Seite: in der iPhone-Ansicht ist die Leiste zugeklappt, und ohne sie
    liefe der Einstieg sonst ins Leere.
    ============================================================ */
 function buehneAufbauen() {

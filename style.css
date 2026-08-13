@@ -100,8 +100,8 @@ a { color: inherit; }
 /* ============================================================
    SEITENLEISTE
    Das Register steht auf jeder Seite, nicht nur auf der Startseite:
-   breit mit Titeln, eingeklappt als Kürzel-Leiste, unter 860px als
-   Auszug über dem Inhalt. Die Zustandsklassen hängen an <html> statt
+   breit mit Titeln, eingeklappt als Kürzel-Leiste, in der iPhone-Ansicht
+   als Auszug über dem Inhalt. Die Zustandsklassen hängen an <html> statt
    am <body> — nur dort kann das Script im <head> sie setzen, bevor
    das erste Bild steht. Sonst blitzt die breite Leiste kurz auf.
    ============================================================ */
@@ -407,7 +407,7 @@ a { color: inherit; }
 
 /* ---------- Bühne (Startseite) ----------
    Das Register steht in der Leiste; hier steht, wo man gerade ist.
-   Die Liste "Alle Seiten" bleibt trotzdem vollständig — unter 860px ist
+   Die Liste "Alle Seiten" bleibt trotzdem vollständig — in der iPhone-Ansicht ist
    die Leiste zugeklappt, und ohne sie liefe der Einstieg ins Leere. */
 .b-teil { margin-bottom: 30px; }
 .b-teil > h2 {

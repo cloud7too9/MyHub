@@ -17,16 +17,83 @@ Eintrag stehen dort Kürzel, Titel, Sorte und ein Fortschrittsbalken.
 | `Strg+B` oder der Pfeil im Kopf | klappt die Leiste auf eine Kürzel-Spalte ein (Sprechblase beim Überfahren) |
 | `Strg+K` oder `/` | springt ins Suchfeld der Leiste — von jeder Seite aus |
 | `Esc` | leert die Suche, schließt auf dem Telefon den Auszug |
-| unter 860 px | wird die Leiste zum Auszug über dem Inhalt, geöffnet über das Brenner-Symbol |
+| iPhone-Ansicht | wird die Leiste zum Auszug über dem Inhalt, geöffnet über das Brenner-Symbol |
 
 Eingeklappter Zustand und zugeklappte Fächer werden gemerkt und schon im
 `<head>` gesetzt — die Leiste blitzt beim Laden nicht in der falschen Breite
 auf.
 
+## Drei Ansichten: Computer, iPad, iPhone
+
+Das Layout hängt nicht an einer Breiten-Schwelle, sondern an einer benannten
+Ansicht, die als `data-ansicht` am `<html>` steht:
+
+| Ansicht | Leiste | Inhalt |
+|---|---|---|
+| **Computer** | fest, breit oder als Kürzelspalte | Maus und Tastatur, Sprechblasen, `Strg+B` |
+| **iPad** | fest als Kürzelspalte mit Titel, größere Trefferflächen | breiter Satz, kein Verlass auf Hover |
+| **iPhone** | Auszug über dem Inhalt | einspaltig, Bedienung in Daumenreichweite |
+
+Auf dem iPad gibt es kein Hover — die Sprechblase, die am Computer den Titel
+neben die eingeklappte Leiste stellt, trägt dort nicht. Statt einer
+Tipp-Geste steht der Titel deshalb einfach da: die Kürzelspalte ist 96 px
+breit und zweizeilig. Die Kürzelspalte ist dort zugleich die Vorgabe.
+
+**Geraten, aber einstellbar.** Beim Start wird die Ansicht aus Bildschirmbreite
+**und Zeigegerät** geschätzt — die Breite allein verwechselt ein kleines
+Fenster am Rechner mit einem Tablet. Die Höhe zählt mit: ein quer gehaltenes
+iPhone ist 844 px breit und wäre sonst als iPad durchgegangen. In den
+Einstellungen stehen alle drei Ansichten plus „Automatisch“ zur Wahl,
+gespeichert wie das Design.
+
+Unter **640 px** gilt trotz jeder Wahl die iPhone-Ansicht: neben einer festen
+Leiste bliebe kein Inhalt mehr übrig, und wer auf dem Telefon „Computer“
+wählt, käme sonst an die Einstellung nicht mehr heran, mit der er es
+zurücknimmt. Die Wahl bleibt gespeichert und greift wieder, sobald das Fenster
+breit genug ist.
+
+Die Wahl wird — wie Theme und Leistenzustand — schon im `<head>`-Script
+gesetzt, sonst blitzt beim Laden die falsche Ansicht auf. Media Queries
+liefern nur noch den Startwert, entscheiden aber nicht mehr über die
+Darstellung.
+
+## Anzeige je Baustein
+
+Wer eine Anleitung zum dritten Mal durchläuft, braucht die Begründungen nicht
+mehr — nur die Befehle. Vier Schalter in den Einstellungen nehmen sie weg:
+
+| Schalter | blendet aus |
+|---|---|
+| Fotozonen | den Knopf „Foto anfügen“ unter jedem Schritt |
+| Info-Kästen | die blauen Kästen, die etwas erklären |
+| Begründungen und Soll-Ausgaben | `.pr-soll`, `.callout.ergebnis`, `.wz-warum` |
+| Reparaturzweige | den Rumpf des Zweigs „Stimmt nicht“ |
+
+**Was warnt, bleibt.** `gefahr`, `achtung` und `sicher` lassen sich nicht
+abschalten — sie warnen vor etwas, das sich nicht rückgängig machen lässt.
+
+**Der Reparaturzweig verschwindet nicht, er klappt zu.** Seine Kopfzeile bleibt
+als Griff stehen; ein weggeblendeter Reparaturweg ließe sonst genau den
+stehen, der ihn braucht. Der offene Zustand wird nicht gespeichert — es ist
+ein Blick, kein Zustand.
+
+Eingestellt wird **je Ansicht getrennt**: am Computer ist Platz, auf dem
+Telefon nicht. Die Einstellungsseite trägt dafür eine Reiterzeile der drei
+Ansichten, vorbelegt mit der gerade aktiven — so richtet man das iPad vom
+Computer aus ein. Umgesetzt über Klassen am `<html>` (`ohne-fotos`,
+`ohne-info`, `ohne-begruendung`, `ohne-reparatur`), wie der Stufenfilter über
+`body.nur-wiederkehrend`: keine zweite Darstellung, nur ausblenden. Gesetzt
+werden sie im `<head>`-Script — sonst blitzen die Fotozonen auf und
+verschwinden wieder; nebenbei greift die Einstellung damit auch, wenn
+`hefter.js` gar nicht lädt.
+
+Gespeichert wird, was **aus** ist, nicht was an ist: ein später ergänzter
+Baustein ist damit überall an, ohne Migrationspfad.
+
 Die **Startseite** (`index.html`) ist kein zweites Register mehr, sondern
 beantwortet „wo stehe ich": zuletzt geöffnete Seite, angefangene Seiten, und
 darunter alle Seiten nach Fächern mit ihrem Stand. Diese Liste bleibt
-vollständig — unter 860 px ist die Leiste zugeklappt, und ohne sie liefe der
+vollständig — in der iPhone-Ansicht ist die Leiste zugeklappt, und ohne sie liefe der
 Einstieg sonst ins Leere.
 
 ## Zwei Seitensorten
@@ -154,6 +221,8 @@ node bauen.mjs
   | `chkStand` oder der Schritt-Zähler nennt eine andere Zahl als gezählt | falscher Stand bis zum ersten Klick |
   | `<section class="step">` ohne `data-schritt` | der Schritt lässt sich nicht abhaken, seine Fotos finden ihre Zone nicht |
   | Weiche mit weniger als zwei Wegen oder ohne genau einen `aktiv` | ohne JavaScript leer oder doppelt |
+  | unbekannte Callout-Art (`info · sicher · achtung · ergebnis · gefahr`) | die Box nimmt still den Akzent als Farbe und hört auf die falsche Anzeige-Einstellung |
+  | `.reparatur` ohne `.pr-kopf` | eingeklappt gibt es keinen Griff mehr, mit dem der Zweig aufgeht |
 - Scannt alle Projektdateien und erzeugt die Precache-Liste der `sw.js`.
 - Setzt die Service-Worker-`VERSION` als SHA-256-Hash über alle Inhalte —
   jede Änderung ergibt automatisch eine neue Version.
@@ -296,6 +365,8 @@ JavaScript fehlt er, die Karte bleibt lesbar und aufklappbar.
 | Checklisten-Haken            | `localStorage` `hefter:checks:<seite>` (Array von `data-check`-IDs) |
 | Erledigte Schritte           | `localStorage` `hefter:schritte:<seite>` (Array von `data-schritt`-IDs) |
 | Design (dunkel/hell)         | `localStorage` `hefter:theme`        |
+| Ansicht (auto/computer/ipad/iphone) | `localStorage` `hefter:ansicht` |
+| Ausgeblendete Bausteine je Ansicht | `localStorage` `hefter:anzeige` (je Ansicht die Liste der abgeschalteten) |
 | App-Icon-Wahl                | `localStorage` `hefter:icon`         |
 | Stufenfilter je Seite        | `localStorage` `hefter:stufe:<seite>`|
 | Weichen-Wahl (Weg A/B)       | `localStorage` `hefter:weg:<seite>:<weiche>` |
@@ -330,40 +401,6 @@ Dateien aufeinander.
 Notizen für später. **Nichts davon ist umgesetzt** — sie stehen hier, damit
 sie beim nächsten Mal dort liegen, wo ohnehin nachgesehen wird.
 
-### Drei Ansichten: Computer, iPad, iPhone
-
-Heute hängt das Layout an einer einzigen Schwelle: ab 860 px steht die Leiste
-fest, darunter wird sie zum Auszug. Dazwischen liegt das Tablet, und es bekommt
-dort entweder zu viel oder zu wenig.
-
-Künftig drei benannte Ansichten statt einer Schwelle:
-
-| Ansicht | Leiste | Inhalt |
-|---|---|---|
-| **Computer** | fest, breit oder als Kürzelspalte | Maus und Tastatur, Sprechblasen, `Strg+B` |
-| **iPad** | fest als Kürzelspalte, größere Trefferflächen | breiter Satz, aber kein Verlass auf Hover |
-| **iPhone** | Auszug über dem Inhalt | einspaltig, Bedienung in Daumenreichweite |
-
-Der Unterschied ist nicht nur die Breite. Auf dem iPad gibt es kein Hover — die
-Sprechblase, die in der eingeklappten Leiste den Titel nachreicht, trägt dort
-also nicht und braucht einen anderen Weg.
-
-### Die Ansicht wird geraten, bleibt aber einstellbar
-
-Beim ersten Start aus Bildschirmbreite **und Zeigegerät** geschätzt
-(`pointer: coarse`, `hover: none` — die Breite allein verwechselt ein kleines
-Fenster am Rechner mit einem Tablet). Das Geratene ist nur der Startwert: in
-den Einstellungen stehen alle drei Ansichten plus „Automatisch" zur Wahl,
-gespeichert wie das Design.
-
-Zwei Fallen, die dabei zu bedenken sind:
-
-- Die Wahl muss wie Theme und Leistenzustand **schon im `<head>`-Script**
-  gesetzt werden, sonst blitzt beim Laden die falsche Ansicht auf.
-- Media Queries allein reichen dann nicht mehr. Die Ansicht wird zu einem
-  `data-ansicht` am `<html>`; die Media Queries liefern nur noch den
-  Startwert, entscheiden aber nicht mehr über die Darstellung.
-
 ### Speicherung bündeln
 
 Jeder Zustand liegt heute in einem eigenen Schlüssel je Seite —
@@ -388,24 +425,6 @@ Gesucht ist die Form, in der ein Abschnitt an **einer** Stelle steht und von
 mehreren Seiten aus erreichbar ist, ohne dass daraus ein Wiki wird. Das
 Info-Symbol ist der Anfang davon: es hält die Anleitung schlank, weil der
 Tiefgang woanders liegt.
-
-### Anzeige je Baustein einstellbar
-
-Wer eine Anleitung zum dritten Mal durchläuft, braucht die Begründungen nicht
-mehr — nur die Befehle. Statt eines einzelnen „minimal"-Schalters bekommen die
-Einstellungen mehrere Häkchen, je Baustein eins:
-
-- Fotozonen
-- Hinweis- und Info-Kästen
-- Begründungen und Soll-Ausgaben
-- Reparaturzweige — sie klappen dann bei Bedarf auf
-
-**Gefahr-Kästen bleiben immer stehen.** Sie warnen vor etwas, das sich nicht
-rückgängig machen lässt; das darf keine Einstellung wegnehmen können.
-
-Umgesetzt über Klassen am `<html>`, wie der Stufenfilter über
-`body.nur-wiederkehrend`: keine zweite Darstellung, nur ausblenden. Die Wahl
-gilt geräteweit und wird wie das Design gespeichert.
 
 ### Kleinere offene Punkte
 
