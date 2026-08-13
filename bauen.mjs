@@ -62,15 +62,53 @@ const kopf = (basis, seite) => `${KOPF_START}
 <link rel="apple-touch-icon" href="${basis}icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="${basis}style.css">
 <script>
-/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
-   helles Design und breite Leiste kurz auf. localStorage liest synchron,
-   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
-   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+/* Theme, Ansicht und Leisten-Zustand vor dem ersten Anstrich setzen — sonst
+   blitzen helles Design, falsche Ansicht und breite Leiste kurz auf.
+   localStorage liest synchron, deshalb geht das hier oben. "laedt" schaltet
+   Übergänge bis zum ersten Bild ab; hefter.js nimmt die Klasse wieder weg.
+   Wer eine weitere Einstellung ergänzt, die das Layout vor dem ersten
+   Anstrich betrifft, ergänzt sie hier — nicht in hefter.js. */
+
+/* Welche Ansicht gilt, entscheidet diese eine Funktion: aus der Wahl des
+   Nutzers ("auto" oder eine der drei) wird die Ansicht, die wirklich
+   angezeigt wird. Sie steht hier und nicht in hefter.js, weil sie vor dem
+   ersten Anstrich laufen muss — hefter.js lädt erst am Dateiende. hefter.js
+   ruft dieselbe Funktion beim Ändern des Fensters: eine Regel, eine Stelle. */
+window.ansichtBestimmen = function (wahl) {
+  /* Die Breite allein verwechselt ein kleines Fenster am Rechner mit einem
+     Tablet, deshalb das Zeigegerät. Und die Höhe muss mit: ein quer
+     gehaltenes iPhone ist 844px breit und wäre sonst als iPad durchgegangen. */
+  var a = (wahl && wahl !== "auto") ? wahl
+        : matchMedia("(max-width: 700px), (max-height: 500px)").matches ? "iphone"
+        : matchMedia("(pointer: coarse)").matches ? "ipad" : "computer";
+  /* Boden unter jeder Wahl: unter 640px bliebe neben der festen Leiste kein
+     Inhalt mehr übrig. Wer auf dem Telefon "Computer" wählt, käme sonst an
+     die Einstellung nicht mehr heran, mit der er es zurücknimmt. Gespeichert
+     bleibt die Wahl — sie greift wieder, sobald das Fenster breit genug ist. */
+  return (a !== "iphone" && matchMedia("(max-width: 640px)").matches) ? "iphone" : a;
+};
+
+var d = document.documentElement;
+d.classList.add("laedt");
+/* Erst ohne Speicher bestimmen, dann der Blick hinein: wirft localStorage
+   (privater Modus), steht trotzdem eine Ansicht am <html>. Ohne sie griffe
+   keine der drei und das Telefon bekäme die Computer-Darstellung. */
+d.dataset.ansicht = ansichtBestimmen();
 try {
-  var d = document.documentElement;
   d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
-  d.classList.add("laedt");
-  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+  d.dataset.ansicht = ansichtBestimmen(localStorage.getItem("hefter:ansicht"));
+  var a = d.dataset.ansicht;
+  /* Auf dem iPhone gibt es den Schmal-Zustand nicht, auf dem iPad ist die
+     Kürzelspalte die Vorgabe — eine ausdrückliche Wahl sticht beides. Weil
+     die Klasse hier gar nicht erst gesetzt wird, wo es sie nicht gibt,
+     braucht die iPhone-Ansicht in style.css kein !important dagegen. */
+  var leiste = JSON.parse(localStorage.getItem("hefter:leiste") || "{}");
+  if (a !== "iphone" && (leiste.schmal ?? a === "ipad")) d.classList.add("schmal");
+  /* Abgeschaltete Bausteine je Ansicht. Gehört ebenfalls vor den ersten
+     Anstrich: sonst blitzen Fotozonen und Kästen auf und verschwinden wieder.
+     Nebenbei greift die Einstellung damit auch, wenn hefter.js gar nicht lädt. */
+  var aus = JSON.parse(localStorage.getItem("hefter:anzeige") || "{}")[a] || [];
+  for (var i = 0; i < aus.length; i++) d.classList.add("ohne-" + aus[i]);
 } catch {}
 </script>
 </head>
@@ -205,6 +243,50 @@ function codeboxTypenPruefen(html, datei) {
     throw new Error(`${datei}: unbekanntes data-typ an einer Codebox — ${[...new Set(falsch)].join(", ")}`);
 }
 
+/* Ein Tippfehler in der Callout-Art fällt im Browser nicht auf: .callout setzt
+   --c: var(--accent) als Vorgabe, die Box sieht nur etwas anders aus als
+   gemeint. Seit die Anzeige je Baustein einstellbar ist, hörte sie zusätzlich
+   auf die falsche Einstellung — ein verschriebener "gefahr"-Kasten ließe sich
+   ausblenden, obwohl gerade der immer stehen bleiben soll. */
+const CALLOUT_ARTEN = ["info", "sicher", "achtung", "ergebnis", "gefahr"];
+function calloutArtenPruefen(html, datei) {
+  const falsch = [...html.matchAll(/<div class="callout ([^"]*)"/g)]
+    .map(m => m[1].trim()).filter(w => !CALLOUT_ARTEN.includes(w));
+  if (falsch.length)
+    throw new Error(`${datei}: unbekannte Callout-Art — ${[...new Set(falsch)].join(", ")} (erlaubt: ${CALLOUT_ARTEN.join(", ")})`);
+}
+
+/* Der Balken an der Abschluss-Checkliste steht nur auf Anleitungen, die man
+   genau einmal durchläuft — dort ist die Liste am Ende das Maß der Dinge. Auf
+   allen anderen führt der Kopfbalken die Schritte, und ein zweiter Balken für
+   eine Handvoll Haken wäre Zierde.
+   Ohne diese Prüfung wüsste beim nächsten Mal niemand mehr, warum neun Seiten
+   keinen haben — und vor allem: eine Seite, die durch einen neuen
+   wiederkehrenden Schritt ihren Charakter wechselt, behielte ihn stumm. Der
+   Zusammenhang steht in keiner Datei, nur hier. */
+function hakenBalkenPruefen(html, datei, art) {
+  if (art !== "anleitung") return;
+  const alle = (html.match(/<section class="step[ "]/g) || []).length;
+  const einmalige = (html.match(/<section class="step einmalig[ "]/g) || []).length;
+  if (!alle) return;
+  const reinEinmalig = alle === einmalige;
+  const hatBalken = /data-haken-balken/.test(html);
+  if (reinEinmalig && !hatBalken)
+    throw new Error(`${datei}: alle ${alle} Schritte sind einmalig — die Abschluss-Checkliste braucht ihren Balken (<span class="balken"><i data-haken-balken></i></span> im <header>)`);
+  if (!reinEinmalig && hatBalken)
+    throw new Error(`${datei}: ${alle - einmalige} von ${alle} Schritten sind nicht einmalig — der Balken an der Abschluss-Checkliste gehört hier nicht hin`);
+}
+
+/* Die Kopfzeile ist der Griff, mit dem ein eingeklappter Reparaturzweig wieder
+   aufgeht. Fehlt sie, ist der Reparaturweg in der sparsamen Anzeige nicht mehr
+   erreichbar — und zwar lautlos: die Seite sieht nur kürzer aus. */
+function reparaturKoepfePruefen(html, datei) {
+  const zweige = [...html.matchAll(/<div class="reparatur">([\s\S]*?)<\/div>\s*<\/div>/g)];
+  const ohneKopf = zweige.filter(([, rumpf]) => !/<div class="pr-kopf">/.test(rumpf)).length;
+  if (ohneKopf)
+    throw new Error(`${datei}: ${ohneKopf} Reparaturzweig(e) ohne .pr-kopf — eingeklappt nicht mehr aufzuklappen`);
+}
+
 /* Die beiden Zahlen im Seitenkopf sind Handarbeit und fallen nur auf, wenn
    man sie sucht: sie stehen vor dem ersten Klick da und werden von hefter.js
    erst danach überschrieben. */
@@ -289,6 +371,9 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
     eindeutigPruefen(h, f, "data-check");
     eindeutigPruefen(h, f, "data-schritt");
     codeboxTypenPruefen(h, f);
+    calloutArtenPruefen(h, f);
+    reparaturKoepfePruefen(h, f);
+    hakenBalkenPruefen(h, f, art);
     zaehlerPruefen(h, f, "chkStand", /id="chkStand">\s*0\s*\/\s*(\d+)\s*</, /class="check[ "]/g);
     zaehlerPruefen(h, f, "Schritt-Zähler", /data-fs-zahl>\s*0\s*\/\s*(\d+)\s*</, /<section class="step[ "]/g);
     schrittIdsPruefen(h, f);

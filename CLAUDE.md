@@ -129,6 +129,9 @@ Datei und Ursache im Klartext:
 | unbekanntes `data-typ` an einer `.codebox` (erlaubt ist nur `datei`) | Box verhält sich klaglos wie eine Befehlsbox |
 | `chkStand` oder `data-fs-zahl` nennt eine andere Zahl als gezählt | falscher Stand bis zum ersten Klick |
 | Weiche mit < 2 Wegen, ≠ 1 `aktiv`, oder Knopf ohne passenden Weg | ohne JavaScript leer oder doppelt |
+| unbekannte Callout-Art (nur `info · sicher · achtung · ergebnis · gefahr`) | Box nimmt still den Akzent und hört auf die falsche Anzeige-Einstellung |
+| `.reparatur` ohne `.pr-kopf` | eingeklappt fehlt der Griff, mit dem der Zweig aufgeht |
+| `data-haken-balken` fehlt bei durchweg `einmalig`en Schritten — oder steht da, obwohl nicht | die Seite wechselt mit einem neuen Schritt stumm ihren Charakter, der Balken bleibt falsch |
 | Verweis auf Datei oder `#anker`, die es nicht gibt | der Sprung passiert einfach nicht |
 | `hefter-kuerzel` fehlt oder ist doppelt | zwei gleiche Plaketten in der Leiste |
 | gleiche Seiten-id in beiden Ordnern | zwei Register-Einträge teilen sich die Speicherung |
@@ -177,7 +180,24 @@ ihrer Schritte), `.weiche` mit `data-weiche` (gleicher Name = schaltet
 gemeinsam; genau ein Weg `aktiv` in der Datei), `.pruefblock` mit
 `.pruefung` + `.reparatur`, `a.infolink` in der `<h2>`,
 Callouts `info` / `sicher` / `achtung` / `ergebnis` / `gefahr`,
-Abschluss-Checkliste mit `.check` und `#chkStand`.
+Abschluss-Checkliste mit `.check` und `#chkStand` (die Ergebnisse der ganzen
+Seite zum Abhaken — **kein** Vorgang, siehe unten).
+
+**Zwei Balken, zwei Marken.** Der Kopfbalken einer Anleitung gehört den
+Schritten (`data-fs-balken`, dazu `data-fs-zahl` und `data-fs-reset`); der
+Haken-Balken gehört den `.check` (`data-haken-balken`, dazu `data-haken-reset`).
+Getrennte Marken, weil eine gemeinsame sich auf Seiten mit beidem gegenseitig
+überschriebe. Wo sie stehen:
+
+| Seite | `data-fs-balken` | `data-haken-balken` |
+|---|---|---|
+| Anleitung, Schritte gemischt | im Kopf | — |
+| Anleitung, Schritte durchweg `einmalig` | im Kopf | im `<header>` der Checkliste |
+| `werkzeugkasten.html` | — | im Kopf (führt die 25 Karten) |
+
+Die mittlere Zeile ist die Regel, die der Build erzwingt: läuft man eine
+Anleitung genau einmal durch, ist die Liste am Ende das Maß der Dinge und
+verdient einen Balken; sonst wäre er für eine Handvoll Haken bloß Zierde.
 
 **Regel für Prüf-Bausteine:** Jeder Verifikations-Befehl bringt seinen
 Reparaturzweig mit („fehlt oder stimmt nicht"), inklusive Weg zur Datei und
@@ -197,25 +217,43 @@ JavaScript und ohne eigenen Zustandsspeicher.
 
 ### Vorgang abschließen
 
-Ein **Container** ist ein Block mit eigenem Haken, der einen Vorgang
-beschreibt. Welche das sind, steht als Konstante in `hefter.js` und wird
-nicht aus dem Markup geraten:
+Ein Vorgang ist das, was man an einem Stück erledigt. Der Knopf steht am Ende
+seines Inhalts — dort, wo man fertig wird, statt dort, wo man anfängt. **Beide
+Knöpfe werden erzeugt** und stehen in keiner HTML-Datei, wie die Kopier-Knöpfe
+der Codeboxen auch. Je Seitensorte ist der Vorgang etwas anderes, und die
+beiden Fälle teilen nur das Aussehen, nicht die Mechanik:
+
+| Sorte | Vorgang | erzeugt in | setzt |
+|---|---|---|---|
+| Anleitung | `.step` | `schritteAktivieren()` | die `.step-num` |
+| Übersicht | `.wz` | `vorgaengeAktivieren()` | die `.check` des Containers |
+
+Gesetzt wird in beiden Fällen über `.click()` auf den vorhandenen Haken,
+nie über einen zweiten Pfad — Speichern, Zähler und der Balken in der Leiste
+bleiben damit in `schritteAktivieren` bzw. `checklisteAktivieren`.
+
+Welche Container als Vorgang zählen, steht als Konstante in `hefter.js` und
+wird nicht aus dem Markup geraten:
 
 ```js
-const VORGANG = ".wz, .checkliste";
+const VORGANG = ".wz";
 ```
 
-Jeder bekommt am Ende seines Inhalts den Knopf „Vorgang abgeschlossen"
-(bei `.wz` in `.wz-inhalt`, also im `<details>`-Rumpf und damit nur
-aufgeklappt sichtbar; unter dem Prüfblock, weil der zum Vorgang gehört).
-**Der Knopf wird erzeugt** — `vorgaengeAktivieren()` in `hefter.js` —, er
-steht in keiner HTML-Datei, wie die Kopier-Knöpfe der Codeboxen auch.
-Gesetzt wird über `.click()` auf die Haken selbst, damit Speichern, Zähler
-und der Balken in der Leiste allein in `checklisteAktivieren` bleiben.
+Der Knopf der Karte sitzt in `.wz-inhalt`, also im `<details>`-Rumpf und damit
+nur aufgeklappt sichtbar, und unter dem Prüfblock, weil der zum Vorgang
+gehört. Der Knopf des Schritts sitzt am Ende von `.step-body`, hinter der
+Fotozone.
+
+**Die Abschluss-Checkliste ist kein Vorgang.** Sie stand einmal in `VORGANG`,
+und das war ein Denkfehler: sie ist der einzige Container ihrer Seite, das
+Sinken lief also ins Leere, `data-folge` ebenso, und übrig blieb ein Knopf, der
+3 bis 14 Haken auf einmal setzte. Wer sie wieder aufnimmt, nimmt das zurück.
 
 Abgeschlossene Container sinken ans Ende ihrer Gruppe (das Elternelement,
 also die `<section class="thema">`), untereinander in der Ursprungsordnung
-aus `dataset.ordnung`. Ein Fach, in dem eines auf dem anderen aufbaut,
+aus `dataset.ordnung`. **Schritte sinken nicht** — ihre Reihenfolge ist die
+Anleitung; genau deshalb liegt ihr Knopf in `schritteAktivieren` und nicht in
+`vorgaengeAktivieren`. Ein Fach, in dem eines auf dem anderen aufbaut,
 bekommt `data-folge` an der Section: dann ist nur der erste noch offene
 Vorgang an der Reihe, die übrigen Knöpfe sind ausgegraut (`.gesperrt` +
 `aria-disabled`, **nicht** `disabled` — ein `disabled`-Knopf feuert keinen
@@ -246,25 +284,39 @@ lesen ist.
 Eine Datei, keine Module, läuft auf jeder Seite. Aufbau von oben nach unten:
 generiertes `REGISTER`, `ICONS`, `BASIS`/`KEY`, Speicher-Helfer
 (`gelesen`/`merken`/`neueId`), dann je ein Block pro Thema — Theme, Icons,
-Bühne (Startseite), Leiste, Kopieren, Checkliste, Vorgang abschließen,
-Sprungziel, Schritte, Fotos, Stufenfilter, Weichen, Einstellungen, Start,
-Update-Fluss.
+Ansicht, Anzeige je Baustein, Reparaturzweig, Bühne (Startseite), Leiste,
+Kopieren, Checkliste, Vorgang abschließen, Sprungziel, Schritte, Fotos,
+Stufenfilter, Weichen, Einstellungen, Start, Update-Fluss.
+
+**Die Ansicht wird nicht hier bestimmt.** `ansichtBestimmen(wahl)` steht im
+Inline-Script des Kopfes (`kopf()` in `bauen.mjs`), weil die Regel vor dem
+ersten Anstrich laufen muss; `hefter.js` ruft dieselbe Funktion über
+`window.ansichtBestimmen`, wenn sich das Fenster ändert. Eine Regel, eine
+Stelle — wer sie anfasst, fasst sie dort an. Ein Wechsel meldet sich als
+`hefter:ansicht` am `document`; daran hängen die Leiste (Schmal-Zustand,
+Auszug) und `anzeigeAnwenden()`.
 
 Jede Funktion prüft selbst, ob es auf dieser Seite etwas für sie zu tun gibt
 (`if (!ziel) return;`) — deshalb kann die Startsequenz am Dateiende alle
-Aktivierungen unbedingt aufrufen. Die Reihenfolge dort ist an zwei Stellen
+Aktivierungen unbedingt aufrufen. Die Reihenfolge dort ist an vier Stellen
 bedeutsam: `iconAnwenden` läuft **nach** `einstellungenAufbauen`, weil erst
-dann die Icon-Karten existieren, und `vorgaengeAktivieren` **nach**
+dann die Icon-Karten existieren; `vorgaengeAktivieren` **nach**
 `checklisteAktivieren` (erst dann stehen die gespeicherten Haken) und
 **vor** `sprungzielAufklappen` (das Umsortieren verschiebt die Karten, ein
-vorher angesprungenes Ziel läge danach falsch). Ganz zum Schluss nimmt ein
+vorher angesprungenes Ziel läge danach falsch); `ansichtAufbauen` **nach**
+`leisteAufbauen`, weil die Leiste sich dort an `hefter:ansicht` hängt und ein
+Wechsel aus den Einstellungen sie sonst nicht erreichte; und `anzeigeAnwenden`
+ganz am Ende, **nach** `reparaturAktivieren` und `anzeigeAufbauen` — es setzt
+die Griffe am Reparaturzweig und zeichnet die Schalter, beides muss dafür
+stehen. Ganz zum Schluss nimmt ein
 `requestAnimationFrame` die Klasse `laedt` vom `<html>` — bis dahin sind
 Übergänge aus, damit die gemerkte Leistenbreite nicht sichtbar einfährt.
 
-Alles, was zu spät käme, steht im Inline-Script des generierten Kopfes:
-Theme und Leisten-Zustand aus `localStorage`, sonst blitzt beim Laden das
-falsche Design auf. Wer eine weitere Einstellung ergänzt, die das Layout vor
-dem ersten Anstrich betrifft, ergänzt sie **dort** (in `kopf()` in
+Alles, was zu spät käme, steht im Inline-Script des generierten Kopfes: Theme,
+**Ansicht**, Leisten-Zustand und die **ausgeblendeten Bausteine** aus
+`localStorage`, sonst blitzen beim Laden das falsche Design, die falsche
+Ansicht oder 96 Fotozonen auf. Wer eine weitere Einstellung ergänzt, die das
+Layout vor dem ersten Anstrich betrifft, ergänzt sie **dort** (in `kopf()` in
 `bauen.mjs`).
 
 `localStorage` kann werfen (privater Modus, volles Kontingent) — Zugriffe
@@ -289,6 +341,8 @@ Alles lokal, kein Server, keine Konten. Schlüssel stehen gesammelt in `KEY`
 | Stufenfilter je Seite | `hefter:stufe:<seite>` |
 | Weichen-Wahl | `hefter:weg:<seite>:<weiche>` |
 | Design | `hefter:theme` |
+| Ansicht (`auto`/`computer`/`ipad`/`iphone`) | `hefter:ansicht` (roher String wie `theme`, nicht über `merken`) |
+| Ausgeblendete Bausteine | `hefter:anzeige` — je Ansicht die Liste der **abgeschalteten**; ein neuer Baustein ist damit überall an, ohne Migrationspfad |
 | App-Icon | `hefter:icon` |
 | Zustand der Leiste | `hefter:leiste` |
 | Zuletzt geöffnete Seite | `hefter:zuletzt` |
@@ -308,8 +362,20 @@ ausschließlich diese Werte: ein neues Theme ist ein weiterer
 Farbwerte direkt in Regeln schreiben.
 
 Codeboxen bleiben in **jedem** Theme dunkel — das ist Absicht, keine
-Nachlässigkeit. Layout-Schwelle ist heute `860px`: darüber steht die Leiste
-fest, darunter wird sie zum Auszug über dem Inhalt.
+Nachlässigkeit.
+
+Über das Layout entscheidet keine Media Query mehr, sondern
+`data-ansicht="computer|ipad|iphone"` am `<html>`; die Media Queries in
+`ansichtBestimmen()` liefern nur noch den Startwert. Neue Layout-Regeln hängen
+sich deshalb an `:root[data-ansicht="…"]`, nicht an eine Breite. Zwei Media
+Queries bleiben mit Absicht: `420px` für den Text im `.iconbtn` — die
+beantwortet, ob er in die App-Bar passt, nicht welche Ansicht gilt — und
+`prefers-reduced-motion`.
+
+Ebenfalls am `<html>`: `ohne-fotos`, `ohne-info`, `ohne-begruendung` und
+`ohne-reparatur` für die Anzeige je Baustein. Nur ausblenden, nie eine zweite
+Darstellung — einzige Ausnahme ist der Reparaturzweig, dessen `.pr-kopf` als
+Griff stehenbleibt.
 
 ## Service Worker & Updates
 
@@ -375,13 +441,20 @@ Server.
 - Farbe direkt statt über ein Token gesetzt → im hellen Theme falsch.
 - Verweis auf einen `#anker`, der später umbenannt wurde → der Build fängt
   es, im Browser wäre es stumm.
+- Eine neue Layout-Regel an eine Breite gehängt statt an `[data-ansicht]` →
+  sie ignoriert die Wahl in den Einstellungen.
+- Neuer Baustein in `BAUSTEINE` ergänzt, aber keine `ohne-…`-Regel in
+  `style.css` → der Schalter steht da und tut nichts.
 
 ## Offene Punkte
 
-Der `README.md` führt unter **„Geplant"** die größeren Vorhaben (drei
-Ansichten Computer/iPad/iPhone, Speicherung bündeln als Voraussetzung für
-Backup/Export, Inhalte zusammenführen statt kopieren, Anzeige je Baustein
-einstellbar) sowie kleinere Punkte: `.pruefblock` im Bestand nachziehen,
-Übersicht „Firewall & Ports", weitere Anleitungen, Kategorien neu
+Der `README.md` führt unter **„Geplant"** die verbliebenen größeren Vorhaben
+(Speicherung bündeln als Voraussetzung für Backup/Export, Inhalte
+zusammenführen statt kopieren) sowie kleinere Punkte: `.pruefblock` im Bestand
+nachziehen, Übersicht „Firewall & Ports", weitere Anleitungen, Kategorien neu
 schneiden, eine CI-Action, die `node bauen.mjs` erzwingt. **Nichts davon ist
 umgesetzt** — dort nachsehen, bevor etwas Größeres angefangen wird.
+
+Erledigt und deshalb aus „Geplant" heraus: die drei Ansichten samt
+Einstellbarkeit und die Anzeige je Baustein (dort je Ansicht getrennt, nicht
+geräteweit wie ursprünglich notiert).

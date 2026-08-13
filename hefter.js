@@ -180,6 +180,8 @@ const KEY = {
   checks: id => "hefter:checks:" + id,
   schritte: id => "hefter:schritte:" + id,
   stufe: id => "hefter:stufe:" + id,
+  ansicht: "hefter:ansicht",
+  anzeige: "hefter:anzeige",
   weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
@@ -268,12 +270,254 @@ function iconAnwenden(id, speichern = true) {
 }
 
 /* ============================================================
+   ANSICHT  (Computer · iPad · iPhone)
+   Welche Ansicht gilt, entscheidet ansichtBestimmen() im Inline-
+   Script des Kopfes — dort und nur dort, weil die Regel vor dem
+   ersten Anstrich laufen muss (kopf() in bauen.mjs). Hier steht,
+   was danach kommt: die Wahl speichern, das Fenster im Blick
+   behalten, die Knöpfe der Einstellungsseite.
+   Die Ansicht steht als data-ansicht am <html>; Media Queries
+   liefern nur noch den Startwert, entscheiden aber nicht mehr
+   über die Darstellung.
+   ============================================================ */
+const WURZEL_HTML = document.documentElement;
+
+const ANSICHTEN = [
+  { id: "auto", name: "Automatisch", ikone: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>' },
+  { id: "computer", name: "Computer", ikone: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>' },
+  { id: "ipad", name: "iPad", ikone: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/>' },
+  { id: "iphone", name: "iPhone", ikone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>' }
+];
+
+/* Fällt das Kopf-Script aus (Inline-Script verboten), bleibt "computer" —
+   das ist die Darstellung des Stylesheets ohne jede Ansicht. */
+const ansichtBestimmen = wahl => window.ansichtBestimmen?.(wahl) || "computer";
+/* Roher String wie hefter:theme, nicht über merken() — das schriebe JSON,
+   und das Kopf-Script liest hier ohne JSON.parse. */
+const ansichtWahl = () => {
+  try { return localStorage.getItem(KEY.ansicht) || "auto"; } catch { return "auto"; }
+};
+const ansichtAktiv = () => WURZEL_HTML.dataset.ansicht || "computer";
+
+/* Rechnet die geltende Ansicht neu und meldet eine Änderung als
+   hefter:ansicht am document — daran hängen Leiste und Anzeige. Ein
+   Ereignis deckt alle Wege ab: Wahl in den Einstellungen, gedrehtes
+   iPad, verkleinertes Fenster. */
+function ansichtAnwenden() {
+  const alt = WURZEL_HTML.dataset.ansicht;
+  const neu = ansichtBestimmen(ansichtWahl());
+  WURZEL_HTML.dataset.ansicht = neu;
+  if (neu !== alt) {
+    document.dispatchEvent(new CustomEvent("hefter:ansicht", { detail: neu }));
+    /* Jede Ansicht hat ihren eigenen Satz ausgeblendeter Bausteine. */
+    anzeigeAnwenden();
+  }
+  ansichtKnoepfe();
+}
+
+function ansichtWaehlen(wahl) {
+  try { localStorage.setItem(KEY.ansicht, wahl); } catch {}
+  ansichtAnwenden();
+}
+
+/* Beschriftet die Knöpfe: am "Automatisch"-Knopf steht, was gerade daraus
+   wird. Und wenn der 640px-Boden eine Wahl überstimmt, steht das an der
+   gewählten — sonst sähe es aus, als hätte der Knopf nicht gegriffen. */
+function ansichtKnoepfe() {
+  const wahl = ansichtWahl();
+  const aktiv = ansichtAktiv();
+  const name = id => ANSICHTEN.find(a => a.id === id)?.name || id;
+  document.querySelectorAll("[data-ansichtwahl]").forEach(b => {
+    const ich = b.dataset.ansichtwahl;
+    b.classList.toggle("aktiv", ich === wahl);
+    b.setAttribute("aria-pressed", String(ich === wahl));
+    const dazu = b.querySelector(".dazu");
+    if (!dazu) return;
+    dazu.textContent =
+      ich === "auto" ? "zurzeit " + name(ansichtBestimmen("auto"))
+      : ich === wahl && ich !== aktiv ? "Fenster zu schmal — zurzeit " + name(aktiv)
+      : "";
+  });
+}
+
+function ansichtAufbauen() {
+  const ziel = document.getElementById("ansichtWahl");
+  if (!ziel) return;
+  ziel.innerHTML = ANSICHTEN.map(a => `
+    <button data-ansichtwahl="${a.id}">
+      <span class="ikone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${a.ikone}</svg></span>
+      <span class="name">${a.name}</span>
+      <span class="dazu"></span>
+    </button>`).join("");
+  ziel.querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", () => ansichtWaehlen(b.dataset.ansichtwahl)));
+  ansichtKnoepfe();
+}
+
+/* ============================================================
+   ANZEIGE JE BAUSTEIN
+   Wer eine Anleitung zum dritten Mal durchläuft, braucht die
+   Begründungen nicht mehr — nur die Befehle. Je Baustein ein
+   Schalter, und zwar je Ansicht getrennt: am Computer alles,
+   auf dem Telefon nur das Nötige.
+   Ausgeblendet wird über Klassen am <html> (ohne-…), wie der
+   Stufenfilter über body.nur-wiederkehrend — keine zweite
+   Darstellung, nur ausblenden. Gesetzt werden sie schon im
+   Kopf-Script (kopf() in bauen.mjs), sonst blitzen 96 Fotozonen
+   auf und verschwinden wieder.
+   Was warnt, steht in keiner Liste: Gefahr, Achtung und Sicher
+   lassen sich nicht abschalten. Sie warnen vor etwas, das sich
+   nicht rückgängig machen lässt.
+   ============================================================ */
+const BAUSTEINE = [
+  { id: "fotos", name: "Fotozonen",
+    zweck: "Der Knopf „Foto anfügen“ unter jedem Schritt. Bereits angefügte Fotos bleiben gespeichert — sie werden nur nicht angezeigt." },
+  { id: "info", name: "Info-Kästen",
+    zweck: "Die blauen Kästen, die etwas erklären. Was warnt — Sicher, Achtung, Gefahr — bleibt immer stehen." },
+  { id: "begruendung", name: "Begründungen und Soll-Ausgaben",
+    zweck: "Wozu ein Werkzeug gut ist, und wie die Ausgabe eines Prüfbefehls aussehen soll." },
+  { id: "reparatur", name: "Reparaturzweige",
+    zweck: "Der Zweig „Stimmt nicht“ unter einer Prüfung. Seine Kopfzeile bleibt als Griff stehen und klappt ihn bei Bedarf wieder auf." }
+];
+
+const anzeigeAlle = () => gelesen(KEY.anzeige, {}) || {};
+const anzeigeAus = ansicht => anzeigeAlle()[ansicht] || [];
+
+/* Gespeichert wird, was aus ist — nicht, was an ist. Ein später ergänzter
+   Baustein ist damit überall an, ohne dass ein Migrationspfad nötig wäre. */
+function anzeigeSchalten(ansicht, id, an) {
+  const alle = anzeigeAlle();
+  const aus = new Set(alle[ansicht] || []);
+  an ? aus.delete(id) : aus.add(id);
+  alle[ansicht] = [...aus];
+  merken(KEY.anzeige, alle);
+  anzeigeAnwenden();
+}
+
+function anzeigeAnwenden() {
+  const aus = anzeigeAus(ansichtAktiv());
+  for (const b of BAUSTEINE) WURZEL_HTML.classList.toggle("ohne-" + b.id, aus.includes(b.id));
+  reparaturGriffe();
+  anzeigeZeichnen();
+}
+
+/* ---------- Einstellungsseite ---------- */
+/* Für welche Ansicht die Schalter gerade gelten. Vorbelegt mit der aktiven,
+   umschaltbar auf jede andere — so lässt sich das iPad vom Computer aus
+   einrichten, wo man ohnehin gerade sitzt. */
+let anzeigeReiter = null;
+
+function anzeigeAufbauen() {
+  const ziel = document.getElementById("anzeigeWahl");
+  if (!ziel) return;
+  anzeigeReiter = ansichtAktiv();
+  const HAKEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+  ziel.innerHTML = `
+    <div class="anzeige-reiter" role="group" aria-label="Ansicht wählen, für die die Schalter gelten">
+      ${ANSICHTEN.filter(a => a.id !== "auto").map(a =>
+        `<button data-anzeigereiter="${a.id}">${a.name}</button>`).join("")}
+    </div>
+    <p class="anzeige-hier"></p>
+    ${BAUSTEINE.map(b => `
+      <div class="schalter" data-baustein="${b.id}">
+        <span class="box">${HAKEN}</span>
+        <span class="lbl"><b>${b.name}</b><span class="zweck">${b.zweck}</span></span>
+      </div>`).join("")}`;
+
+  ziel.querySelectorAll("[data-anzeigereiter]").forEach(b =>
+    b.addEventListener("click", () => { anzeigeReiter = b.dataset.anzeigereiter; anzeigeZeichnen(); }));
+
+  /* Rolle, Fokus und Tastatur zentral nachgerüstet — wie bei den .check-Divs
+     in checklisteAktivieren. Die Klasse heißt bewusst nicht .check: jene
+     greift checklisteAktivieren ohne Einschränkung über die ganze Seite ab
+     und machte aus den Einstellungen eine Checkliste. */
+  ziel.querySelectorAll("[data-baustein]").forEach(s => {
+    s.setAttribute("role", "checkbox");
+    s.tabIndex = 0;
+    const umschalten = () =>
+      anzeigeSchalten(anzeigeReiter, s.dataset.baustein, !s.classList.contains("done"));
+    s.addEventListener("click", umschalten);
+    s.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); umschalten(); }
+    });
+  });
+  anzeigeZeichnen();
+}
+
+function anzeigeZeichnen() {
+  const ziel = document.getElementById("anzeigeWahl");
+  if (!ziel || !anzeigeReiter) return;
+  const aus = anzeigeAus(anzeigeReiter);
+  const name = id => ANSICHTEN.find(a => a.id === id)?.name || id;
+
+  ziel.querySelectorAll("[data-anzeigereiter]").forEach(b => {
+    const ich = b.dataset.anzeigereiter === anzeigeReiter;
+    b.classList.toggle("aktiv", ich);
+    b.setAttribute("aria-pressed", String(ich));
+  });
+  ziel.querySelectorAll("[data-baustein]").forEach(s => {
+    const an = !aus.includes(s.dataset.baustein);
+    s.classList.toggle("done", an);
+    s.setAttribute("aria-checked", String(an));
+  });
+  /* Ohne diesen Satz sähe es nach einem Fehler aus, wenn man die Schalter
+     einer Ansicht umlegt und sich auf der Seite nichts rührt. */
+  const hier = ziel.querySelector(".anzeige-hier");
+  if (hier) hier.textContent = anzeigeReiter === ansichtAktiv()
+    ? "Das ist die Ansicht, die du gerade siehst — Änderungen greifen sofort."
+    : `Du siehst gerade die ${name(ansichtAktiv())}-Ansicht. Diese Schalter gelten für die ${name(anzeigeReiter)}-Ansicht.`;
+}
+
+/* ============================================================
+   REPARATURZWEIG AUFKLAPPEN
+   Der einzige Baustein, der nicht einfach verschwindet: ein
+   weggeblendeter Reparaturweg ließe genau den stehen, der ihn
+   braucht. Die Kopfzeile („Stimmt nicht") bleibt als Griff, der
+   Rumpf klappt auf Klick auf. Der offene Zustand hängt am
+   Element und wird nicht gespeichert — es ist ein Blick, kein
+   Zustand, und beim nächsten Aufschlagen fängt man wieder
+   sparsam an.
+   ============================================================ */
+function reparaturAktivieren() {
+  for (const kopf of document.querySelectorAll(".reparatur > .pr-kopf")) {
+    const umschalten = () => {
+      /* Nur solange eingeklappt wird — sonst schaltete der Klick eine Klasse
+         um, die niemand sieht, und aria-expanded löge über einen offenen Zweig. */
+      if (!WURZEL_HTML.classList.contains("ohne-reparatur")) return;
+      kopf.setAttribute("aria-expanded", String(kopf.parentElement.classList.toggle("offen")));
+    };
+    kopf.addEventListener("click", umschalten);
+    kopf.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); umschalten(); }
+    });
+  }
+}
+
+/* Rolle und Tabstopp bekommt der Kopf nur, solange er wirklich ein Griff ist.
+   Ständig gesetzt wären es auf arbeitsplatz-einrichten.html 21 zusätzliche
+   Tabstopps, die nichts tun. */
+function reparaturGriffe() {
+  const griff = WURZEL_HTML.classList.contains("ohne-reparatur");
+  for (const kopf of document.querySelectorAll(".reparatur > .pr-kopf")) {
+    if (griff) {
+      kopf.setAttribute("role", "button");
+      kopf.tabIndex = 0;
+      kopf.setAttribute("aria-expanded", String(kopf.parentElement.classList.contains("offen")));
+    } else {
+      kopf.removeAttribute("role");
+      kopf.removeAttribute("tabindex");
+      kopf.removeAttribute("aria-expanded");
+    }
+  }
+}
+
+/* ============================================================
    BÜHNE  (Startseite)
    Das Register selbst steht in der Leiste — die Startseite
    beantwortet stattdessen "wo stehe ich": zuletzt geöffnete
    Seite, angefangene Seiten, und darunter alle Seiten mit ihrem
    Stand. Diese Liste ist zugleich der vollständige Weg zu jeder
-   Seite: unter 860px ist die Leiste zugeklappt, und ohne sie
+   Seite: in der iPhone-Ansicht ist die Leiste zugeklappt, und ohne sie
    liefe der Einstieg sonst ins Leere.
    ============================================================ */
 function buehneAufbauen() {
@@ -379,7 +623,6 @@ function zuletztMerken() {
    unter hefter:leiste und wird schon im <head> gelesen, damit die
    Leiste nicht in ihrer gemerkten Breite aufblitzt.
    ============================================================ */
-const WURZEL_HTML = document.documentElement;
 
 /* Nenner des Fortschritts: eine Anleitung zählt ihre Schritte, eine
    Übersicht ihre Haken. Ein entfernter Punkt kann in der Speicherung
@@ -400,7 +643,21 @@ function leisteAufbauen() {
   const feld = document.getElementById("leisteSuche");
   const leer = document.getElementById("leisteLeer");
   const schleier = document.querySelector("[data-schleier]");
-  const zustand = Object.assign({ schmal: false, zu: [] }, gelesen(KEY.leiste, {}));
+  const gespeichert = gelesen(KEY.leiste, {}) || {};
+  const zustand = Object.assign({ zu: [] }, gespeichert);
+  /* Ob der Nutzer die Breite je selbst gesetzt hat. Ohne diese Unterscheidung
+     ließe sich die Vorgabe je Ansicht nicht von einer Wahl trennen: ein
+     gespeichertes false sähe aus wie "nie angefasst". */
+  let breiteGewaehlt = "schmal" in gespeichert;
+  /* Vorgabe je Ansicht — auf dem iPad ist die Kürzelspalte der Normalzustand,
+     am Computer die breite Leiste. Dieselbe Regel steht im Kopf-Script,
+     damit die Leiste nicht in der falschen Breite aufblitzt. */
+  if (!breiteGewaehlt) zustand.schmal = ansichtAktiv() === "ipad";
+  /* Solange die Breite nicht selbst gesetzt wurde, wandert sie auch nicht in
+     den Speicher — sonst schriebe schon das Zuklappen eines Fachs die
+     Vorgabe fest, und der Wechsel auf das iPad fände eine "Wahl" vor. */
+  const zustandMerken = () =>
+    merken(KEY.leiste, breiteGewaehlt ? zustand : { zu: zustand.zu });
   let suchtext = "";
 
   /* Fächer in der Reihenfolge ihres ersten Auftretens im REGISTER —
@@ -459,12 +716,16 @@ function leisteAufbauen() {
   /* ---- Zustand ---- */
   const schmalSetzen = (an, speichern = true) => {
     zustand.schmal = an;
-    WURZEL_HTML.classList.toggle("schmal", an);
+    /* In der iPhone-Ansicht gibt es den Schmal-Zustand nicht — dort ist die
+       Leiste entweder ganz da oder ganz weg. Gemerkt wird die Wahl trotzdem:
+       sie gilt wieder, sobald man am Computer sitzt. Weil die Klasse hier
+       gar nicht erst gesetzt wird, braucht style.css kein !important dagegen. */
+    WURZEL_HTML.classList.toggle("schmal", an && ansichtAktiv() !== "iphone");
     const knopf = document.querySelector("[data-klapp]");
     if (knopf) knopf.setAttribute("aria-label", an ? "Leiste ausklappen" : "Leiste einklappen");
-    if (speichern) merken(KEY.leiste, zustand);
+    if (speichern) { breiteGewaehlt = true; zustandMerken(); }
   };
-  const istSchmalerSchirm = () => matchMedia("(max-width: 860px)").matches;
+  const istSchmalerSchirm = () => ansichtAktiv() === "iphone";
   const auszugSetzen = an => {
     WURZEL_HTML.classList.toggle("auf", an);
     const brenner = document.querySelector("[data-brenner]");
@@ -498,7 +759,7 @@ function leisteAufbauen() {
     const name = kopf.dataset.fach;
     const i = zustand.zu.indexOf(name);
     i === -1 ? zustand.zu.push(name) : zustand.zu.splice(i, 1);
-    merken(KEY.leiste, zustand);
+    zustandMerken();
     zeichnen();
   });
 
@@ -535,9 +796,19 @@ function leisteAufbauen() {
     }
   });
 
-  /* Vom Telefon auf den großen Schirm gedreht: der Auszug hat dort keine
-     Entsprechung und bliebe sonst als Schleier über der Seite liegen. */
-  addEventListener("resize", () => { if (!istSchmalerSchirm()) auszugSetzen(false); });
+  /* Gedrehtes iPad, verkleinertes Fenster: bei "Automatisch" kann sich damit
+     die Ansicht ändern, und der 640px-Boden greift auch bei fester Wahl. */
+  addEventListener("resize", ansichtAnwenden);
+
+  /* Was am Ansichtswechsel hängt. Der Auszug hat außerhalb der iPhone-Ansicht
+     keine Entsprechung und bliebe sonst als Schleier über der Seite liegen;
+     der Schmal-Zustand gilt nur, wo es ihn gibt, und bekommt seine Vorgabe
+     neu, solange die Breite nicht selbst gesetzt wurde. */
+  document.addEventListener("hefter:ansicht", () => {
+    if (!breiteGewaehlt) zustand.schmal = ansichtAktiv() === "ipad";
+    schmalSetzen(zustand.schmal, false);
+    if (!istSchmalerSchirm()) auszugSetzen(false);
+  });
 
   /* Brotkrume im Inhalts-Kopf */
   const krumen = document.querySelector("[data-krumen]");
@@ -733,23 +1004,27 @@ function checklisteAktivieren() {
 }
 
 /* ============================================================
-   VORGANG ABSCHLIESSEN
-   Ein Container mit eigenem Haken beschreibt einen Vorgang: die
-   Werkzeug-Karte einen einzurichtenden Posten, die Abschluss-
-   Checkliste den Rest einer Anleitung. Sein Haken saß bisher
-   allein oben an der Karte — also genau dort nicht, wo man mit
-   dem Vorgang fertig wird. Der Knopf steht deshalb unten rechts
-   am Ende des Inhalts, und Abgeschlossenes sinkt ans Ende seines
-   Fachs: oben steht, was noch offen ist.
+   VORGANG ABSCHLIESSEN  (Werkzeug-Karte)
+   Eine Karte beschreibt einen einzurichtenden Posten. Ihr Haken
+   saß allein oben an der Karte — also genau dort nicht, wo man
+   mit dem Vorgang fertig wird. Der Knopf steht deshalb unten
+   rechts am Ende des Inhalts, und Abgeschlossenes sinkt ans Ende
+   seines Fachs: oben steht, was noch offen ist.
    Erzeugt statt in den Seiten gepflegt — derselbe Weg wie bei den
    Kopier-Knöpfen der Codeboxen.
+
+   Die Abschluss-Checkliste einer Anleitung stand hier einmal mit
+   drin, und das war ein Denkfehler: sie ist der einzige Container
+   ihrer Seite. Das Sinken lief ins Leere, die Folge-Sperre auch,
+   und übrig blieb ein Knopf, der drei bis vierzehn Haken auf
+   einmal setzt — kein abgeschlossener Vorgang, sondern "alle
+   abhaken". Der Vorgang einer Anleitung ist der Schritt; sein
+   Knopf steht in schritteAktivieren.
    ============================================================ */
 
-/* Container mit eigenem Vorgang: die Werkzeug-Karte (ein Haken) und die
-   Abschluss-Checkliste einer Anleitung (mehrere Haken, ein Vorgang). Eine
-   Liste an einer Stelle statt "alles, was einen .check enthält" — sonst
-   entschiede die Verschachtelung des Markups darüber mit. */
-const VORGANG = ".wz, .checkliste";
+/* Eine Liste an einer Stelle statt "alles, was einen .check enthält" —
+   sonst entschiede die Verschachtelung des Markups darüber mit. */
+const VORGANG = ".wz";
 
 const hakenVon = container => [...container.querySelectorAll(".check")];
 const istFertig = container => {
@@ -938,13 +1213,36 @@ function schritteAktivieren() {
 
   const erledigt = new Set(gelesen(KEY.schritte(seite), []) || []);
 
+  /* Der Knopf am Ende des Schritt-Rumpfes — dort, wo man mit dem Schritt
+     fertig wird, statt oben an der Nummer. Derselbe Gedanke wie bei der
+     Werkzeug-Karte, aber eigene Mechanik: hier sinkt nichts ans Ende, denn
+     die Reihenfolge der Schritte ist die Anleitung. Deshalb steht das hier
+     und nicht in vorgaengeAktivieren.
+     Erzeugt statt gepflegt — 96 Schritte über zehn Seiten liefen von Hand
+     beim ersten Nachziehen auseinander. */
+  for (const s of schritte) {
+    const platz = document.createElement("div");
+    platz.className = "abschluss";
+    platz.innerHTML =
+      '<button class="iconbtn abschlussbtn" type="button" aria-pressed="false">' +
+      `<span class="haken">${HAKEN_ICON}</span>Schritt abgeschlossen</button>`;
+    (s.querySelector(".step-body") || s).appendChild(platz);
+    /* Gesetzt wird über die Nummer selbst: Speichern, Zähler und Balken
+       hängen an ihrem Klick. Ein zweiter Pfad dorthin liefe beim ersten
+       Nachziehen auseinander. */
+    platz.querySelector(".abschlussbtn").addEventListener("click", () =>
+      s.querySelector(".step-num")?.click());
+  }
+
   const anzeigen = () => {
     let fertig = 0;
     for (const s of schritte) {
       const an = erledigt.has(s.dataset.schritt);
       if (an) fertig++;
       s.classList.toggle("erledigt", an);
+      /* Zwei Bedienelemente, ein Zustand — beide müssen ihn melden. */
       s.querySelector(".step-num")?.setAttribute("aria-pressed", String(an));
+      s.querySelector(".abschlussbtn")?.setAttribute("aria-pressed", String(an));
     }
     if (zahl) zahl.textContent = fertig + " / " + schritte.length;
     if (balken) balken.style.width = (fertig / schritte.length * 100) + "%";
@@ -1243,6 +1541,10 @@ themeLaden();
 leisteAufbauen();
 buehneAufbauen();
 zuletztMerken();
+/* Nach leisteAufbauen: die Leiste hängt sich dort an hefter:ansicht, und ein
+   Wechsel aus den Einstellungen heraus muss sie erreichen. */
+ansichtAufbauen();
+anzeigeAufbauen();
 einstellungenAufbauen();
 /* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
    die iconAnwenden als aktiv markiert. */
@@ -1258,6 +1560,12 @@ vorgaengeAktivieren();
 schritteAktivieren();
 sprungzielAufklappen();
 fotosAktivieren();
+reparaturAktivieren();
+/* Nach reparaturAktivieren und anzeigeAufbauen: das Anwenden setzt die Griffe
+   am Reparaturzweig und zeichnet die Schalter — beides muss dafür stehen.
+   Die Klassen selbst hat schon das Kopf-Script gesetzt; dieser Lauf holt den
+   Fall nach, in dem es ausfiel, und hält Schalter und Seite beisammen. */
+anzeigeAnwenden();
 
 /* Erst wenn alles steht, werden Übergänge wieder zugelassen — bis hierher
    hält "laedt" sie an, damit die gemerkte Leistenbreite nicht sichtbar
