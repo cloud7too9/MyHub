@@ -700,6 +700,10 @@ function checklisteAktivieren() {
       const done = fertig.map(c => c.dataset.check).filter(Boolean);
       try { localStorage.setItem(KEY.checks(seite), JSON.stringify(done)); } catch {}
     }
+    /* Sortierung und Knopfzustände der Vorgänge hängen sich hier an. Ein
+       Ereignis deckt alle drei Wege zum Haken gemeinsam ab: Klick auf die
+       Box, Abschluss-Knopf und "zurücksetzen". */
+    document.dispatchEvent(new CustomEvent("hefter:haken"));
   };
 
   document.querySelector("[data-haken-reset]")?.addEventListener("click", () => {
@@ -712,13 +716,183 @@ function checklisteAktivieren() {
   checks.forEach(c => {
     c.setAttribute("role", "checkbox");
     c.tabIndex = 0;
-    const umschalten = () => { c.classList.toggle("done"); aktualisieren(); };
+    /* In einem Folge-Fach lässt sich der Haken so wenig setzen wie der
+       Abschluss-Knopf — sonst wäre die Reihenfolge mit einem Klick auf die
+       Box daneben umgangen. */
+    const umschalten = () => {
+      if (vorgangSperrtKlick(c)) return;
+      c.classList.toggle("done");
+      aktualisieren();
+    };
     c.addEventListener("click", umschalten);
     c.addEventListener("keydown", e => {
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); umschalten(); }
     });
   });
   aktualisieren();
+}
+
+/* ============================================================
+   VORGANG ABSCHLIESSEN
+   Ein Container mit eigenem Haken beschreibt einen Vorgang: die
+   Werkzeug-Karte einen einzurichtenden Posten, die Abschluss-
+   Checkliste den Rest einer Anleitung. Sein Haken saß bisher
+   allein oben an der Karte — also genau dort nicht, wo man mit
+   dem Vorgang fertig wird. Der Knopf steht deshalb unten rechts
+   am Ende des Inhalts, und Abgeschlossenes sinkt ans Ende seines
+   Fachs: oben steht, was noch offen ist.
+   Erzeugt statt in den Seiten gepflegt — derselbe Weg wie bei den
+   Kopier-Knöpfen der Codeboxen.
+   ============================================================ */
+
+/* Container mit eigenem Vorgang: die Werkzeug-Karte (ein Haken) und die
+   Abschluss-Checkliste einer Anleitung (mehrere Haken, ein Vorgang). Eine
+   Liste an einer Stelle statt "alles, was einen .check enthält" — sonst
+   entschiede die Verschachtelung des Markups darüber mit. */
+const VORGANG = ".wz, .checkliste";
+
+const hakenVon = container => [...container.querySelectorAll(".check")];
+const istFertig = container => {
+  const haken = hakenVon(container);
+  return haken.length > 0 && haken.every(h => h.classList.contains("done"));
+};
+const containerIn = gruppe => [...gruppe.children].filter(k => k.matches(VORGANG));
+
+/* Sortiert wird nach der Ursprungsordnung, nicht nach der aktuellen: sonst
+   wäre nach dem ersten Umsortieren nicht mehr zu ermitteln, wohin ein wieder
+   geöffneter Vorgang zurückgehört. */
+const nachOrdnung = (a, b) => a.dataset.ordnung - b.dataset.ordnung;
+const sinken = (a, b) =>
+  (istFertig(a) ? 1 : 0) - (istFertig(b) ? 1 : 0) || nachOrdnung(a, b);
+
+/* In einem Fach mit data-folge ist nur der erste noch offene Vorgang an der
+   Reihe — die übrigen warten. */
+const aktuellerVorgang = gruppe =>
+  containerIn(gruppe).sort(nachOrdnung).find(k => !istFertig(k)) || null;
+
+function vorgangGesperrt(container) {
+  const gruppe = container.parentElement;
+  if (!gruppe?.hasAttribute("data-folge")) return false;
+  /* Fertige sind nie gesperrt — sonst gäbe es keinen Weg zurück. */
+  if (istFertig(container)) return false;
+  return container !== aktuellerVorgang(gruppe);
+}
+
+/* Der Zeitgeber hängt am Feld statt an einer Variablen: zwei Container können
+   ihre Meldung gleichzeitig stehen haben. */
+const hinweisUhr = new WeakMap();
+function hinweisZeigen(container, text) {
+  const feld = container.querySelector(".abschluss-hinweis");
+  if (!feld) return;
+  feld.textContent = text;
+  feld.classList.add("sichtbar");
+  clearTimeout(hinweisUhr.get(feld));
+  hinweisUhr.set(feld, setTimeout(() => {
+    feld.classList.remove("sichtbar");
+    feld.textContent = "";
+  }, 2200));
+}
+
+/* Ein gesperrter Vorgang meldet sich, statt still nichts zu tun — ein Haken,
+   der sich wortlos nicht setzen lässt, sieht kaputt aus. Beide Wege fragen
+   hier: der Abschluss-Knopf und die Haken-Box in checklisteAktivieren. */
+function vorgangSperrtKlick(el) {
+  const container = el.closest(VORGANG);
+  if (!container || !vorgangGesperrt(container)) return false;
+  hinweisZeigen(container, "Vorherigen Schritt abschließen");
+  return true;
+}
+
+function vorgaengeAktivieren() {
+  const alle = [...document.querySelectorAll(VORGANG)].filter(c => hakenVon(c).length);
+  if (!alle.length) return;
+
+  const gruppen = [...new Set(alle.map(c => c.parentElement))];
+  gruppen.forEach(g => containerIn(g).forEach((k, i) => { k.dataset.ordnung = i; }));
+
+  const knopfAnlegen = container => {
+    const platz = document.createElement("div");
+    platz.className = "abschluss";
+    platz.innerHTML =
+      '<span class="abschluss-hinweis" role="status"></span>' +
+      '<button class="iconbtn abschlussbtn" type="button" aria-pressed="false">' +
+      `<span class="haken">${HAKEN_ICON}</span>Vorgang abgeschlossen</button>`;
+    /* Bei der Karte in den aufklappbaren Rumpf — damit steht der Knopf ohne
+       eigene Regel nur im aufgeklappten Zustand da. Ans Ende, nicht unter die
+       Schrittliste: abgeschlossen ist der Vorgang erst, wenn auch der
+       Prüfblock darunter stimmt. */
+    (container.querySelector(".wz-inhalt") || container).appendChild(platz);
+
+    const btn = platz.querySelector(".abschlussbtn");
+    btn.addEventListener("click", () => {
+      if (vorgangSperrtKlick(btn)) return;
+      const ziel = !istFertig(container);
+      /* Gesetzt wird über die Haken selbst: Speichern, Zähler und der Balken
+         in der Leiste hängen an checklisteAktivieren. Ein zweiter Pfad dorthin
+         liefe beim ersten Nachziehen auseinander. */
+      hakenVon(container).forEach(h => {
+        if (h.classList.contains("done") !== ziel) h.click();
+      });
+    });
+  };
+
+  /* Nur der Container, dessen Zustand gerade gewechselt hat, wird am neuen
+     Platz kurz angedeutet. Alle mitverschobenen zu animieren brächte das
+     ganze Fach in Bewegung — man sähe nicht mehr, worauf zu achten ist.
+     Hier statt im Knopf, weil derselbe Wechsel auch über die Haken-Box
+     kommt — sonst klappte die Karte nur auf dem einen der beiden Wege zu. */
+  const zustandNachziehen = container => {
+    const jetzt = istFertig(container) ? "ja" : "nein";
+    if (container.dataset.fertig === jetzt) return;
+    container.dataset.fertig = jetzt;
+    container.classList.add("gesetzt");
+    setTimeout(() => container.classList.remove("gesetzt"), 400);
+    /* Abgeschlossen heißt zugeklappt: die Karte rutscht ans Ende ihres
+       Fachs, und aufgeklappt wäre sie dort nur eine lange Fläche. */
+    const klapp = container.querySelector("details");
+    if (klapp && jetzt === "ja") klapp.open = false;
+  };
+
+  const knoepfeSetzen = () => {
+    alle.forEach(container => {
+      const btn = container.querySelector(".abschlussbtn");
+      if (!btn) return;
+      const fertig = istFertig(container);
+      btn.setAttribute("aria-pressed", fertig);
+      btn.classList.toggle("primary", fertig);
+      /* Gesperrt wird über eine Klasse, nicht über disabled: ein disabled-
+         Knopf feuert keinen Klick, und die Meldung bliebe aus. */
+      const gesperrt = vorgangGesperrt(container);
+      btn.classList.toggle("gesperrt", gesperrt);
+      if (gesperrt) btn.setAttribute("aria-disabled", "true");
+      else btn.removeAttribute("aria-disabled");
+    });
+  };
+
+  const ordnen = () => {
+    for (const gruppe of gruppen) {
+      const karten = containerIn(gruppe);
+      if (karten.length > 1) {
+        /* Vor den Knoten nach der letzten Karte hängen statt ans Ende der
+           Gruppe: sonst wanderte ein Absatz, der einmal unter den Karten
+           steht, still über sie. */
+        const nachbar = karten[karten.length - 1].nextSibling;
+        [...karten].sort(sinken).forEach(k => gruppe.insertBefore(k, nachbar));
+      }
+      karten.forEach(zustandNachziehen);
+    }
+    knoepfeSetzen();
+  };
+
+  /* Erst den Zustand festhalten, dann die Knöpfe: sonst zappelten beim Laden
+     alle schon erledigten Container einmal durch. */
+  alle.forEach(container => {
+    container.dataset.fertig = istFertig(container) ? "ja" : "nein";
+    knopfAnlegen(container);
+  });
+
+  document.addEventListener("hefter:haken", ordnen);
+  ordnen();
 }
 
 /* ============================================================
@@ -1077,6 +1251,10 @@ kopierenAktivieren();
 weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
+/* Nach checklisteAktivieren, weil erst dann die gespeicherten Haken stehen,
+   und vor sprungzielAufklappen: das Umsortieren verschiebt die Karten, ein
+   vorher angesprungenes Ziel läge danach an der falschen Stelle. */
+vorgaengeAktivieren();
 schritteAktivieren();
 sprungzielAufklappen();
 fotosAktivieren();
