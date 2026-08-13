@@ -243,6 +243,29 @@ function codeboxTypenPruefen(html, datei) {
     throw new Error(`${datei}: unbekanntes data-typ an einer Codebox — ${[...new Set(falsch)].join(", ")}`);
 }
 
+/* Ein Tippfehler in der Callout-Art fällt im Browser nicht auf: .callout setzt
+   --c: var(--accent) als Vorgabe, die Box sieht nur etwas anders aus als
+   gemeint. Seit die Anzeige je Baustein einstellbar ist, hörte sie zusätzlich
+   auf die falsche Einstellung — ein verschriebener "gefahr"-Kasten ließe sich
+   ausblenden, obwohl gerade der immer stehen bleiben soll. */
+const CALLOUT_ARTEN = ["info", "sicher", "achtung", "ergebnis", "gefahr"];
+function calloutArtenPruefen(html, datei) {
+  const falsch = [...html.matchAll(/<div class="callout ([^"]*)"/g)]
+    .map(m => m[1].trim()).filter(w => !CALLOUT_ARTEN.includes(w));
+  if (falsch.length)
+    throw new Error(`${datei}: unbekannte Callout-Art — ${[...new Set(falsch)].join(", ")} (erlaubt: ${CALLOUT_ARTEN.join(", ")})`);
+}
+
+/* Die Kopfzeile ist der Griff, mit dem ein eingeklappter Reparaturzweig wieder
+   aufgeht. Fehlt sie, ist der Reparaturweg in der sparsamen Anzeige nicht mehr
+   erreichbar — und zwar lautlos: die Seite sieht nur kürzer aus. */
+function reparaturKoepfePruefen(html, datei) {
+  const zweige = [...html.matchAll(/<div class="reparatur">([\s\S]*?)<\/div>\s*<\/div>/g)];
+  const ohneKopf = zweige.filter(([, rumpf]) => !/<div class="pr-kopf">/.test(rumpf)).length;
+  if (ohneKopf)
+    throw new Error(`${datei}: ${ohneKopf} Reparaturzweig(e) ohne .pr-kopf — eingeklappt nicht mehr aufzuklappen`);
+}
+
 /* Die beiden Zahlen im Seitenkopf sind Handarbeit und fallen nur auf, wenn
    man sie sucht: sie stehen vor dem ersten Klick da und werden von hefter.js
    erst danach überschrieben. */
@@ -327,6 +350,8 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
     eindeutigPruefen(h, f, "data-check");
     eindeutigPruefen(h, f, "data-schritt");
     codeboxTypenPruefen(h, f);
+    calloutArtenPruefen(h, f);
+    reparaturKoepfePruefen(h, f);
     zaehlerPruefen(h, f, "chkStand", /id="chkStand">\s*0\s*\/\s*(\d+)\s*</, /class="check[ "]/g);
     zaehlerPruefen(h, f, "Schritt-Zähler", /data-fs-zahl>\s*0\s*\/\s*(\d+)\s*</, /<section class="step[ "]/g);
     schrittIdsPruefen(h, f);

@@ -181,6 +181,7 @@ const KEY = {
   schritte: id => "hefter:schritte:" + id,
   stufe: id => "hefter:stufe:" + id,
   ansicht: "hefter:ansicht",
+  anzeige: "hefter:anzeige",
   weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
@@ -306,7 +307,11 @@ function ansichtAnwenden() {
   const alt = WURZEL_HTML.dataset.ansicht;
   const neu = ansichtBestimmen(ansichtWahl());
   WURZEL_HTML.dataset.ansicht = neu;
-  if (neu !== alt) document.dispatchEvent(new CustomEvent("hefter:ansicht", { detail: neu }));
+  if (neu !== alt) {
+    document.dispatchEvent(new CustomEvent("hefter:ansicht", { detail: neu }));
+    /* Jede Ansicht hat ihren eigenen Satz ausgeblendeter Bausteine. */
+    anzeigeAnwenden();
+  }
   ansichtKnoepfe();
 }
 
@@ -347,6 +352,163 @@ function ansichtAufbauen() {
   ziel.querySelectorAll("button").forEach(b =>
     b.addEventListener("click", () => ansichtWaehlen(b.dataset.ansichtwahl)));
   ansichtKnoepfe();
+}
+
+/* ============================================================
+   ANZEIGE JE BAUSTEIN
+   Wer eine Anleitung zum dritten Mal durchläuft, braucht die
+   Begründungen nicht mehr — nur die Befehle. Je Baustein ein
+   Schalter, und zwar je Ansicht getrennt: am Computer alles,
+   auf dem Telefon nur das Nötige.
+   Ausgeblendet wird über Klassen am <html> (ohne-…), wie der
+   Stufenfilter über body.nur-wiederkehrend — keine zweite
+   Darstellung, nur ausblenden. Gesetzt werden sie schon im
+   Kopf-Script (kopf() in bauen.mjs), sonst blitzen 96 Fotozonen
+   auf und verschwinden wieder.
+   Was warnt, steht in keiner Liste: Gefahr, Achtung und Sicher
+   lassen sich nicht abschalten. Sie warnen vor etwas, das sich
+   nicht rückgängig machen lässt.
+   ============================================================ */
+const BAUSTEINE = [
+  { id: "fotos", name: "Fotozonen",
+    zweck: "Der Knopf „Foto anfügen“ unter jedem Schritt. Bereits angefügte Fotos bleiben gespeichert — sie werden nur nicht angezeigt." },
+  { id: "info", name: "Info-Kästen",
+    zweck: "Die blauen Kästen, die etwas erklären. Was warnt — Sicher, Achtung, Gefahr — bleibt immer stehen." },
+  { id: "begruendung", name: "Begründungen und Soll-Ausgaben",
+    zweck: "Wozu ein Werkzeug gut ist, und wie die Ausgabe eines Prüfbefehls aussehen soll." },
+  { id: "reparatur", name: "Reparaturzweige",
+    zweck: "Der Zweig „Stimmt nicht“ unter einer Prüfung. Seine Kopfzeile bleibt als Griff stehen und klappt ihn bei Bedarf wieder auf." }
+];
+
+const anzeigeAlle = () => gelesen(KEY.anzeige, {}) || {};
+const anzeigeAus = ansicht => anzeigeAlle()[ansicht] || [];
+
+/* Gespeichert wird, was aus ist — nicht, was an ist. Ein später ergänzter
+   Baustein ist damit überall an, ohne dass ein Migrationspfad nötig wäre. */
+function anzeigeSchalten(ansicht, id, an) {
+  const alle = anzeigeAlle();
+  const aus = new Set(alle[ansicht] || []);
+  an ? aus.delete(id) : aus.add(id);
+  alle[ansicht] = [...aus];
+  merken(KEY.anzeige, alle);
+  anzeigeAnwenden();
+}
+
+function anzeigeAnwenden() {
+  const aus = anzeigeAus(ansichtAktiv());
+  for (const b of BAUSTEINE) WURZEL_HTML.classList.toggle("ohne-" + b.id, aus.includes(b.id));
+  reparaturGriffe();
+  anzeigeZeichnen();
+}
+
+/* ---------- Einstellungsseite ---------- */
+/* Für welche Ansicht die Schalter gerade gelten. Vorbelegt mit der aktiven,
+   umschaltbar auf jede andere — so lässt sich das iPad vom Computer aus
+   einrichten, wo man ohnehin gerade sitzt. */
+let anzeigeReiter = null;
+
+function anzeigeAufbauen() {
+  const ziel = document.getElementById("anzeigeWahl");
+  if (!ziel) return;
+  anzeigeReiter = ansichtAktiv();
+  const HAKEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+  ziel.innerHTML = `
+    <div class="anzeige-reiter" role="group" aria-label="Ansicht wählen, für die die Schalter gelten">
+      ${ANSICHTEN.filter(a => a.id !== "auto").map(a =>
+        `<button data-anzeigereiter="${a.id}">${a.name}</button>`).join("")}
+    </div>
+    <p class="anzeige-hier"></p>
+    ${BAUSTEINE.map(b => `
+      <div class="schalter" data-baustein="${b.id}">
+        <span class="box">${HAKEN}</span>
+        <span class="lbl"><b>${b.name}</b><span class="zweck">${b.zweck}</span></span>
+      </div>`).join("")}`;
+
+  ziel.querySelectorAll("[data-anzeigereiter]").forEach(b =>
+    b.addEventListener("click", () => { anzeigeReiter = b.dataset.anzeigereiter; anzeigeZeichnen(); }));
+
+  /* Rolle, Fokus und Tastatur zentral nachgerüstet — wie bei den .check-Divs
+     in checklisteAktivieren. Die Klasse heißt bewusst nicht .check: jene
+     greift checklisteAktivieren ohne Einschränkung über die ganze Seite ab
+     und machte aus den Einstellungen eine Checkliste. */
+  ziel.querySelectorAll("[data-baustein]").forEach(s => {
+    s.setAttribute("role", "checkbox");
+    s.tabIndex = 0;
+    const umschalten = () =>
+      anzeigeSchalten(anzeigeReiter, s.dataset.baustein, !s.classList.contains("done"));
+    s.addEventListener("click", umschalten);
+    s.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); umschalten(); }
+    });
+  });
+  anzeigeZeichnen();
+}
+
+function anzeigeZeichnen() {
+  const ziel = document.getElementById("anzeigeWahl");
+  if (!ziel || !anzeigeReiter) return;
+  const aus = anzeigeAus(anzeigeReiter);
+  const name = id => ANSICHTEN.find(a => a.id === id)?.name || id;
+
+  ziel.querySelectorAll("[data-anzeigereiter]").forEach(b => {
+    const ich = b.dataset.anzeigereiter === anzeigeReiter;
+    b.classList.toggle("aktiv", ich);
+    b.setAttribute("aria-pressed", String(ich));
+  });
+  ziel.querySelectorAll("[data-baustein]").forEach(s => {
+    const an = !aus.includes(s.dataset.baustein);
+    s.classList.toggle("done", an);
+    s.setAttribute("aria-checked", String(an));
+  });
+  /* Ohne diesen Satz sähe es nach einem Fehler aus, wenn man die Schalter
+     einer Ansicht umlegt und sich auf der Seite nichts rührt. */
+  const hier = ziel.querySelector(".anzeige-hier");
+  if (hier) hier.textContent = anzeigeReiter === ansichtAktiv()
+    ? "Das ist die Ansicht, die du gerade siehst — Änderungen greifen sofort."
+    : `Du siehst gerade die ${name(ansichtAktiv())}-Ansicht. Diese Schalter gelten für die ${name(anzeigeReiter)}-Ansicht.`;
+}
+
+/* ============================================================
+   REPARATURZWEIG AUFKLAPPEN
+   Der einzige Baustein, der nicht einfach verschwindet: ein
+   weggeblendeter Reparaturweg ließe genau den stehen, der ihn
+   braucht. Die Kopfzeile („Stimmt nicht") bleibt als Griff, der
+   Rumpf klappt auf Klick auf. Der offene Zustand hängt am
+   Element und wird nicht gespeichert — es ist ein Blick, kein
+   Zustand, und beim nächsten Aufschlagen fängt man wieder
+   sparsam an.
+   ============================================================ */
+function reparaturAktivieren() {
+  for (const kopf of document.querySelectorAll(".reparatur > .pr-kopf")) {
+    const umschalten = () => {
+      /* Nur solange eingeklappt wird — sonst schaltete der Klick eine Klasse
+         um, die niemand sieht, und aria-expanded löge über einen offenen Zweig. */
+      if (!WURZEL_HTML.classList.contains("ohne-reparatur")) return;
+      kopf.setAttribute("aria-expanded", String(kopf.parentElement.classList.toggle("offen")));
+    };
+    kopf.addEventListener("click", umschalten);
+    kopf.addEventListener("keydown", e => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); umschalten(); }
+    });
+  }
+}
+
+/* Rolle und Tabstopp bekommt der Kopf nur, solange er wirklich ein Griff ist.
+   Ständig gesetzt wären es auf arbeitsplatz-einrichten.html 21 zusätzliche
+   Tabstopps, die nichts tun. */
+function reparaturGriffe() {
+  const griff = WURZEL_HTML.classList.contains("ohne-reparatur");
+  for (const kopf of document.querySelectorAll(".reparatur > .pr-kopf")) {
+    if (griff) {
+      kopf.setAttribute("role", "button");
+      kopf.tabIndex = 0;
+      kopf.setAttribute("aria-expanded", String(kopf.parentElement.classList.contains("offen")));
+    } else {
+      kopf.removeAttribute("role");
+      kopf.removeAttribute("tabindex");
+      kopf.removeAttribute("aria-expanded");
+    }
+  }
 }
 
 /* ============================================================
@@ -1355,6 +1517,7 @@ zuletztMerken();
 /* Nach leisteAufbauen: die Leiste hängt sich dort an hefter:ansicht, und ein
    Wechsel aus den Einstellungen heraus muss sie erreichen. */
 ansichtAufbauen();
+anzeigeAufbauen();
 einstellungenAufbauen();
 /* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
    die iconAnwenden als aktiv markiert. */
@@ -1370,6 +1533,12 @@ vorgaengeAktivieren();
 schritteAktivieren();
 sprungzielAufklappen();
 fotosAktivieren();
+reparaturAktivieren();
+/* Nach reparaturAktivieren und anzeigeAufbauen: das Anwenden setzt die Griffe
+   am Reparaturzweig und zeichnet die Schalter — beides muss dafür stehen.
+   Die Klassen selbst hat schon das Kopf-Script gesetzt; dieser Lauf holt den
+   Fall nach, in dem es ausfiel, und hält Schalter und Seite beisammen. */
+anzeigeAnwenden();
 
 /* Erst wenn alles steht, werden Übergänge wieder zugelassen — bis hierher
    hält "laedt" sie an, damit die gemerkte Leistenbreite nicht sichtbar

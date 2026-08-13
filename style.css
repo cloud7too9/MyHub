@@ -972,6 +972,65 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .check.done .lbl { color: var(--text-muted); text-decoration: line-through; }
 .check .lbl { font-size: 15.5px; line-height: 1.5; padding-top: 3px; }
 
+/* ---------- Anzeige je Baustein ----------
+   Gesetzt werden die Klassen am <html>, schon im Kopf-Script — wie der
+   Stufenfilter über body.nur-wiederkehrend: keine zweite Darstellung, nur
+   ausblenden. Welche Ansicht welche Bausteine ausblendet, steht unter
+   hefter:anzeige; die Klassen hier wissen davon nichts.
+   Was warnt, taucht in dieser Liste nicht auf: .callout.gefahr, .achtung
+   und .sicher lassen sich nicht abschalten. */
+html.ohne-fotos .fotozone { display: none; }
+html.ohne-info .callout.info { display: none; }
+html.ohne-begruendung .pr-soll,
+html.ohne-begruendung .callout.ergebnis,
+html.ohne-begruendung .wz-warum { display: none; }
+
+/* Der Reparaturzweig verschwindet nicht, er klappt zu: seine Kopfzeile
+   bleibt als Griff stehen. Ein weggeblendeter Reparaturweg ließe sonst
+   genau den stehen, der ihn braucht. */
+html.ohne-reparatur .reparatur:not(.offen) > *:not(.pr-kopf) { display: none; }
+html.ohne-reparatur .reparatur > .pr-kopf { cursor: pointer; }
+html.ohne-reparatur .reparatur > .pr-kopf::after {
+  margin-left: auto; font-size: 11px; font-weight: 400;
+  letter-spacing: 0; text-transform: none; color: var(--text-dim);
+}
+html.ohne-reparatur .reparatur:not(.offen) > .pr-kopf::after { content: "aufklappen"; }
+html.ohne-reparatur .reparatur.offen > .pr-kopf::after { content: "zuklappen"; }
+
+/* Die Schalter der Einstellungsseite. Heißen bewusst nicht .check —
+   checklisteAktivieren greift jene Klasse über die ganze Seite ab und
+   machte aus den Einstellungen eine Checkliste samt Durchstreichen. */
+.anzeige-reiter {
+  display: flex; gap: 4px; margin-bottom: 2px; padding: 4px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 13px;
+}
+.anzeige-reiter button {
+  flex: 1; min-height: 42px; padding: 0 8px; cursor: pointer;
+  background: none; color: var(--text-muted); border: none; border-radius: 10px;
+  font: inherit; font-weight: 600; font-size: 14px; transition: background .2s, color .2s;
+}
+.anzeige-reiter button:hover { color: var(--text); }
+.anzeige-reiter button.aktiv { background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
+.anzeige-hier { color: var(--text-muted); font-size: 13px; margin: 12px 0 2px; }
+
+.schalter {
+  display: flex; align-items: flex-start; gap: 12px;
+  min-height: 48px; padding: 12px 0; cursor: pointer; user-select: none;
+  border-top: 1px solid var(--border);
+}
+.schalter .box {
+  flex: none; width: 24px; height: 24px; margin-top: 2px; border-radius: 7px;
+  border: 2px solid var(--border); background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center; transition: .15s;
+}
+.schalter .box svg { width: 15px; height: 15px; color: var(--bg); opacity: 0; }
+.schalter.done .box { background: var(--accent); border-color: var(--accent); }
+.schalter.done .box svg { opacity: 1; }
+/* Kein Durchstreichen wie bei .check: hier bedeutet der Haken "wird
+   angezeigt", nicht "erledigt". */
+.schalter .lbl b { display: block; font-size: 15px; font-weight: 600; }
+.schalter .zweck { display: block; color: var(--text-muted); font-size: 13.5px; margin-top: 2px; }
+
 /* ---------- Vorgang abschließen ----------
    Der Knopf steht dort, wo man mit dem Vorgang fertig wird — unten rechts am
    Ende des Container-Inhalts statt oben an der Haken-Box. Erzeugt wird er in
