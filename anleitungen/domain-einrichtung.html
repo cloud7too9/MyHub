@@ -2,35 +2,82 @@
 <html lang="de" data-theme="dunkel">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#060709">
 <meta name="description" content="Eine Domain auf den Hetzner-Server zeigen lassen — Nameserver, A- und AAAA-Records, Subdomains und HTTPS per Let's Encrypt.">
 <meta name="hefter-untertitel" content="Nameserver, A/AAAA-Records, Let's Encrypt">
 <meta name="hefter-stichworte" content="domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung">
+<meta name="hefter-kuerzel" content="DN">
 <title>Domain auf den Server zeigen lassen · Hefter</title>
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="../style.css">
 <script>
-try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
 </script>
 </head>
 <body data-seite="domain-einrichtung" data-basis="../">
 
-<div class="appbar">
-  <a class="back" href="../index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-    Register
-  </a>
-  <span class="spacer"></span>
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="../index.html">
+      <span class="logo"><img data-appicon src="../icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="../einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
   <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
     <span class="lbl">Dunkel</span>
   </button>
-</div>
+</header>
 
 <div class="wrap">
+<!-- KOPF-ENDE -->
 
   <header class="guide-head">
     <span class="chip">Server</span>
@@ -41,6 +88,12 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
       <span><span class="mono">Hetzner DNS</span> · anbieterneutral</span>
     </div>
     <p class="lead">Von der gekauften Domain bis zum grünen Schloss: Zone anlegen, Nameserver umstellen, Records setzen — und das Zertifikat entweder von Coolify oder von Certbot holen lassen.</p>
+    <div class="schrittstand">
+      <span class="fs-zahl" data-fs-zahl>0 / 9</span>
+      <span class="balken"><i data-fs-balken></i></span>
+      <button class="fs-reset" type="button" data-fs-reset>zurücksetzen</button>
+    </div>
+
 
     <div class="stufenfilter" role="group" aria-label="Schritte filtern">
       <button data-filter="alle" class="aktiv">Alle Schritte</button>
@@ -54,8 +107,8 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
     <!-- ============ EINMALIG: Domain und Zone ============ -->
 
     <!-- Schritt 1 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">1</div></div>
+    <section class="step einmalig" data-schritt="server-ip">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 1">1</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>IP-Adressen des Servers ermitteln</h2>
@@ -72,7 +125,7 @@ curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">IPv6 nur eintragen, wenn sie wirklich antwortet</div><div class="txt">Ein <code>AAAA</code>-Record auf eine IPv6, unter der nichts lauscht, führt zu sporadisch nicht erreichbaren Seiten: moderne Browser probieren IPv6 zuerst. Im Zweifel erst nur den <code>A</code>-Record setzen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="server-ip">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -80,8 +133,8 @@ curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
     </section>
 
     <!-- Schritt 2 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">2</div></div>
+    <section class="step einmalig" data-schritt="zone-anlegen">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 2">2</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Domain</span>
         <h2>DNS-Zone beim gewünschten Betreiber anlegen</h2>
@@ -95,7 +148,7 @@ curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Die Zone existiert und zeigt dir drei Nameserver-Namen an (bei Hetzner <code>hydrogen</code>, <code>oxygen</code>, <code>helium</code> <code>.ns.hetzner.com</code>). Genau die brauchst du im nächsten Schritt.</div></div>
         </div>
-        <div class="fotozone" data-schritt="zone-anlegen">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -103,8 +156,8 @@ curl <span class="tok-k">-6</span> https://ifconfig.me</pre>
     </section>
 
     <!-- Schritt 3 -->
-    <section class="step einmalig stufenwechsel">
-      <div class="rail"><div class="step-num">3</div></div>
+    <section class="step einmalig stufenwechsel" data-schritt="nameserver">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 3">3</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Domain</span>
         <h2>Nameserver beim Registrar eintragen</h2>
@@ -126,7 +179,7 @@ nslookup <span class="tok-k">-type=NS</span> example.de</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Die Ausgabe listet die neuen Nameserver. Ab jetzt zählt allein, was in deiner Zone steht.</div></div>
         </div>
-        <div class="fotozone" data-schritt="nameserver">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -136,8 +189,8 @@ nslookup <span class="tok-k">-type=NS</span> example.de</pre>
     <!-- ============ WIEDERKEHREND: pro Projekt / Subdomain ============ -->
 
     <!-- Schritt 4 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">4</div></div>
+    <section class="step wiederkehrend" data-schritt="root-records">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 4">4</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Domain</span>
         <h2>Records für Root-Domain und <code>www</code> setzen</h2>
@@ -160,7 +213,7 @@ www      3600  <span class="tok-k">CNAME</span>   example.de.</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">TTL bewusst wählen</div><div class="txt">Die TTL sagt Resolvern, wie lange sie die Antwort behalten dürfen. Vor einem geplanten Umzug einen Tag vorher auf <code>300</code> senken, danach wieder auf <code>3600</code> — sonst hängen Besucher stundenlang auf der alten IP fest. Der Punkt am Ende von <code>example.de.</code> ist Absicht: er markiert den vollständigen Namen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="root-records">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -168,8 +221,8 @@ www      3600  <span class="tok-k">CNAME</span>   example.de.</pre>
     </section>
 
     <!-- Schritt 5 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">5</div></div>
+    <section class="step wiederkehrend" data-schritt="subdomain">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 5">5</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Subdomain für das Projekt anlegen</h2>
@@ -187,7 +240,7 @@ api      3600  <span class="tok-k">A</span>   203.0.113.10
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Wildcard, wenn Coolify die Subdomains vergibt</div><div class="txt">Legst du Apps in Coolify im Minutentakt an, spart ein einzelner <code>*</code>-Record den Gang in die DNS-Konsole bei jedem neuen Projekt. Der Preis: jeder Tippfehler landet ebenfalls auf deinem Server statt auf einer Fehlermeldung.</div></div>
         </div>
-        <div class="fotozone" data-schritt="subdomain">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -195,8 +248,8 @@ api      3600  <span class="tok-k">A</span>   203.0.113.10
     </section>
 
     <!-- Schritt 6 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">6</div></div>
+    <section class="step wiederkehrend" data-schritt="dns-pruefen">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 6">6</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Auflösung prüfen, <b>bevor</b> ein Zertifikat angefordert wird</h2>
@@ -217,7 +270,7 @@ dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Ports müssen offen sein</div><div class="txt">Für die Zertifikatsprüfung muss der Server über Port <code>80</code> erreichbar sein, für den Betrieb über <code>443</code>. Wie die Firewall dafür eingerichtet wird, steht in <a href="server-ersteinrichtung.html">Server-Erst-Einrichtung &amp; Absicherung</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="dns-pruefen">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -225,8 +278,8 @@ dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
     </section>
 
     <!-- Schritt 7 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">7</div></div>
+    <section class="step wiederkehrend" data-schritt="tls-coolify">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 7">7</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Weg A — HTTPS über Coolify (Standard)</h2>
@@ -244,7 +297,7 @@ dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Verwandte Anleitung</div><div class="txt">Installation, GitHub-Anbindung und das Anlegen der Anwendung stehen in <a href="coolify-einrichtung.html">Coolify einrichten &amp; Projekte ausrollen</a>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="tls-coolify">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -252,8 +305,8 @@ dig <span class="tok-k">@1.1.1.1</span> app.example.de +short</pre>
     </section>
 
     <!-- Schritt 8 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">8</div></div>
+    <section class="step wiederkehrend" data-schritt="tls-certbot">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 8">8</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Weg B — HTTPS über Nginx und Certbot</h2>
@@ -304,7 +357,7 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Certbot hat die <code>server</code>-Blöcke umgeschrieben: Port 80 leitet auf 443 um, das Zertifikat liegt unter <code>/etc/letsencrypt/live/</code>. Der Probelauf bestätigt, dass die Erneuerung in 90 Tagen funktioniert.</div></div>
         </div>
-        <div class="fotozone" data-schritt="tls-certbot">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -312,8 +365,8 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
     </section>
 
     <!-- Schritt 9 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">9</div></div>
+    <section class="step wiederkehrend" data-schritt="caa-weiterleitung">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 9">9</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Domain</span>
         <h2>Optional: CAA-Record und saubere Weiterleitungen</h2>
@@ -337,7 +390,7 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Auch der www-Name braucht ein Zertifikat</div><div class="txt">Die Umleitung passiert erst <i>nach</i> dem TLS-Handshake. <code>www.example.de</code> muss also im selben Zertifikat stehen — bei Certbot per zusätzlichem <code>-d</code>, bei Coolify als zweite Domain.</div></div>
         </div>
-        <div class="fotozone" data-schritt="caa-weiterleitung">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -361,8 +414,10 @@ sudo certbot renew <span class="tok-k">--dry-run</span></pre>
     <div class="check" data-check="renewal-geprueft"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Automatische Erneuerung geprüft</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
-</div>
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+  <p class="foot">Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
 
 <script src="../hefter.js"></script>
 </body>

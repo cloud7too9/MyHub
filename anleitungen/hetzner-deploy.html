@@ -2,35 +2,82 @@
 <html lang="de" data-theme="dunkel">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#060709">
 <meta name="description" content="Automatisches Deployment auf einen Hetzner-Server per GitHub Actions — mit separatem Deploy-Key und GitHub Secrets.">
 <meta name="hefter-untertitel" content="SSH-Deploy-Key, GitHub Secrets, deploy.yml">
 <meta name="hefter-stichworte" content="ssh github actions hetzner deploy key secrets workflow ci cd">
+<meta name="hefter-kuerzel" content="DP">
 <title>GitHub-Actions-Deploy auf Hetzner · Hefter</title>
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="../style.css">
 <script>
-try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
 </script>
 </head>
 <body data-seite="hetzner-deploy" data-basis="../">
 
-<div class="appbar">
-  <a class="back" href="../index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-    Register
-  </a>
-  <span class="spacer"></span>
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="../index.html">
+      <span class="logo"><img data-appicon src="../icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="../einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
   <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
     <span class="lbl">Dunkel</span>
   </button>
-</div>
+</header>
 
 <div class="wrap">
+<!-- KOPF-ENDE -->
 
   <header class="guide-head">
     <span class="chip">Deployment</span>
@@ -41,6 +88,12 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
       <span>Server <span class="mono">Hetzner CX</span></span>
     </div>
     <p class="lead">Schritt-für-Schritt, wie ein Push auf <code>main</code> automatisch auf deinen Server ausrollt — sicher konfiguriert mit einem separaten Deploy-Key.</p>
+    <div class="schrittstand">
+      <span class="fs-zahl" data-fs-zahl>0 / 4</span>
+      <span class="balken"><i data-fs-balken></i></span>
+      <button class="fs-reset" type="button" data-fs-reset>zurücksetzen</button>
+    </div>
+
 
     <div class="stufenfilter" role="group" aria-label="Schritte filtern">
       <button data-filter="alle" class="aktiv">Alle Schritte</button>
@@ -52,8 +105,8 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
   <main>
 
     <!-- Schritt 1 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">1</div></div>
+    <section class="step einmalig" data-schritt="ssh-key">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 1">1</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig</span>
         <h2>SSH-Schlüsselpaar generieren</h2>
@@ -71,7 +124,7 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Ergebnis</div><div class="txt">Zwei Dateien entstehen: <code>github_deploy_key</code> (privat → kommt zu GitHub) und <code>github_deploy_key.pub</code> (öffentlich → kommt auf den Server).</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssh-key">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -79,8 +132,8 @@ ssh-keygen <span class="tok-k">-t</span> ed25519 <span class="tok-k">-C</span> <
     </section>
 
     <!-- Schritt 2 -->
-    <section class="step einmalig stufenwechsel">
-      <div class="rail"><div class="step-num">2</div></div>
+    <section class="step einmalig stufenwechsel" data-schritt="pubkey-server">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 2">2</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Öffentlichen Schlüssel auf dem Hetzner-Server hinterlegen</h2>
@@ -95,7 +148,7 @@ cat ~/.ssh/github_deploy_key.pub</pre>
           <pre><span class="tok-c"># Inhalt der .pub-Datei ans Ende anhängen</span>
 echo <span class="tok-s">"&lt;dein-öffentlicher-Schlüssel&gt;"</span> &gt;&gt; ~/.ssh/authorized_keys</pre>
         </div>
-        <div class="fotozone" data-schritt="pubkey-server">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -103,8 +156,8 @@ echo <span class="tok-s">"&lt;dein-öffentlicher-Schlüssel&gt;"</span> &gt;&gt;
     </section>
 
     <!-- Schritt 3 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">3</div></div>
+    <section class="step wiederkehrend" data-schritt="github-secrets">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 3">3</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Repo</span>
         <h2>GitHub Secrets konfigurieren</h2>
@@ -123,7 +176,7 @@ cat ~/.ssh/github_deploy_key</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Privat halten</div><div class="txt">Der private Schlüssel gehört <b>nur</b> in das GitHub-Secret — niemals ins Repo committen oder weitergeben.</div></div>
         </div>
-        <div class="fotozone" data-schritt="github-secrets">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -131,8 +184,8 @@ cat ~/.ssh/github_deploy_key</pre>
     </section>
 
     <!-- Schritt 4 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">4</div></div>
+    <section class="step wiederkehrend" data-schritt="workflow">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 4">4</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Repo</span>
         <h2>GitHub-Actions-Workflow erstellen</h2>
@@ -161,7 +214,7 @@ cat ~/.ssh/github_deploy_key</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Vorab-Check auf dem Server</div><div class="txt">Damit <code>git pull</code> funktioniert, muss das Repo einmalig manuell in den Zielordner (z. B. <code>/var/www/mein-projekt</code>) geklont sein.</div></div>
         </div>
-        <div class="fotozone" data-schritt="workflow">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -183,8 +236,10 @@ cat ~/.ssh/github_deploy_key</pre>
     <div class="check" data-check="repo-geklont"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Repo einmalig auf den Server geklont</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
-</div>
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+  <p class="foot">Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
 
 <script src="../hefter.js"></script>
 </body>

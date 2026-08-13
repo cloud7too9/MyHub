@@ -12,94 +12,148 @@
 /* REGISTER-START */
 const REGISTER = [
   {
-    "id": "hetzner-deploy",
+    "id": "arbeitsplatz-einrichten",
     "art": "anleitung",
-    "titel": "Automatisches Deploy auf Hetzner per GitHub Actions",
-    "untertitel": "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
-    "kategorie": "Deployment",
-    "datei": "anleitungen/hetzner-deploy.html",
-    "stichworte": "ssh github actions hetzner deploy key secrets workflow ci cd"
+    "titel": "Arbeitsplatz einrichten",
+    "kuerzel": "AP",
+    "untertitel": "Windows · von Null bis arbeitsfähig, danach pro Projekt",
+    "kategorie": "Arbeitsplatz",
+    "datei": "anleitungen/arbeitsplatz-einrichten.html",
+    "stichworte": "arbeitsplatz windows powershell winget scoop terminal profil git identitaet ssh schluessel github gh cli node fnm pnpm uv python docker wsl vscode ripgrep fzf just editorconfig prettier eslint nvmrc ci workflow neuer rechner onboarding",
+    "schritte": 21,
+    "checks": 6
   },
   {
-    "id": "git-ssd",
-    "art": "anleitung",
-    "titel": "Git von der portablen SSD nutzen",
-    "untertitel": "SSH-Schlüssel und Konfiguration unterwegs dabei",
-    "kategorie": "Git",
-    "datei": "anleitungen/git-ssd.html",
-    "stichworte": "ssd portable ssh schluessel config git ssh command fremder rechner unterwegs stick mobil workflow"
-  },
-  {
-    "id": "vscode-git-workflow",
-    "art": "anleitung",
-    "titel": "Repo in VS Code klonen & Änderungen hochladen",
-    "untertitel": "Klonen, committen, synchronisieren — UI und Terminal",
-    "kategorie": "Git",
-    "datei": "anleitungen/vscode-git-workflow.html",
-    "stichworte": "vscode git clone commit push pull sync quellcodeverwaltung stagen repository workflow hochladen"
+    "id": "werkzeugkasten",
+    "art": "uebersicht",
+    "titel": "Werkzeugkasten",
+    "kuerzel": "WK",
+    "untertitel": "Fundament, Ausliefern, Prüfen, Beschleuniger — mit Einrichtung und Prüfschritt",
+    "kategorie": "Arbeitsplatz",
+    "datei": "nachschlagen/werkzeugkasten.html",
+    "stichworte": "git gh vscode terminal powershell winget scoop node fnm pnpm uv python ssh docker actions netlify caddy systemd devtools curl bruno jq regex ripgrep fzf just bat eza prettier eslint editorconfig werkzeuge tooling",
+    "schritte": 0,
+    "checks": 25
   },
   {
     "id": "git-zugang-privat",
     "art": "anleitung",
     "titel": "Zugang zu privaten Repositories einrichten",
+    "kuerzel": "GZ",
     "untertitel": "Browser-Login, Token oder SSH-Schlüssel",
     "kategorie": "Git",
     "datei": "anleitungen/git-zugang-privat.html",
-    "stichworte": "github privat authentifizierung anmeldung token pat ssh schluessel login vscode zugriff credentials fine-grained"
+    "stichworte": "github privat authentifizierung anmeldung token pat ssh schluessel login vscode zugriff credentials fine-grained",
+    "schritte": 5,
+    "checks": 3
   },
   {
-    "id": "coolify-einrichtung",
+    "id": "vscode-git-workflow",
     "art": "anleitung",
-    "titel": "Coolify einrichten & Projekte ausrollen",
-    "untertitel": "Installation, GitHub-Anbindung, erste App",
-    "kategorie": "Server",
-    "datei": "anleitungen/coolify-einrichtung.html",
-    "stichworte": "coolify paas self hosted docker traefik proxy deploy github app webhook auto deploy umgebungsvariablen env secrets domain buildpack nixpacks dockerfile compose dashboard port 8000 rollback persistent storage hetzner update"
+    "titel": "Repo in VS Code klonen & Änderungen hochladen",
+    "kuerzel": "VG",
+    "untertitel": "Klonen, committen, synchronisieren — UI und Terminal",
+    "kategorie": "Git",
+    "datei": "anleitungen/vscode-git-workflow.html",
+    "stichworte": "vscode git clone commit push pull sync quellcodeverwaltung stagen repository workflow hochladen",
+    "schritte": 5,
+    "checks": 4
   },
   {
-    "id": "docker-einrichtung",
+    "id": "git-ssd",
     "art": "anleitung",
-    "titel": "Docker einrichten & pro Repository integrieren",
-    "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
-    "kategorie": "Server",
-    "datei": "anleitungen/docker-einrichtung.html",
-    "stichworte": "docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx"
-  },
-  {
-    "id": "domain-einrichtung",
-    "art": "anleitung",
-    "titel": "Domain einrichten & per HTTPS ausliefern",
-    "untertitel": "Nameserver, A/AAAA-Records, Let's Encrypt",
-    "kategorie": "Server",
-    "datei": "anleitungen/domain-einrichtung.html",
-    "stichworte": "domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung"
-  },
-  {
-    "id": "server-ersteinrichtung",
-    "art": "anleitung",
-    "titel": "Server-Erst-Einrichtung & Absicherung",
-    "untertitel": "Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban",
-    "kategorie": "Server",
-    "datei": "anleitungen/server-ersteinrichtung.html",
-    "stichworte": "ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port"
+    "titel": "Git von der portablen SSD nutzen",
+    "kuerzel": "SD",
+    "untertitel": "SSH-Schlüssel und Konfiguration unterwegs dabei",
+    "kategorie": "Git",
+    "datei": "anleitungen/git-ssd.html",
+    "stichworte": "ssd portable ssh schluessel config git ssh command fremder rechner unterwegs stick mobil workflow",
+    "schritte": 6,
+    "checks": 5
   },
   {
     "id": "vscode-remote-ssh",
     "art": "anleitung",
     "titel": "VS Code mit dem Hetzner-Server verbinden",
+    "kuerzel": "VR",
     "untertitel": "Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche",
     "kategorie": "Werkzeuge",
     "datei": "anleitungen/vscode-remote-ssh.html",
-    "stichworte": "vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban"
+    "stichworte": "vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban",
+    "schritte": 11,
+    "checks": 8
+  },
+  {
+    "id": "server-ersteinrichtung",
+    "art": "anleitung",
+    "titel": "Server-Erst-Einrichtung & Absicherung",
+    "kuerzel": "SE",
+    "untertitel": "Ubuntu 24.04 · Rollen, Schlüssel je Gerät, SSH-Härtung, UFW, fail2ban",
+    "kategorie": "Server",
+    "datei": "anleitungen/server-ersteinrichtung.html",
+    "stichworte": "ubuntu hetzner server setup benutzer rollen admin dienstnutzer deploy sudo sudoers docker gruppe ssh schluessel ed25519 schluesselpaar authorized_keys mehrere geraete widerruf root passwort negativtest firewall ufw fail2ban ignoreip brute force absichern haertung port",
+    "schritte": 11,
+    "checks": 14
   },
   {
     "id": "schluesselverwaltung",
     "art": "uebersicht",
     "titel": "Schlüsselverwaltung",
+    "kuerzel": "SK",
     "untertitel": "Schlüsselpaare, Ablage pro Nutzer, mehrere Geräte, Widerruf, Rechte",
     "kategorie": "Server",
     "datei": "nachschlagen/schluesselverwaltung.html",
-    "stichworte": "ssh schluessel schluesselpaar ed25519 rsa passphrase ssh-agent authorized_keys fingerabdruck known_hosts rechte strictmodes rollen sudo sudoers docker gruppe geraete zweitgeraet widerruf aussperren sperren optionen command from restrict no-pty deploy permission denied publickey fehlersuche nachschlagen"
+    "stichworte": "ssh schluessel schluesselpaar ed25519 rsa passphrase ssh-agent authorized_keys fingerabdruck known_hosts rechte strictmodes rollen sudo sudoers docker gruppe geraete zweitgeraet widerruf aussperren sperren optionen command from restrict no-pty deploy permission denied publickey fehlersuche nachschlagen",
+    "schritte": 0,
+    "checks": 0
+  },
+  {
+    "id": "docker-einrichtung",
+    "art": "anleitung",
+    "titel": "Docker einrichten & pro Repository integrieren",
+    "kuerzel": "DO",
+    "untertitel": "Engine, Compose, Dockerfile, Deploy-Anbindung",
+    "kategorie": "Server",
+    "datei": "anleitungen/docker-einrichtung.html",
+    "stichworte": "docker compose container dockerfile image volume repo repository deploy ufw ports registry engine buildx",
+    "schritte": 12,
+    "checks": 8
+  },
+  {
+    "id": "domain-einrichtung",
+    "art": "anleitung",
+    "titel": "Domain einrichten & per HTTPS ausliefern",
+    "kuerzel": "DN",
+    "untertitel": "Nameserver, A/AAAA-Records, Let's Encrypt",
+    "kategorie": "Server",
+    "datei": "anleitungen/domain-einrichtung.html",
+    "stichworte": "domain dns nameserver a record aaaa cname ttl subdomain wildcard hetzner dns console registrar https tls ssl zertifikat lets encrypt certbot nginx traefik caa propagation dig weiterleitung",
+    "schritte": 9,
+    "checks": 7
+  },
+  {
+    "id": "coolify-einrichtung",
+    "art": "anleitung",
+    "titel": "Coolify einrichten & Projekte ausrollen",
+    "kuerzel": "CO",
+    "untertitel": "Installation, GitHub-Anbindung, erste App",
+    "kategorie": "Server",
+    "datei": "anleitungen/coolify-einrichtung.html",
+    "stichworte": "coolify paas self hosted docker traefik proxy deploy github app webhook auto deploy umgebungsvariablen env secrets domain buildpack nixpacks dockerfile compose dashboard port 8000 rollback persistent storage hetzner update",
+    "schritte": 12,
+    "checks": 10
+  },
+  {
+    "id": "hetzner-deploy",
+    "art": "anleitung",
+    "titel": "Automatisches Deploy auf Hetzner per GitHub Actions",
+    "kuerzel": "DP",
+    "untertitel": "SSH-Deploy-Key, GitHub Secrets, deploy.yml",
+    "kategorie": "Deployment",
+    "datei": "anleitungen/hetzner-deploy.html",
+    "stichworte": "ssh github actions hetzner deploy key secrets workflow ci cd",
+    "schritte": 4,
+    "checks": 5
   }
 ];
 /* REGISTER-ENDE */
@@ -121,10 +175,28 @@ const BASIS = document.body.dataset.basis || "";
 const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
+  leiste: "hefter:leiste",
+  zuletzt: "hefter:zuletzt",
   checks: id => "hefter:checks:" + id,
+  schritte: id => "hefter:schritte:" + id,
+  stufe: id => "hefter:stufe:" + id,
   weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
+
+/* localStorage kann werfen (privater Modus, volles Kontingent) und liefert
+   beim ersten Besuch nichts — beides darf keine Seite lahmlegen. */
+function gelesen(schluessel, ersatz) {
+  try {
+    const roh = localStorage.getItem(schluessel);
+    return roh === null ? ersatz : JSON.parse(roh);
+  } catch { return ersatz; }
+}
+/* Heißt bewusst nicht "gespeichert": so nennt checklisteAktivieren seine
+   eigene Liste, und ein verdeckter Name ist beim Lesen eine Falle. */
+function merken(schluessel, wert) {
+  try { localStorage.setItem(schluessel, JSON.stringify(wert)); } catch {}
+}
 
 function neueId() {
   try { return crypto.randomUUID(); }
@@ -196,71 +268,285 @@ function iconAnwenden(id, speichern = true) {
 }
 
 /* ============================================================
-   REGISTER-SEITE  (Liste + Suche)
-   Zwei Sorten: Anleitungen nach Bereich gruppiert, darunter die
-   Nachschlage-Übersichten als eigener Block. Die Suche läuft über
-   beide — getrennt ist nur die Anzeige.
+   BÜHNE  (Startseite)
+   Das Register selbst steht in der Leiste — die Startseite
+   beantwortet stattdessen "wo stehe ich": zuletzt geöffnete
+   Seite, angefangene Seiten, und darunter alle Seiten mit ihrem
+   Stand. Diese Liste ist zugleich der vollständige Weg zu jeder
+   Seite: unter 860px ist die Leiste zugeklappt, und ohne sie
+   liefe der Einstieg sonst ins Leere.
    ============================================================ */
-function registerAufbauen() {
-  const ziel = document.getElementById("registerListe");
+function buehneAufbauen() {
+  const ziel = document.getElementById("buehne");
   if (!ziel) return;
   /* Das REGISTER enthält Klartext (Build löst Entities auf) — beim
      Rendern per innerHTML muss deshalb hier escaped werden. */
-  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const BUCH = '<span class="sorte-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg></span>';
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const PFEIL = '<span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>';
+
+  const einheit = e => e.art === "uebersicht" ? "eingerichtet" : "Schritten";
+
+  const stand = e => {
+    const fs = fortschritt(e);
+    if (!fs) return { text: e.untertitel, balken: "", angefangen: false, fertig: false };
+    return {
+      text: `${fs.erledigt} von ${fs.gesamt} ${einheit(e)}`,
+      balken: `<span class="balken"><i style="width:${Math.round(fs.erledigt / fs.gesamt * 100)}%"></i></span>`,
+      angefangen: fs.erledigt > 0 && fs.erledigt < fs.gesamt,
+      fertig: fs.erledigt === fs.gesamt,
+      offen: fs.gesamt - fs.erledigt
+    };
+  };
 
   const eintrag = e => {
-    const uebersicht = e.art === "uebersicht";
-    /* Die Übersichten stehen nicht unter ihrer Kategorie — die kommt
-       deshalb in die Unterzeile, sonst ginge sie ganz verloren. */
-    const unter = uebersicht ? e.kategorie + " · " + e.untertitel : e.untertitel;
-    const such = (e.titel + " " + e.untertitel + " " + e.kategorie + " " + e.stichworte).toLowerCase();
+    const s = stand(e);
     return `
-      <a class="eintrag${uebersicht ? " uebersicht" : ""}" href="${e.datei}" data-such="${esc(such)}">
-        ${uebersicht ? BUCH : ""}
-        <span><span class="t">${esc(e.titel)}</span><br><span class="u">${esc(unter)}</span></span>
-        <span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+      <a class="b-eintrag${s.fertig ? " fertig" : ""}" href="${e.datei}">
+        <span class="kuerzel" aria-hidden="true">${esc(e.kuerzel)}</span>
+        <span class="b-text">
+          <span class="b-titel">${esc(e.titel)}</span>
+          <span class="b-unter">${esc(e.untertitel)}</span>
+          <span class="b-stand">${esc(s.text)}${s.balken}</span>
+        </span>
+        ${PFEIL}
       </a>`;
   };
 
-  const anleitungen = REGISTER.filter(e => e.art !== "uebersicht");
-  const uebersichten = REGISTER.filter(e => e.art === "uebersicht");
-  const kategorien = [...new Set(anleitungen.map(e => e.kategorie))];
+  let html = "";
 
-  ziel.innerHTML = kategorien.map(kat => `
-    <section class="kategorie" data-kat="${esc(kat)}">
-      <h2>${esc(kat)}</h2>
-      ${anleitungen.filter(e => e.kategorie === kat).map(eintrag).join("")}
-    </section>`).join("")
-    + (uebersichten.length ? `
-    <section class="kategorie nachschlagen" data-kat="Nachschlagen">
-      <h2>Nachschlagen</h2>
-      <p class="kat-sub">Zum Nachschlagen statt zum Durchlaufen — Hintergrund und Handgriffe an einer Stelle.</p>
-      ${uebersichten.map(eintrag).join("")}
-    </section>` : "");
+  /* ---- Weiterlesen ---- */
+  const zuletzt = REGISTER.find(e => e.id === gelesen(KEY.zuletzt, null));
+  if (zuletzt) {
+    const s = stand(zuletzt);
+    html += `
+    <section class="b-teil">
+      <h2>Weiterlesen</h2>
+      <a class="b-weiter" href="${zuletzt.datei}">
+        <span class="kuerzel" aria-hidden="true">${esc(zuletzt.kuerzel)}</span>
+        <span class="b-text">
+          <span class="b-titel">${esc(zuletzt.titel)}</span>
+          <span class="b-unter">${esc(zuletzt.kategorie)} · ${esc(s.text)}</span>
+          ${s.balken}
+        </span>
+        ${PFEIL}
+      </a>
+    </section>`;
+  }
 
-  const feld = document.getElementById("sucheFeld");
-  if (!feld) return;
-  feld.addEventListener("input", () => {
-    const q = feld.value.trim().toLowerCase();
+  /* ---- Angefangen ---- */
+  const angefangen = REGISTER.filter(e => stand(e).angefangen && e.id !== zuletzt?.id);
+  if (angefangen.length) {
+    html += `
+    <section class="b-teil">
+      <h2>Angefangen</h2>
+      <p class="b-sub">Hier bist du stehengeblieben.</p>
+      ${angefangen.map(eintrag).join("")}
+    </section>`;
+  }
+
+  /* ---- Alle Seiten, nach Fächern ---- */
+  const faecher = [];
+  for (const e of REGISTER) {
+    let f = faecher.find(x => x.name === e.kategorie);
+    if (!f) faecher.push(f = { name: e.kategorie, seiten: [] });
+    f.seiten.push(e);
+  }
+  html += `
+    <section class="b-teil">
+      <h2>Alle Seiten</h2>
+      ${faecher.map(f => `
+      <div class="b-fach">
+        <h3>${esc(f.name)}</h3>
+        ${f.seiten.map(eintrag).join("")}
+      </div>`).join("")}
+    </section>`;
+
+  ziel.innerHTML = html;
+}
+
+/* Jede Seite meldet sich als zuletzt geöffnete — das speist "Weiterlesen"
+   auf der Startseite. Register und Einstellungen haben kein data-seite und
+   überschreiben den Stand deshalb nicht. */
+function zuletztMerken() {
+  const seite = document.body.dataset.seite;
+  if (seite) merken(KEY.zuletzt, seite);
+}
+
+/* ============================================================
+   SEITENLEISTE  (Register auf jeder Seite)
+   Fächer sind die Kategorien, in der Reihenfolge, die bauen.mjs
+   festlegt. Der Zustand — eingeklappt, welche Fächer zu — liegt
+   unter hefter:leiste und wird schon im <head> gelesen, damit die
+   Leiste nicht in ihrer gemerkten Breite aufblitzt.
+   ============================================================ */
+const WURZEL_HTML = document.documentElement;
+
+/* Nenner des Fortschritts: eine Anleitung zählt ihre Schritte, eine
+   Übersicht ihre Haken. Ein entfernter Punkt kann in der Speicherung
+   zurückbleiben, deshalb wird der Anteil gedeckelt. */
+function fortschritt(e) {
+  const uebersicht = e.art === "uebersicht";
+  const gesamt = uebersicht ? e.checks : e.schritte;
+  if (!gesamt) return null;
+  const erledigt = (gelesen(uebersicht ? KEY.checks(e.id) : KEY.schritte(e.id), []) || []).length;
+  return { erledigt: Math.min(erledigt, gesamt), gesamt };
+}
+
+function leisteAufbauen() {
+  const ziel = document.getElementById("leisteRegister");
+  if (!ziel) return;
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const hier = document.body.dataset.seite || "";
+  const feld = document.getElementById("leisteSuche");
+  const leer = document.getElementById("leisteLeer");
+  const schleier = document.querySelector("[data-schleier]");
+  const zustand = Object.assign({ schmal: false, zu: [] }, gelesen(KEY.leiste, {}));
+  let suchtext = "";
+
+  /* Fächer in der Reihenfolge ihres ersten Auftretens im REGISTER —
+     die Leseordnung steckt schon in der Sortierung von bauen.mjs. */
+  const faecher = [];
+  for (const e of REGISTER) {
+    let f = faecher.find(x => x.name === e.kategorie);
+    if (!f) faecher.push(f = { name: e.kategorie, seiten: [] });
+    f.seiten.push(e);
+  }
+
+  const passt = e => !suchtext ||
+    (e.titel + " " + e.untertitel + " " + e.kategorie + " " + e.stichworte).toLowerCase().includes(suchtext);
+
+  const eintrag = e => {
+    const aktiv = e.id === hier;
+    const fs = fortschritt(e);
+    return `
+      <a class="l-eintrag${aktiv ? " aktiv" : ""}" href="${BASIS}${e.datei}"${aktiv ? ' aria-current="page"' : ""}>
+        <span class="kuerzel" aria-hidden="true">${esc(e.kuerzel)}</span>
+        <span class="e-text">
+          <span class="e-titel">${esc(e.titel)}</span>
+          <span class="e-unten">
+            <span class="typ">${e.art === "uebersicht" ? "Nachschlagen" : "Durchlaufen"}</span>
+            ${fs ? `<span class="mini" title="${fs.erledigt} von ${fs.gesamt}"><i style="width:${Math.round(fs.erledigt / fs.gesamt * 100)}%"></i></span>` : ""}
+          </span>
+        </span>
+        <span class="blase">${esc(e.titel)}</span>
+      </a>`;
+  };
+
+  function zeichnen() {
+    let html = "";
     let treffer = 0;
-    ziel.querySelectorAll(".eintrag").forEach(a => {
-      const zeigt = !q || a.dataset.such.includes(q);
-      a.style.display = zeigt ? "" : "none";
-      if (zeigt) treffer++;
-    });
-    ziel.querySelectorAll(".kategorie").forEach(k => {
-      k.style.display = [...k.querySelectorAll(".eintrag")].some(a => a.style.display !== "none") ? "" : "none";
-    });
-    const leer = document.getElementById("keineTreffer");
+    for (const f of faecher) {
+      const seiten = f.seiten.filter(passt);
+      if (!seiten.length) continue;
+      treffer += seiten.length;
+      /* Während gesucht wird, sind alle Fächer offen — sonst bliebe ein
+         Treffer in einem zugeklappten Fach unsichtbar. */
+      const zu = !suchtext && zustand.zu.includes(f.name);
+      html += `
+        <div class="fach${zu ? " zu" : ""}">
+          <button class="fach-kopf" data-fach="${esc(f.name)}" aria-expanded="${!zu}">
+            <svg class="pfeil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="name">${esc(f.name)}</span>
+            <span class="anz">${seiten.length}</span>
+          </button>
+          <div class="fach-inhalt">${seiten.map(eintrag).join("")}</div>
+        </div>`;
+    }
+    ziel.innerHTML = html;
     if (leer) leer.style.display = treffer ? "none" : "block";
+  }
+
+  /* ---- Zustand ---- */
+  const schmalSetzen = (an, speichern = true) => {
+    zustand.schmal = an;
+    WURZEL_HTML.classList.toggle("schmal", an);
+    const knopf = document.querySelector("[data-klapp]");
+    if (knopf) knopf.setAttribute("aria-label", an ? "Leiste ausklappen" : "Leiste einklappen");
+    if (speichern) merken(KEY.leiste, zustand);
+  };
+  const istSchmalerSchirm = () => matchMedia("(max-width: 860px)").matches;
+  const auszugSetzen = an => {
+    WURZEL_HTML.classList.toggle("auf", an);
+    const brenner = document.querySelector("[data-brenner]");
+    if (brenner) brenner.setAttribute("aria-expanded", String(an));
+  };
+
+  /* Auf dem Telefon klappt derselbe Knopf den Auszug auf statt die Breite
+     umzustellen — dort gibt es den Schmal-Zustand nicht. */
+  const umschalten = () => istSchmalerSchirm()
+    ? auszugSetzen(!WURZEL_HTML.classList.contains("auf"))
+    : schmalSetzen(!zustand.schmal);
+
+  schmalSetzen(zustand.schmal, false);
+  zeichnen();
+
+  /* ---- Ereignisse ---- */
+  document.querySelector("[data-klapp]")?.addEventListener("click", umschalten);
+  document.querySelector("[data-brenner]")?.addEventListener("click", umschalten);
+  schleier?.addEventListener("click", () => auszugSetzen(false));
+
+  /* Die Lupe im Schmal-Zustand klappt erst auf und setzt dann den Fokus —
+     ins ausgeblendete Feld zu springen brächte nichts. */
+  document.querySelector("[data-lupe]")?.addEventListener("click", () => {
+    schmalSetzen(false);
+    feld?.focus();
   });
-  /* Ctrl+K bzw. / fokussiert die Suche */
+
+  ziel.addEventListener("click", e => {
+    const kopf = e.target.closest("[data-fach]");
+    if (!kopf) return;
+    const name = kopf.dataset.fach;
+    const i = zustand.zu.indexOf(name);
+    i === -1 ? zustand.zu.push(name) : zustand.zu.splice(i, 1);
+    merken(KEY.leiste, zustand);
+    zeichnen();
+  });
+
+  feld?.addEventListener("input", () => { suchtext = feld.value.trim().toLowerCase(); zeichnen(); });
+
+  /* Die Sprechblase steht fest im Bild (siehe .blase in style.css) — ihre
+     Höhe muss deshalb beim Überfahren gesetzt werden. Nur im Schmal-Zustand
+     nötig, sonst steht der Titel ohnehin daneben. */
+  const blaseSetzen = ev => {
+    if (!WURZEL_HTML.classList.contains("schmal")) return;
+    const eintrag = ev.target.closest(".l-eintrag, .f-btn");
+    const blase = eintrag?.querySelector(".blase");
+    if (!blase) return;
+    const kasten = eintrag.getBoundingClientRect();
+    blase.style.top = Math.round(kasten.top + kasten.height / 2) + "px";
+  };
+  for (const bereich of [ziel, document.querySelector(".l-fuss")]) {
+    bereich?.addEventListener("mouseover", blaseSetzen);
+    bereich?.addEventListener("focusin", blaseSetzen);
+  }
+
   addEventListener("keydown", e => {
-    if ((e.ctrlKey && e.key.toLowerCase() === "k") || (e.key === "/" && document.activeElement !== feld)) {
-      e.preventDefault(); feld.focus(); feld.select();
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") { e.preventDefault(); umschalten(); return; }
+    if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") ||
+        (e.key === "/" && document.activeElement !== feld && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName))) {
+      e.preventDefault();
+      if (istSchmalerSchirm()) auszugSetzen(true); else schmalSetzen(false);
+      feld?.focus(); feld?.select();
+      return;
+    }
+    if (e.key === "Escape") {
+      if (WURZEL_HTML.classList.contains("auf")) auszugSetzen(false);
+      else if (document.activeElement === feld && feld.value) { feld.value = ""; suchtext = ""; zeichnen(); }
     }
   });
+
+  /* Vom Telefon auf den großen Schirm gedreht: der Auszug hat dort keine
+     Entsprechung und bliebe sonst als Schleier über der Seite liegen. */
+  addEventListener("resize", () => { if (!istSchmalerSchirm()) auszugSetzen(false); });
+
+  /* Brotkrume im Inhalts-Kopf */
+  const krumen = document.querySelector("[data-krumen]");
+  if (krumen) {
+    const e = REGISTER.find(x => x.id === hier);
+    krumen.innerHTML = e
+      ? esc(e.kategorie) + " <b>/</b> " + esc(e.titel)
+      : esc(document.querySelector("h1")?.textContent.trim() || "Hefter");
+  }
 }
 
 /* ============================================================
@@ -400,14 +686,26 @@ function checklisteAktivieren() {
   }
   checks.forEach(c => { if (gespeichert.includes(c.dataset.check)) c.classList.add("done"); });
 
+  /* Anleitungen haben beides: Schritt-Haken und eine Abschluss-Checkliste.
+     Der Balken im Kopf gehört dort den Schritten — deshalb hat jeder seine
+     eigene Marke, sonst überschrieben sich die beiden gegenseitig. */
+  const balken = document.querySelector("[data-haken-balken]");
+
   const aktualisieren = () => {
     checks.forEach(c => c.setAttribute("aria-checked", c.classList.contains("done")));
-    if (stand) stand.textContent = checks.filter(c => c.classList.contains("done")).length + " / " + checks.length;
+    const fertig = checks.filter(c => c.classList.contains("done"));
+    if (stand) stand.textContent = fertig.length + " / " + checks.length;
+    if (balken) balken.style.width = (fertig.length / checks.length * 100) + "%";
     if (seite) {
-      const done = checks.filter(c => c.classList.contains("done")).map(c => c.dataset.check).filter(Boolean);
+      const done = fertig.map(c => c.dataset.check).filter(Boolean);
       try { localStorage.setItem(KEY.checks(seite), JSON.stringify(done)); } catch {}
     }
   };
+
+  document.querySelector("[data-haken-reset]")?.addEventListener("click", () => {
+    checks.forEach(c => c.classList.remove("done"));
+    aktualisieren();
+  });
   /* Die Häkchen sind <div>s — Rolle, Fokus und Tastatur werden hier
      zentral nachgerüstet, damit die Anleitungs-HTMLs schlicht bleiben. */
   if (stand) stand.setAttribute("aria-live", "polite");
@@ -424,6 +722,80 @@ function checklisteAktivieren() {
 }
 
 /* ============================================================
+   KARTE AUFKLAPPEN, WENN MAN AUF SIE SPRINGT
+   Ein Info-Symbol aus einer Anleitung zeigt auf #wz-git. Ohne das
+   hier landete man auf einer zugeklappten Karte und müsste noch
+   einmal tippen, um das zu sehen, weswegen man gekommen ist.
+   ============================================================ */
+function sprungzielAufklappen() {
+  const oeffnen = () => {
+    if (!location.hash) return;
+    /* Ein Hash muss kein gültiger Selektor sein — querySelector wirft dann. */
+    let ziel = null;
+    try { ziel = document.querySelector(location.hash); } catch { return; }
+    if (!ziel) return;
+    const klapp = ziel.matches("details") ? ziel : ziel.querySelector("details");
+    if (!klapp) return;
+    klapp.open = true;
+    /* Nach dem Aufklappen wächst die Karte — der Browser hat da schon
+       gescrollt, also noch einmal nachziehen. */
+    ziel.scrollIntoView({ block: "start" });
+  };
+  addEventListener("hashchange", oeffnen);
+  oeffnen();
+}
+
+/* ============================================================
+   SCHRITT-HAKEN
+   Die Schrittnummer ist zugleich der Haken — man markiert dort,
+   wo man gerade steht, statt am Seitenende in einer Liste. Die
+   Abschluss-Checkliste bleibt daneben: sie hakt Ergebnisse ab,
+   nicht Handgriffe.
+   Gezählt werden immer alle Schritte der Seite, auch die vom
+   Stufenfilter ausgeblendeten — sonst spränge die Zahl beim
+   Umschalten des Filters, ohne dass sich etwas getan hätte.
+   ============================================================ */
+function schritteAktivieren() {
+  const schritte = [...document.querySelectorAll(".step[data-schritt]")];
+  if (!schritte.length) return;
+  const seite = document.body.dataset.seite;
+  const zahl = document.querySelector("[data-fs-zahl]");
+  const balken = document.querySelector("[data-fs-balken]");
+
+  const erledigt = new Set(gelesen(KEY.schritte(seite), []) || []);
+
+  const anzeigen = () => {
+    let fertig = 0;
+    for (const s of schritte) {
+      const an = erledigt.has(s.dataset.schritt);
+      if (an) fertig++;
+      s.classList.toggle("erledigt", an);
+      s.querySelector(".step-num")?.setAttribute("aria-pressed", String(an));
+    }
+    if (zahl) zahl.textContent = fertig + " / " + schritte.length;
+    if (balken) balken.style.width = (fertig / schritte.length * 100) + "%";
+  };
+
+  for (const s of schritte) {
+    s.querySelector(".step-num")?.addEventListener("click", () => {
+      const id = s.dataset.schritt;
+      erledigt.has(id) ? erledigt.delete(id) : erledigt.add(id);
+      if (seite) merken(KEY.schritte(seite), [...erledigt]);
+      anzeigen();
+    });
+  }
+
+  document.querySelector("[data-fs-reset]")?.addEventListener("click", () => {
+    erledigt.clear();
+    if (seite) merken(KEY.schritte(seite), []);
+    anzeigen();
+  });
+
+  if (zahl) zahl.setAttribute("aria-live", "polite");
+  anzeigen();
+}
+
+/* ============================================================
    FOTO ANFÜGEN
    16:9-Editor · Ablage in IndexedDB als Blob (kein 5-MB-Limit,
    kein base64-Aufschlag) · Zuordnung über data-schritt-IDs.
@@ -433,6 +805,16 @@ function fotosAktivieren() {
   const zonen = [...document.querySelectorAll(".fotozone")];
   if (!zonen.length) return;
   const seite = document.body.dataset.seite;
+  /* Die Schritt-ID steht am <section class="step">, nicht mehr an der
+     Fotozone — dort ist sie zugleich die ID des Schritt-Hakens. Sie wird
+     hier einmal an die Zone durchgereicht, damit alles Weitere wie bisher
+     zone.dataset.schritt liest. Die Werte sind dieselben geblieben:
+     angehängte Fotos bleiben, wo sie waren. */
+  zonen.forEach(z => {
+    const schritt = z.closest(".step[data-schritt]");
+    if (schritt) z.dataset.schritt = schritt.dataset.schritt;
+  });
+
   const zonenNachSchritt = {};
   zonen.forEach(z => { if (z.dataset.schritt) zonenNachSchritt[z.dataset.schritt] = z; });
 
@@ -596,7 +978,7 @@ function stufenfilterAktivieren() {
   const filter = document.querySelector(".stufenfilter");
   if (!filter) return;
   const seite = document.body.dataset.seite;
-  const schluessel = "hefter:stufe:" + seite;
+  const schluessel = KEY.stufe(seite);
 
   const setzen = (modus, speichern = true) => {
     document.body.classList.toggle("nur-wiederkehrend", modus === "wiederkehrend");
@@ -684,7 +1066,9 @@ function einstellungenAufbauen() {
    START
    ============================================================ */
 themeLaden();
-registerAufbauen();
+leisteAufbauen();
+buehneAufbauen();
+zuletztMerken();
 einstellungenAufbauen();
 /* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
    die iconAnwenden als aktiv markiert. */
@@ -693,7 +1077,14 @@ kopierenAktivieren();
 weichenAktivieren();
 stufenfilterAktivieren();
 checklisteAktivieren();
+schritteAktivieren();
+sprungzielAufklappen();
 fotosAktivieren();
+
+/* Erst wenn alles steht, werden Übergänge wieder zugelassen — bis hierher
+   hält "laedt" sie an, damit die gemerkte Leistenbreite nicht sichtbar
+   eingefahren kommt. Das <head>-Script setzt die Klasse. */
+requestAnimationFrame(() => document.documentElement.classList.remove("laedt"));
 
 /* ============================================================
    UPDATE-FLUSS

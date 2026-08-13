@@ -2,35 +2,82 @@
 <html lang="de" data-theme="dunkel">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#060709">
 <meta name="description" content="VS Code unter Windows per Remote-SSH mit dem Hetzner-Server verbinden: SSH-Alias, erste Verbindung, Extensions, Git, Port-Weiterleitung, Dev Containers und Fehlersuche.">
 <meta name="hefter-untertitel" content="Windows · Remote-SSH, Ports, Dev Containers, Fehlersuche">
 <meta name="hefter-stichworte" content="vscode visual studio code remote ssh hetzner server verbinden editor extension config alias windows powershell icacls ssh-agent agent forwarding git github port weiterleitung forwarding dev container docker devcontainer vscode-server fehlersuche permission denied fail2ban">
+<meta name="hefter-kuerzel" content="VR">
 <title>VS Code mit dem Hetzner-Server verbinden · Hefter</title>
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="../style.css">
 <script>
-try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
 </script>
 </head>
 <body data-seite="vscode-remote-ssh" data-basis="../">
 
-<div class="appbar">
-  <a class="back" href="../index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
-    Register
-  </a>
-  <span class="spacer"></span>
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="../index.html">
+      <span class="logo"><img data-appicon src="../icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="../einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
   <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
     <span class="lbl">Dunkel</span>
   </button>
-</div>
+</header>
 
 <div class="wrap">
+<!-- KOPF-ENDE -->
 
   <header class="guide-head">
     <span class="chip">Werkzeuge</span>
@@ -45,6 +92,12 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
       <div><div class="label">Was vorher stehen muss</div><div class="txt">Die <b>Server-Erst-Einrichtung</b> ist abgeschlossen: ein eigener Benutzer, Anmeldung nur per Schlüssel, <code>root</code> gesperrt. VS Code meldet sich bewusst als dieser Benutzer an — nicht als root.</div></div>
     </div>
+    <div class="schrittstand">
+      <span class="fs-zahl" data-fs-zahl>0 / 11</span>
+      <span class="balken"><i data-fs-balken></i></span>
+      <button class="fs-reset" type="button" data-fs-reset>zurücksetzen</button>
+    </div>
+
 
     <div class="stufenfilter" role="group" aria-label="Schritte filtern">
       <button data-filter="alle" class="aktiv">Alle Schritte</button>
@@ -58,8 +111,8 @@ try { document.documentElement.dataset.theme = localStorage.getItem("hefter:them
     <!-- ============ EINMALIG: Arbeitsplatz ============ -->
 
     <!-- Schritt 1 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">1</div></div>
+    <section class="step einmalig" data-schritt="voraussetzungen">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 1">1</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
         <h2>Voraussetzungen auf dem Windows-Rechner prüfen</h2>
@@ -80,7 +133,7 @@ code -v</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
           <div><div class="label">Kein <code>code</code>-Befehl?</div><div class="txt">Dann fehlt der Eintrag im <code>PATH</code>. In VS Code <b>F1</b> drücken und <code>Shell Command: Install 'code' command in PATH</code> ausführen, danach die PowerShell neu öffnen.</div></div>
         </div>
-        <div class="fotozone" data-schritt="voraussetzungen">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -88,8 +141,8 @@ code -v</pre>
     </section>
 
     <!-- Schritt 2 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">2</div></div>
+    <section class="step einmalig" data-schritt="extension-remote-ssh">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 2">2</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
         <h2>Extension „Remote - SSH" installieren</h2>
@@ -102,7 +155,7 @@ code -v</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Das grüne Feld unten links</div><div class="txt">Nach der Installation sitzt in der Statusleiste ganz links ein grünes Feld mit zwei Pfeilen. Es ist ab jetzt dein Ein- und Ausstieg: verbinden, Verbindung wechseln, zurück nach lokal.</div></div>
         </div>
-        <div class="fotozone" data-schritt="extension-remote-ssh">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -110,8 +163,8 @@ code -v</pre>
     </section>
 
     <!-- Schritt 3 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">3</div></div>
+    <section class="step einmalig" data-schritt="ssh-config">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 3">3</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Server als Alias in der <code>.ssh\config</code> hinterlegen</h2>
@@ -150,7 +203,7 @@ code -v</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Soll-Ergebnis</div><div class="txt">Du landest ohne Passwortabfrage auf dem Server. Was in der PowerShell nicht funktioniert, funktioniert auch in VS Code nicht — dort steckt die Fehlermeldung nur tiefer vergraben.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ssh-config">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -158,8 +211,8 @@ code -v</pre>
     </section>
 
     <!-- Schritt 4 -->
-    <section class="step einmalig">
-      <div class="rail"><div class="step-num">4</div></div>
+    <section class="step einmalig" data-schritt="key-rechte-windows">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 4">4</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
         <h2>Rechte am privaten Schlüssel geraderücken</h2>
@@ -179,7 +232,7 @@ icacls <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Das war die Ursache, wenn …</div><div class="txt">… beim Verbindungsversuch <code>UNPROTECTED PRIVATE KEY FILE</code> oder <code>bad permissions</code> im Log stand. Nur die <b>private</b> Datei ohne Endung ist betroffen, nicht die <code>.pub</code>.</div></div>
         </div>
-        <div class="fotozone" data-schritt="key-rechte-windows">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -187,8 +240,8 @@ icacls <span class="tok-s">"$env:USERPROFILE\.ssh\id_ed25519"</span></pre>
     </section>
 
     <!-- Schritt 5 -->
-    <section class="step einmalig stufenwechsel">
-      <div class="rail"><div class="step-num">5</div></div>
+    <section class="step einmalig stufenwechsel" data-schritt="erste-verbindung">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 5">5</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Server</span>
         <h2>Erste Verbindung aus VS Code herstellen</h2>
@@ -207,7 +260,7 @@ du -sh ~/.vscode-server</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></span>
           <div><div class="label">Verbunden</div><div class="txt">Unten links steht jetzt <code>SSH: web01</code>. Alles, was du in diesem Fenster tust, passiert auf dem Server.</div></div>
         </div>
-        <div class="fotozone" data-schritt="erste-verbindung">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -217,8 +270,8 @@ du -sh ~/.vscode-server</pre>
     <!-- ============ PRO PROJEKT ============ -->
 
     <!-- Schritt 6 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">6</div></div>
+    <section class="step wiederkehrend" data-schritt="ordner-oeffnen">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 6">6</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Projektordner auf dem Server öffnen</h2>
@@ -238,7 +291,7 @@ pwd</pre>
           <div class="codebox-head"><span class="fname">Server — Besitz übertragen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
           <pre>sudo chown -R max:max /var/www/mein-projekt</pre>
         </div>
-        <div class="fotozone" data-schritt="ordner-oeffnen">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -246,8 +299,8 @@ pwd</pre>
     </section>
 
     <!-- Schritt 7 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">7</div></div>
+    <section class="step wiederkehrend" data-schritt="extensions-remote">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 7">7</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Extensions am richtigen Ort installieren</h2>
@@ -267,7 +320,7 @@ code <span class="tok-k">--list-extensions</span></pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Warum die Trennung wichtig ist</div><div class="txt">Eine lokal installierte Sprachunterstützung sieht die Dateien auf dem Server gar nicht — sie meldet dann Fehler an Stellen, an denen keine sind, oder bleibt einfach stumm. Das ist die häufigste Verwirrung nach der ersten Verbindung.</div></div>
         </div>
-        <div class="fotozone" data-schritt="extensions-remote">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -275,8 +328,8 @@ code <span class="tok-k">--list-extensions</span></pre>
     </section>
 
     <!-- Schritt 8 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">8</div></div>
+    <section class="step wiederkehrend" data-schritt="git-remote">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 8">8</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Git und GitHub aus der Remote-Sitzung nutzen</h2>
@@ -309,7 +362,7 @@ ssh -T git@github.com</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div><div class="label">Nur auf eigenen Servern</div><div class="txt">Solange die Sitzung offen ist, kann jeder mit <code>root</code>-Rechten auf dieser Maschine den Agenten mitbenutzen. Auf deinem eigenen Hetzner-Server ist das in Ordnung — auf einem fremden gehört <code>ForwardAgent yes</code> nicht in die Konfiguration. Die Alternative dort ist ein eigener Deploy-Key, wie in der Deploy-Anleitung beschrieben.</div></div>
         </div>
-        <div class="fotozone" data-schritt="git-remote">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -317,8 +370,8 @@ ssh -T git@github.com</pre>
     </section>
 
     <!-- Schritt 9 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">9</div></div>
+    <section class="step wiederkehrend" data-schritt="ports">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 9">9</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>Ports weiterleiten und im lokalen Browser öffnen</h2>
@@ -335,7 +388,7 @@ ssh -T git@github.com</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Meistens automatisch</div><div class="txt">Startest du eine Anwendung im integrierten Terminal und sie gibt eine <code>localhost</code>-Adresse aus, richtet VS Code die Weiterleitung von selbst ein und blendet eine Benachrichtigung mit Link ein. Der Ports-Reiter ist der Handgriff für alles, was schon vorher lief.</div></div>
         </div>
-        <div class="fotozone" data-schritt="ports">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -343,8 +396,8 @@ ssh -T git@github.com</pre>
     </section>
 
     <!-- Schritt 10 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">10</div></div>
+    <section class="step wiederkehrend" data-schritt="dev-containers">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 10">10</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
         <h2>In Containern arbeiten: andocken oder darin entwickeln</h2>
@@ -382,7 +435,7 @@ docker ps</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Was <code>shutdownAction</code> verhindert</div><div class="txt">Ohne diese Zeile stoppt VS Code den Container beim Schließen des Fensters. Bei einem produktiv laufenden Dienst ist das selten gewollt.</div></div>
         </div>
-        <div class="fotozone" data-schritt="dev-containers">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -390,8 +443,8 @@ docker ps</pre>
     </section>
 
     <!-- Schritt 11 -->
-    <section class="step wiederkehrend">
-      <div class="rail"><div class="step-num">11</div></div>
+    <section class="step wiederkehrend" data-schritt="fehlersuche">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 11">11</button></div>
       <div class="step-body">
         <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Bei Bedarf</span>
         <h2>Fehlersuche: die fünf üblichen Verdächtigen</h2>
@@ -427,7 +480,7 @@ rm -rf ~/.vscode-server</pre>
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
           <div><div class="label">Das Log in VS Code</div><div class="txt"><b>F1</b> → <code>Remote-SSH: Show Log</code> öffnet das Ausgabefenster mit dem vollständigen Verbindungsprotokoll. Dort steht dieselbe Meldung wie im Terminal — nur muss man wissen, wo man sucht.</div></div>
         </div>
-        <div class="fotozone" data-schritt="fehlersuche">
+        <div class="fotozone">
           <div class="fotos"></div>
           <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
         </div>
@@ -452,8 +505,10 @@ rm -rf ~/.vscode-server</pre>
     <div class="check" data-check="container-erreichbar"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>docker ps</code> ohne sudo, Container angedockt</span></div>
   </div>
 
-  <p class="foot">Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.</p>
-</div>
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+  <p class="foot">Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
 
 <script src="../hefter.js"></script>
 </body>

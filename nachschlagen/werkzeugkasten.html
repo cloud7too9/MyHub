@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Die Werkzeuge, zu denen man im Entwickleralltag immer wieder zurückkommt — je Eintrag mit Zweck, Einrichtung und Prüfbefehl.">
+<meta name="hefter-untertitel" content="Fundament, Ausliefern, Prüfen, Beschleuniger — mit Einrichtung und Prüfschritt">
+<meta name="hefter-stichworte" content="git gh vscode terminal powershell winget scoop node fnm pnpm uv python ssh docker actions netlify caddy systemd devtools curl bruno jq regex ripgrep fzf just bat eza prettier eslint editorconfig werkzeuge tooling">
+<meta name="hefter-kuerzel" content="WK">
+<title>Werkzeugkasten · Hefter</title>
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
+</script>
+</head>
+<body data-seite="werkzeugkasten" data-basis="../">
+
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="../index.html">
+      <span class="logo"><img data-appicon src="../icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="../einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</header>
+
+<div class="wrap">
+<!-- KOPF-ENDE -->
+
+  <header class="guide-head">
+    <span class="chip">Arbeitsplatz</span>
+    <span class="sorte">Nachschlagen</span>
+    <h1>Werkzeugkasten</h1>
+    <div class="meta">
+      <span>25 Werkzeuge</span>
+      <span>Aktualisiert <b>13.08.2026</b></span>
+      <span>Windows <span class="mono">PowerShell</span></span>
+    </div>
+    <p class="lead">Die Werkzeuge, zu denen man immer wieder zurückkommt — jedes mit Zweck, Begründung, Einrichtung und einem Befehl, der zeigt, ob es steht. Zum Nachschlagen, nicht zum Durchlaufen: was du nicht brauchst, lässt du zu.</p>
+
+    <div class="schrittstand">
+      <span class="fs-zahl" id="chkStand">0 / 25</span>
+      <span class="balken"><i data-haken-balken></i></span>
+      <button class="fs-reset" type="button" data-haken-reset>zurücksetzen</button>
+    </div>
+
+    <div class="callout info">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+      <div><div class="label">Wo die Befehle laufen</div><div class="txt">Der Haken merkt sich, was auf deinem Rechner schon steht. Die Befehle sind auf <b>Windows mit PowerShell 7</b> ausgelegt — so, wie es die Anleitung <a href="../anleitungen/arbeitsplatz-einrichten.html">Arbeitsplatz einrichten</a> aufsetzt. Die Server-Werkzeuge am Ende von „Ausliefern“ laufen dagegen auf dem Linux-Host.</div></div>
+    </div>
+
+    <nav class="sprungmarken">
+      <a href="#fundament">Fundament</a>
+      <a href="#ausliefern">Ausliefern</a>
+      <a href="#pruefen">Prüfen</a>
+      <a href="#beschleuniger">Beschleuniger</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="thema" id="fundament">
+      <h2>Fundament <span class="thema-anz">8</span></h2>
+      <p class="thema-sub">Ohne diese acht geht nichts weiter — sie stehen unter allem, was danach kommt.</p>
+
+      <article class="wz" id="wz-git">
+        <div class="check wz-haken" data-check="wz-git">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Git<span class="wz-tag">Pflicht</span></span>
+            <span class="wz-zweck">Versionsverwaltung — das Rückgrat von allem anderen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Jedes weitere Werkzeug hier dockt an Git an: CI/CD löst bei Push aus, Deployments hängen an Commits, Code-Reviews an Branches. Ohne sauberes Git bleibt der Rest Stückwerk.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Git.Git -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Identität setzen — steht in jedem Commit</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>git config --global user.name &quot;Vorname Nachname&quot;
+git config --global user.email &quot;mail@beispiel.de&quot;</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Sinnvolle Grundeinstellungen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global core.autocrlf true</pre>
+                </div>
+                <p class="wz-hinweis">autocrlf true verhindert, dass Windows-Zeilenenden als Änderung an jeder Datei auftauchen.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Erstes Repository anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>git init
+git add .
+git commit -m &quot;Erster Stand&quot;</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>git --version
+git config --global --list</pre>
+                </div>
+                <p class="pr-soll">Versionsnummer plus deine Einträge für user.name und user.email.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-gh">
+        <div class="check wz-haken" data-check="wz-gh">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">GitHub CLI<span class="wz-tag">sehr nützlich</span></span>
+            <span class="wz-zweck">GitHub vom Terminal aus: Repos, Pull Requests, Actions-Läufe.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Spart den Umweg über den Browser. Besonders bei CI: du siehst den fehlgeschlagenen Lauf und die Logs, ohne den Editor zu verlassen.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id GitHub.cli -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Anmelden — legt gleich die Git-Zugangsdaten mit an</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>gh auth login</pre>
+                </div>
+                <p class="wz-hinweis">HTTPS wählen und &quot;Authenticate Git with your GitHub credentials&quot; bestätigen, dann brauchst du kein separates Token mehr.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Alltagsbefehle</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>gh repo clone nutzer/repo
+gh pr create --fill
+gh run watch</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>gh auth status</pre>
+                </div>
+                <p class="pr-soll">Angemeldet als dein Konto, mit aufgelisteten Berechtigungen.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-code">
+        <div class="check wz-haken" data-check="wz-code">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">VS Code<span class="wz-tag">Pflicht</span></span>
+            <span class="wz-zweck">Editor mit integriertem Terminal, Git-Ansicht und Debugger.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Der Ort, an dem die meiste Zeit vergeht. Wichtiger als die Wahl des Editors ist, dass die Einstellungen synchronisiert sind — ein neuer Rechner ist dann in fünf Minuten arbeitsfähig.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Microsoft.VisualStudioCode -e</pre>
+                </div>
+              </li>
+              <li>
+                <p class="wz-tun">Einstellungen synchronisieren</p>
+                <p class="wz-hinweis">Zahnrad unten links → &quot;Einstellungen synchronisieren aktivieren&quot; → mit GitHub anmelden. Ab dann reisen Erweiterungen, Tastenkürzel und Themes mit.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Erweiterungen per Befehl setzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>code --install-extension EditorConfig.EditorConfig
+code --install-extension esbenp.prettier-vscode
+code --install-extension dbaeumer.vscode-eslint</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Projekt aus dem Terminal öffnen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>code .</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>code --version</pre>
+                </div>
+                <p class="pr-soll">Version, Commit-Hash und Architektur — heißt: der code-Befehl liegt im PATH.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-terminal">
+        <div class="check wz-haken" data-check="wz-terminal">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Windows Terminal + PowerShell 7<span class="wz-tag">Pflicht</span></span>
+            <span class="wz-zweck">Anständige Shell mit Tabs, Profilen und lesbarer Schrift.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Die vorinstallierte PowerShell 5.1 ist alt und verhält sich bei UTF-8 und modernen Befehlen anders. PowerShell 7 parallel zu installieren kostet nichts und erspart merkwürdige Fehler.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Beides installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Microsoft.WindowsTerminal -e
+winget install --id Microsoft.PowerShell -e</pre>
+                </div>
+              </li>
+              <li>
+                <p class="wz-tun">PowerShell 7 als Standardprofil setzen</p>
+                <p class="wz-hinweis">Terminal → Einstellungen → Standardprofil → PowerShell (nicht &quot;Windows PowerShell&quot;).</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Profil-Datei anlegen — hier landen später Aliase und Tastenkürzel</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>if (!(Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force }
+code $PROFILE</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>$PSVersionTable.PSVersion</pre>
+                </div>
+                <p class="pr-soll">Major-Version 7 oder höher.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-winget">
+        <div class="check wz-haken" data-check="wz-winget">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">winget &amp; Scoop<span class="wz-tag">Basis</span></span>
+            <span class="wz-zweck">Paketverwaltung für Windows — installieren und aktualisieren per Befehl.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Alle Installationsbefehle auf dieser Seite hängen daran. Und ein einziger Upgrade-Befehl hält den ganzen Rechner aktuell, statt 20 Installer einzeln zu starten.</p>
+            <ol class="wz-schritte">
+              <li>
+                <p class="wz-tun">winget ist auf Windows 11 vorhanden</p>
+                <p class="wz-hinweis">Fehlt es, kommt es über den Microsoft Store als &quot;App Installer&quot;.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Alles aktualisieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget upgrade --all</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Scoop dazu, für Kommandozeilen-Werkzeuge ohne Adminrechte</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget --version
+scoop --version</pre>
+                </div>
+                <p class="pr-soll">Beide melden eine Version. Scoop nennt zusätzlich den Bucket-Stand.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-fnm">
+        <div class="check wz-haken" data-check="wz-fnm">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Node.js über fnm<span class="wz-tag">je Projekt</span></span>
+            <span class="wz-zweck">Node-Laufzeit mit umschaltbaren Versionen pro Projekt.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Früher oder später hat ein Projekt eine andere Node-Version als das nächste. Ein Versionsmanager löst das, eine feste Installation nicht — und fnm schaltet beim Wechsel ins Verzeichnis automatisch um.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">fnm installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Schniz.fnm -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">In die PowerShell-Profil-Datei eintragen (automatischer Wechsel)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</pre>
+                </div>
+                <p class="wz-hinweis">Zeile ans Ende von $PROFILE hängen, danach das Terminal neu starten.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Aktuelle LTS-Version holen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>fnm install --lts
+fnm use lts-latest
+fnm default lts-latest</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Version im Projekt festschreiben</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>node -v &gt; .nvmrc</pre>
+                </div>
+                <p class="wz-hinweis">Die Datei mit einchecken — dann schaltet fnm bei jedem, der das Repo klont, auf dieselbe Version.</p>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>node -v
+fnm list</pre>
+                </div>
+                <p class="pr-soll">Die LTS-Version ist aktiv und als default markiert.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-pnpm">
+        <div class="check wz-haken" data-check="wz-pnpm">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">pnpm<span class="wz-tag">empfohlen</span></span>
+            <span class="wz-zweck">Paketmanager für Node — schneller und plattensparender als npm.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Pakete liegen einmal zentral und werden ins Projekt verlinkt. Bei mehreren Projekten mit ähnlichen Abhängigkeiten spart das spürbar Zeit und Platz.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Über Corepack aktivieren — kommt mit Node mit</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>corepack enable pnpm</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Version im Projekt festnageln</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>corepack use pnpm@latest</pre>
+                </div>
+                <p class="wz-hinweis">Schreibt packageManager in die package.json, damit alle dieselbe Version nutzen.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Alltag</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>pnpm install
+pnpm add -D vite
+pnpm run dev</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>pnpm -v</pre>
+                </div>
+                <p class="pr-soll">Versionsnummer ohne Fehlermeldung.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-uv">
+        <div class="check wz-haken" data-check="wz-uv">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">uv (Python)<span class="wz-tag">empfohlen</span></span>
+            <span class="wz-zweck">Python-Versionen, virtuelle Umgebungen und Pakete in einem Werkzeug.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Ersetzt das Zusammenspiel aus pyenv, venv und pip durch einen Befehl — und ist um Größenordnungen schneller. Die virtuelle Umgebung wird automatisch angelegt und benutzt.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id astral-sh.uv -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Python-Version besorgen (unabhängig von der Systeminstallation)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>uv python install 3.12</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Projekt anlegen und Pakete hinzufügen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>uv init mein-projekt
+cd mein-projekt
+uv add requests</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Ausführen — ohne die Umgebung vorher zu aktivieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>uv run main.py</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>uv --version
+uv python list</pre>
+                </div>
+                <p class="pr-soll">Version plus Liste der verfügbaren Python-Installationen.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+    </section>
+
+    <section class="thema" id="ausliefern">
+      <h2>Ausliefern <span class="thema-anz">6</span></h2>
+      <p class="thema-sub">Vom eigenen Rechner auf einen Server oder ins Netz.</p>
+
+      <article class="wz" id="wz-ssh">
+        <div class="check wz-haken" data-check="wz-ssh">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">OpenSSH &amp; Schlüssel<span class="wz-tag">Pflicht</span></span>
+            <span class="wz-zweck">Zugang zu Servern und Git-Fernzugriff ohne Passworteingabe.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Sobald ein eigener Server im Spiel ist, läuft alles darüber: Deployment, Wartung, Dateitransfer. Ein sauberer Schlüssel plus config-Datei erspart täglich Tipparbeit.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Schlüsselpaar erzeugen (ed25519, aktueller Standard)</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>ssh-keygen -t ed25519 -C &quot;max@arbeitsrechner&quot;</pre>
+                </div>
+                <p class="wz-hinweis">Eine Passphrase vergeben. Der Dateiname bleibt Standard, dann finden ihn alle Werkzeuge automatisch.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Öffentlichen Schlüssel auf den Server bringen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh nutzer@server &quot;mkdir -p ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys&quot;</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Kurznamen in ~/.ssh/config anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>Host mein-server
+  HostName 203.0.113.10
+  User max
+  IdentityFile ~/.ssh/id_ed25519</pre>
+                </div>
+                <p class="wz-hinweis">Danach genügt: ssh mein-server</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Öffentlichen Schlüssel bei GitHub hinterlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>gh ssh-key add $env:USERPROFILE\.ssh\id_ed25519.pub --title &quot;Arbeitsrechner&quot;</pre>
+                </div>
+              </li>
+              <li>
+                <p class="wz-tun">Passwort-Anmeldung am Server abschalten</p>
+                <div class="callout gefahr">
+                  <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+                  <div><div class="label">Achtung</div><div class="txt">Erst prüfen, dass die Anmeldung per Schlüssel funktioniert — sonst sperrst du dich aus. Der private Schlüssel (ohne .pub) verlässt niemals den Rechner und gehört nie in ein Repository.</div></div>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>ssh mein-server &quot;echo verbunden&quot;
+ssh -T git@github.com</pre>
+                </div>
+                <p class="pr-soll">&quot;verbunden&quot; und eine Begrüßung von GitHub mit deinem Benutzernamen.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-docker">
+        <div class="check wz-haken" data-check="wz-docker">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Docker<span class="wz-tag">Standard</span></span>
+            <span class="wz-zweck">Anwendungen samt Umgebung in Containern — lokal wie auf dem Server gleich.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Beendet &quot;läuft bei mir aber&quot;. Datenbank für ein Testprojekt braucht keine Installation mehr, und was lokal im Container läuft, läuft auf dem Server genauso.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">WSL2 sicherstellen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>wsl --install</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Docker Desktop installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Docker.DockerDesktop -e</pre>
+                </div>
+                <p class="wz-hinweis">Nach der Installation einmal abmelden und wieder anmelden.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Dienste als Datei beschreiben — compose.yaml</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: geheim
+    ports:
+      - &quot;5432:5432&quot;
+    volumes:
+      - dbdaten:/var/lib/postgresql/data
+volumes:
+  dbdaten:</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Starten und stoppen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>docker compose up -d
+docker compose logs -f
+docker compose down</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>docker run --rm hello-world
+docker compose version</pre>
+                </div>
+                <p class="pr-soll">Die Begrüßungsmeldung des Testcontainers und eine Compose-Version.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-actions">
+        <div class="check wz-haken" data-check="wz-actions">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">GitHub Actions<span class="wz-tag">kein Install</span></span>
+            <span class="wz-zweck">Automatischer Build, Test und Deploy bei jedem Push.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Der Punkt, an dem Git vom Backup zum Werkzeug wird. Einmal eingerichtet, prüft und veröffentlicht es zuverlässiger als jede Handroutine.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Datei .github/workflows/ci.yml anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Zugangsdaten als Secrets hinterlegen, nie in die YAML</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>gh secret set DEPLOY_KEY &lt; deploy_key</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Läufe vom Terminal aus verfolgen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>gh run list
+gh run watch</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>git push
+gh run list --limit 1</pre>
+                </div>
+                <p class="pr-soll">Der neueste Lauf steht auf completed / success.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-netlify">
+        <div class="check wz-haken" data-check="wz-netlify">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Netlify CLI<span class="wz-tag">für Frontends</span></span>
+            <span class="wz-zweck">Statische Seiten und PWAs vom Terminal aus veröffentlichen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Vorschau-Deploy vor dem echten Deploy, mit eigener URL zum Testen auf dem Handy — genau der Schritt, der beim manuellen Hochladen fehlt.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>pnpm add -g netlify-cli</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Anmelden und Projekt verknüpfen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>netlify login
+netlify init</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Erst Vorschau, dann echt</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>netlify deploy
+netlify deploy --prod</pre>
+                </div>
+                <p class="wz-hinweis">Der erste Befehl gibt eine Vorschau-URL zurück, ohne die Live-Seite anzufassen.</p>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>netlify status</pre>
+                </div>
+                <p class="pr-soll">Angemeldetes Konto und der verknüpfte Seitenname.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-caddy">
+        <div class="check wz-haken" data-check="wz-caddy">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Caddy<span class="wz-tag">auf dem Server</span></span>
+            <span class="wz-zweck">Reverse Proxy mit automatischem HTTPS-Zertifikat.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Nimmt Domain, Zertifikat und Weiterleitung an die Anwendung in drei Zeilen ab. Was bei nginx eine halbe Konfigurationsdatei ist, ist hier ein Block.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Auf dem Server installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>sudo apt update &amp;&amp; sudo apt install -y caddy</pre>
+                </div>
+                <p class="wz-hinweis">Ist das Paket nicht bekannt, muss vorher das offizielle Caddy-Repository eingebunden werden.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">/etc/caddy/Caddyfile schreiben</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>beispiel.de {
+  reverse_proxy 127.0.0.1:8000
+  encode gzip
+}</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Übernehmen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>sudo systemctl reload caddy</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Ports freigeben</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>sudo ufw allow 80,443/tcp</pre>
+                </div>
+                <p class="wz-hinweis">Ohne offene Ports 80 und 443 kann Caddy kein Zertifikat ausstellen lassen.</p>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>curl -I https://beispiel.de</pre>
+                </div>
+                <p class="pr-soll">HTTP/2 200 und ein gültiges Zertifikat — kein Zertifikatswarnhinweis.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-systemd">
+        <div class="check wz-haken" data-check="wz-systemd">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">systemd-Dienst<span class="wz-tag">auf dem Server</span></span>
+            <span class="wz-zweck">Eigene Anwendung als Dienst, der Neustarts und Abstürze übersteht.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Ein Programm, das per SSH gestartet wurde, endet mit der SSH-Sitzung. Als Dienst läuft es weiter, startet nach dem Reboot automatisch und schreibt sein Log dorthin, wo man es sucht.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">/etc/systemd/system/meindienst.service anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>[Unit]
+Description=Meine Anwendung
+After=network.target
+
+[Service]
+User=deploy
+WorkingDirectory=/opt/meineapp
+ExecStart=/opt/meineapp/.venv/bin/python app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Einlesen, aktivieren, starten</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>sudo systemctl daemon-reload
+sudo systemctl enable --now meindienst</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Nach einer Änderung neu starten</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>sudo systemctl restart meindienst</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>systemctl status meindienst
+journalctl -u meindienst -n 50 -f</pre>
+                </div>
+                <p class="pr-soll">Status active (running) und im Log keine wiederkehrenden Neustarts.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+    </section>
+
+    <section class="thema" id="pruefen">
+      <h2>Prüfen <span class="thema-anz">5</span></h2>
+      <p class="thema-sub">Nachsehen, ob es wirklich tut, was es soll — bevor es jemand anderes merkt.</p>
+
+      <article class="wz" id="wz-devtools">
+        <div class="check wz-haken" data-check="wz-devtools">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Browser-DevTools<span class="wz-tag">kein Install</span></span>
+            <span class="wz-zweck">Netzwerk, Speicher, Layout und Leistung im laufenden Betrieb ansehen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Bei Web-Apps das wichtigste Diagnosewerkzeug überhaupt — und bei PWAs der einzige Ort, an dem man Service Worker, Manifest und IndexedDB wirklich sieht.</p>
+            <ol class="wz-schritte">
+              <li>
+                <p class="wz-tun">Öffnen mit F12 oder Ctrl+Shift+I</p>
+              </li>
+              <li>
+                <p class="wz-tun">Netzwerk: Anfragen prüfen</p>
+                <p class="wz-hinweis">&quot;Disable cache&quot; anhaken, solange die Konsole offen ist — sonst jagt man Fehler, die längst behoben sind.</p>
+              </li>
+              <li>
+                <p class="wz-tun">Application: alles rund um PWA</p>
+                <p class="wz-hinweis">Service Workers (&quot;Update on reload&quot; aktivieren), Manifest, IndexedDB und Storage. Über &quot;Unregister&quot; plus Neuladen testet man den Erstbesuch.</p>
+              </li>
+              <li>
+                <p class="wz-tun">Lighthouse: Bericht erzeugen</p>
+                <p class="wz-hinweis">Prüft Leistung, Bedienhilfen und PWA-Installierbarkeit und nennt die Ursachen konkret.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Auf dem Handy per Kabel prüfen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>chrome://inspect/#devices</pre>
+                </div>
+                <p class="wz-hinweis">Android per USB anschließen, USB-Debugging an — dann lässt sich die Seite auf dem Handy vom Rechner aus untersuchen.</p>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>Application → Service Workers</pre>
+                </div>
+                <p class="pr-soll">Status &quot;activated and is running&quot; und die erwartete Versionsnummer im Dateinamen.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-curl">
+        <div class="check wz-haken" data-check="wz-curl">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">curl<span class="wz-tag">vorhanden</span></span>
+            <span class="wz-zweck">HTTP-Anfragen aus dem Terminal — schnell und skriptfähig.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Die kürzeste Antwort auf &quot;liegt es am Server oder am Frontend&quot;. Und jede Fehlermeldung lässt sich als curl-Befehl weitergeben.</p>
+            <ol class="wz-schritte">
+              <li>
+                <p class="wz-tun">Ist bereits Teil von Windows</p>
+                <p class="wz-hinweis">Wichtig: in PowerShell immer curl.exe schreiben. Nacktes curl ist dort ein Alias auf Invoke-WebRequest und verhält sich völlig anders.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Antwortkopf ansehen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>curl.exe -I https://beispiel.de</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">JSON senden</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>curl.exe -X POST https://api.beispiel.de/auftraege -H &quot;Content-Type: application/json&quot; -d &quot;{\&quot;nummer\&quot;:\&quot;A-1042\&quot;}&quot;</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Bei Fehlern: ausführliche Ausgabe</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>curl.exe -v https://beispiel.de</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>curl.exe --version</pre>
+                </div>
+                <p class="pr-soll">Version plus unterstützte Protokolle. Erscheint stattdessen PowerShell-Hilfe, fehlt das .exe.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-bruno">
+        <div class="check wz-haken" data-check="wz-bruno">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Bruno<span class="wz-tag">Alternative: Postman</span></span>
+            <span class="wz-zweck">API-Client, der Anfragen als Dateien im Projektordner speichert.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Die Sammlung liegt im Repo und wird mit versioniert, statt in einer Cloud zu hängen. Kein Konto, keine Anmeldung, und Änderungen sind im Diff sichtbar.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Bruno.Bruno -e</pre>
+                </div>
+              </li>
+              <li>
+                <p class="wz-tun">Sammlung im Projektordner anlegen</p>
+                <p class="wz-hinweis">Collection erstellen und den Ordner ins Repo legen, z. B. unter api-tests/.</p>
+              </li>
+              <li>
+                <p class="wz-tun">Umgebungen für lokal und live trennen</p>
+                <p class="wz-hinweis">Basis-URL als Variable, Geheimnisse in eine .env-Datei, die per .gitignore draußen bleibt.</p>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>git status</pre>
+                </div>
+                <p class="pr-soll">Die .bru-Dateien der Sammlung tauchen als versionierbare Dateien auf — Geheimnisse nicht.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-jq">
+        <div class="check wz-haken" data-check="wz-jq">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">jq<span class="wz-tag">klein &amp; stark</span></span>
+            <span class="wz-zweck">JSON filtern, umbauen und lesbar ausgeben.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Macht aus einer 4000 Zeichen langen API-Antwort genau das Feld, um das es geht. In Kombination mit curl ersetzt es für Diagnosezwecke ein ganzes Skript.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id jqlang.jq -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Datei lesbar ausgeben</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>jq . daten.json</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Ein Feld herausziehen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>curl.exe -s https://api.github.com/repos/cli/cli | jq .stargazers_count</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Liste umbauen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>jq &quot;[.[] | {nummer: .id, name: .titel}]&quot; auftraege.json</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>jq --version</pre>
+                </div>
+                <p class="pr-soll">Zum Beispiel jq-1.7.1.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-regex101">
+        <div class="check wz-haken" data-check="wz-regex101">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">regex101<span class="wz-tag">Webseite</span></span>
+            <span class="wz-zweck">Reguläre Ausdrücke bauen, testen und erklärt bekommen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Reguläre Ausdrücke schreibt man selten genug, um sie jedes Mal neu nachzuschlagen. Die Erklärungsspalte rechts ist der eigentliche Wert.</p>
+            <ol class="wz-schritte">
+              <li>
+                <p class="wz-tun">regex101.com öffnen und links die passende Variante wählen</p>
+                <p class="wz-hinweis">ECMAScript für JavaScript, Python für Python, PCRE für die meisten anderen. Die Unterschiede sind bei Lookbehind und benannten Gruppen entscheidend.</p>
+              </li>
+              <li>
+                <p class="wz-tun">Testtext einfügen und Treffer live prüfen</p>
+              </li>
+              <li>
+                <p class="wz-tun">Fertigen Ausdruck über &quot;Code Generator&quot; übernehmen</p>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>/^A-\d{4}$/</pre>
+                </div>
+                <p class="pr-soll">Testtext A-1042 trifft, A-104 nicht — dann sitzt der Ausdruck.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+    </section>
+
+    <section class="thema" id="beschleuniger">
+      <h2>Beschleuniger <span class="thema-anz">6</span></h2>
+      <p class="thema-sub">Nichts davon ist nötig. Alles davon spart täglich Zeit.</p>
+
+      <article class="wz" id="wz-rg">
+        <div class="check wz-haken" data-check="wz-rg">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">ripgrep<span class="wz-tag">Liebling</span></span>
+            <span class="wz-zweck">Volltextsuche über ganze Projekte, sehr schnell.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Beantwortet &quot;wo wird das eigentlich verwendet&quot; in Millisekunden, überspringt node_modules und .git von selbst und respektiert die .gitignore.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id BurntSushi.ripgrep.MSVC -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Suchen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>rg &quot;TODO&quot;
+rg -i auftrag --glob &quot;*.js&quot;
+rg -l &quot;useState&quot;</pre>
+                </div>
+                <p class="wz-hinweis">-i ignoriert Groß- und Kleinschreibung, -l zeigt nur die Dateinamen.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Mit Kontextzeilen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>rg -C 3 &quot;fetch(&quot;</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>rg --version</pre>
+                </div>
+                <p class="pr-soll">Version mit den Angaben zu SIMD-Unterstützung.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-fzf">
+        <div class="check wz-haken" data-check="wz-fzf">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">fzf<span class="wz-tag">Tastatur</span></span>
+            <span class="wz-zweck">Unscharfe Suche für Dateien, Verläufe und beliebige Listen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Ersetzt das Erinnern an Pfade durch Tippen von Bruchstücken. In der PowerShell-Historie holt Ctrl+R den Befehl von letzter Woche in zwei Sekunden zurück.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id junegunn.fzf -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">PowerShell-Anbindung</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>Install-Module PSFzf -Scope CurrentUser</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Tastenkürzel im Profil aktivieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>Import-Module PSFzf
+Set-PsFzfOption -PSReadlineChordProvider &quot;Ctrl+t&quot; -PSReadlineChordReverseHistory &quot;Ctrl+r&quot;</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Kombiniert mit ripgrep</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>rg --files | fzf</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>fzf --version</pre>
+                </div>
+                <p class="pr-soll">Version. Danach im Terminal Ctrl+R drücken — die Suchmaske muss erscheinen.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-just">
+        <div class="check wz-haken" data-check="wz-just">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">just<span class="wz-tag">Aufräumer</span></span>
+            <span class="wz-zweck">Benannte Befehle je Projekt in einer Datei — statt Skript-Wildwuchs.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Jedes Projekt hat eine Handvoll Befehle, die man nur alle paar Wochen braucht. Im justfile stehen sie versioniert neben dem Code, und just --list zeigt sie an, statt in der Verlaufsliste zu suchen.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id Casey.Just -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Datei &quot;justfile&quot; ins Projektwurzelverzeichnis</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>dev:
+    pnpm run dev
+
+bauen:
+    pnpm run build
+
+pruefen:
+    pnpm exec eslint .
+    pnpm exec prettier --check .
+
+veroeffentlichen: bauen
+    netlify deploy --prod</pre>
+                </div>
+                <p class="wz-hinweis">Einrückung mit Leerzeichen ist erlaubt, anders als bei make. Abhängigkeiten stehen hinter dem Doppelpunkt.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Benutzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>just --list
+just dev</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>just --list</pre>
+                </div>
+                <p class="pr-soll">Alle Rezepte aus dem justfile mit ihren Namen.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-bat">
+        <div class="check wz-haken" data-check="wz-bat">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">bat &amp; eza<span class="wz-tag">Komfort</span></span>
+            <span class="wz-zweck">Dateien mit Syntaxfarben anzeigen, Verzeichnisse übersichtlich auflisten.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Kleine Verbesserung, die sich hundertmal am Tag auszahlt: bat zeigt Zeilennummern und Farben, eza zeigt Git-Status direkt neben den Dateinamen.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>winget install --id sharkdp.bat -e
+winget install --id eza-community.eza -e</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Aliase im PowerShell-Profil</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>Set-Alias -Name ll -Value eza
+function lg { eza -l --git --icons }</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Benutzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>bat app.js
+lg</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>bat --version
+eza --version</pre>
+                </div>
+                <p class="pr-soll">Beide melden eine Version.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-prettier">
+        <div class="check wz-haken" data-check="wz-prettier">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">Prettier &amp; ESLint<span class="wz-tag">je Projekt</span></span>
+            <span class="wz-zweck">Einheitliche Formatierung und Fehlerfindung vor dem Ausführen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Nimmt Formatierungsfragen komplett aus dem Kopf und aus den Diffs. ESLint fängt zusätzlich echte Fehler ab — vergessene await, nicht benutzte Variablen, kaputte Abhängigkeitslisten in Hooks.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Ins Projekt aufnehmen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>pnpm add -D prettier eslint</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">.prettierrc anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>{
+  &quot;semi&quot;: true,
+  &quot;singleQuote&quot;: true,
+  &quot;printWidth&quot;: 100
+}</pre>
+                </div>
+              </li>
+              <li>
+                <p class="wz-tun">Beim Speichern formatieren</p>
+                <p class="wz-hinweis">In VS Code: &quot;Format On Save&quot; aktivieren und Prettier als Standardformatierer setzen.</p>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">In die CI aufnehmen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>pnpm exec prettier --check .
+pnpm exec eslint .</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>pnpm exec prettier --check .</pre>
+                </div>
+                <p class="pr-soll">&quot;All matching files use Prettier code style!&quot; — oder eine Liste der abweichenden Dateien.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="wz" id="wz-editorconfig">
+        <div class="check wz-haken" data-check="wz-editorconfig">
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="lbl">Eingerichtet</span>
+        </div>
+        <details class="wz-klapp">
+          <summary>
+            <span class="wz-name">EditorConfig<span class="wz-tag">2 Minuten</span></span>
+            <span class="wz-zweck">Einrückung und Zeilenenden für alle Editoren im Projekt festlegen.</span>
+            <span class="wz-pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+          </summary>
+          <div class="wz-inhalt">
+            <p class="wz-warum">Wirkt auch dort, wo Prettier nicht greift — YAML, Markdown, .env, Konfigurationsdateien. Und verhindert die klassischen Zeilenende-Diffs zwischen Windows und Linux.</p>
+            <ol class="wz-schritte">
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">.editorconfig ins Projektwurzelverzeichnis</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false</pre>
+                </div>
+              </li>
+              <li>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Erweiterung installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>code --install-extension EditorConfig.EditorConfig</pre>
+                </div>
+              </li>
+            </ol>
+            <div class="pruefblock">
+              <div class="pruefung">
+                <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+                <div class="codebox">
+                  <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+                  <pre>code --list-extensions | findstr EditorConfig</pre>
+                </div>
+                <p class="pr-soll">EditorConfig.EditorConfig wird aufgeführt; neue Dateien rücken automatisch korrekt ein.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </article>
+    </section>
+
+  </main>
+
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+  <p class="foot">Haken und Design werden lokal auf diesem Gerät gespeichert.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
+
+<script src="../hefter.js"></script>
+</body>
+</html>

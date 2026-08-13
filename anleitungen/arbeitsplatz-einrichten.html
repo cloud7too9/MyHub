@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Von Null bis arbeitsfähig: Paketverwaltung, Terminal, Git und Schlüssel, Laufzeiten, Editor — und was bei jedem neuen Projekt erneut anfällt.">
+<meta name="hefter-untertitel" content="Windows · von Null bis arbeitsfähig, danach pro Projekt">
+<meta name="hefter-stichworte" content="arbeitsplatz windows powershell winget scoop terminal profil git identitaet ssh schluessel github gh cli node fnm pnpm uv python docker wsl vscode ripgrep fzf just editorconfig prettier eslint nvmrc ci workflow neuer rechner onboarding">
+<meta name="hefter-kuerzel" content="AP">
+<title>Arbeitsplatz einrichten · Hefter</title>
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="../style.css">
+<script>
+/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
+   helles Design und breite Leiste kurz auf. localStorage liest synchron,
+   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
+   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+try {
+  var d = document.documentElement;
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.classList.add("laedt");
+  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+} catch {}
+</script>
+</head>
+<body data-seite="arbeitsplatz-einrichten" data-basis="../">
+
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="../index.html">
+      <span class="logo"><img data-appicon src="../icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="../einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</header>
+
+<div class="wrap">
+<!-- KOPF-ENDE -->
+
+  <header class="guide-head">
+    <span class="chip">Arbeitsplatz</span>
+    <h1>Arbeitsplatz einrichten</h1>
+    <div class="meta">
+      <span>⏱ <b>ca. 90 Min</b></span>
+      <span>Aktualisiert <b>13.08.2026</b></span>
+      <span>Windows <span class="mono">PowerShell 7</span></span>
+    </div>
+    <p class="lead">Von Null bis arbeitsfähig. Die ersten 14 Schritte gelten einmal pro Rechner und bauen aufeinander auf — die Reihenfolge ist keine Empfehlung. Die letzten 7 fallen bei jedem neuen Projekt erneut an.</p>
+
+    <div class="schrittstand">
+      <span class="fs-zahl" data-fs-zahl>0 / 21</span>
+      <span class="balken"><i data-fs-balken></i></span>
+      <button class="fs-reset" type="button" data-fs-reset>zurücksetzen</button>
+    </div>
+
+    <div class="callout info">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+      <div><div class="label">Das ⓘ führt weiter</div><div class="txt">Neben jeder Schritt-Überschrift steht ein Info-Symbol. Es springt in die passende Karte im &lt;a href=&quot;../nachschlagen/werkzeugkasten.html&quot;&gt;Werkzeugkasten&lt;/a&gt; — dort steht, wozu das Werkzeug gut ist und was es sonst noch kann. Hier steht nur, was jetzt zu tun ist.</div></div>
+    </div>
+
+    <div class="stufenfilter" role="group" aria-label="Schritte filtern">
+      <button data-filter="alle" class="aktiv">Alle Schritte</button>
+      <button data-filter="wiederkehrend">Nur pro Projekt</button>
+    </div>
+    <p class="stufen-hinweis">Der Aufbau des Rechners ist ausgeblendet — sichtbar bleibt, was bei jedem neuen Projekt erneut anfällt.</p>
+  </header>
+
+  <main>
+
+    <div class="abschnitt einmalig">
+      <span class="abschnitt-nr">1</span>
+      <h2>Grundgerüst</h2>
+      <span class="abschnitt-anz">3 Schritte</span>
+    </div>
+
+    <!-- Schritt 1 -->
+    <section class="step einmalig" data-schritt="s01">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 1">1</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Paketverwaltung bereitstellen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-winget" aria-label="Nachschlagen: winget &amp; Scoop" title="Nachschlagen: winget &amp; Scoop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>winget kommt mit Windows 11. Fehlt es, über den Microsoft Store „App Installer&quot; nachinstallieren.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget --version
+winget upgrade --all</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>winget --version</pre>
+            </div>
+            <p class="pr-soll">Soll: Eine Versionsnummer, z. B. v1.8.x.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Kein Befehl gefunden: Store öffnen, „App Installer&quot; installieren, Terminal neu starten. Danach Scoop als Ergänzung für Werkzeuge ohne Adminrechte:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 2 -->
+    <section class="step einmalig" data-schritt="s02">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 2">2</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Terminal und PowerShell 7<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-terminal" aria-label="Nachschlagen: Windows Terminal + PowerShell 7" title="Nachschlagen: Windows Terminal + PowerShell 7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Beides installieren, danach im Terminal unter Einstellungen → Standardprofil auf „PowerShell&quot; umstellen (nicht „Windows PowerShell&quot;).</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget install --id Microsoft.WindowsTerminal -e
+winget install --id Microsoft.PowerShell -e</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Ab hier alle weiteren Schritte im neuen Terminal ausführen, nicht in der alten Konsole.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>$PSVersionTable.PSVersion</pre>
+            </div>
+            <p class="pr-soll">Soll: Major 7 oder höher.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Steht dort 5.1, läuft noch die alte Shell. Terminal schließen, „PowerShell 7&quot; aus dem Startmenü öffnen und das Standardprofil setzen.</p>
+
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 3 -->
+    <section class="step einmalig stufenwechsel" data-schritt="s03">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 3">3</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Profil-Datei anlegen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-terminal" aria-label="Nachschlagen: Windows Terminal + PowerShell 7" title="Nachschlagen: Windows Terminal + PowerShell 7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Diese Datei sammelt später alle Aliase und Tastenkürzel. Einmal anlegen, dann in späteren Schritten befüllen.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>if (!(Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force }
+notepad $PROFILE</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>Test-Path $PROFILE</pre>
+            </div>
+            <p class="pr-soll">Soll: True.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Bei False fehlt der Ordner. Anlegen und erneut versuchen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>New-Item -ItemType Directory -Force -Path (Split-Path $PROFILE)
+New-Item -ItemType File -Path $PROFILE -Force</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="abschnitt einmalig">
+      <span class="abschnitt-nr">2</span>
+      <h2>Identität und Zugang</h2>
+      <span class="abschnitt-anz">4 Schritte</span>
+    </div>
+
+    <!-- Schritt 4 -->
+    <section class="step einmalig" data-schritt="s04">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 4">4</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Git installieren und einrichten<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-git" aria-label="Nachschlagen: Git" title="Nachschlagen: Git"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Ohne Identität verweigert Git den ersten Commit. Beide Werte landen dauerhaft in jedem Commit.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget install --id Git.Git -e
+git config --global user.name <span class="tok-s">&quot;Vorname Nachname&quot;</span>
+git config --global user.email <span class="tok-s">&quot;mail@beispiel.de&quot;</span>
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global core.autocrlf true</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git config --global --list</pre>
+            </div>
+            <p class="pr-soll">Soll: user.name und user.email mit deinen Werten.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Fehlt ein Eintrag, einzeln nachsetzen. Ein Tippfehler in der Mail lässt sich mit demselben Befehl überschreiben:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git config --global user.email <span class="tok-s">&quot;richtige@beispiel.de&quot;</span></pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 5 -->
+    <section class="step einmalig" data-schritt="s05">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 5">5</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>SSH-Schlüssel bereitstellen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-ssh" aria-label="Nachschlagen: OpenSSH &amp; Schlüssel" title="Nachschlagen: OpenSSH &amp; Schlüssel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Wähle den Weg, der zu deiner Lage passt.</p>
+        <div class="weiche" data-weiche="s05">
+          <div class="weiche-wahl" role="group" aria-label="Ausgangslage wählen">
+            <button data-weg="a" class="aktiv">Weg A · Neu erzeugen</button>
+            <button data-weg="b">Weg B · Vom alten Rechner mitnehmen</button>
+          </div>
+          <div class="weg aktiv" data-weg="a">
+            <p class="wegtext">Dateinamen bei der Nachfrage leer lassen — dann finden alle Werkzeuge den Schlüssel automatisch. Passphrase vergeben.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ssh-keygen -t ed25519 -C <span class="tok-s">&quot;max@arbeitsrechner&quot;</span></pre>
+            </div>
+          </div>
+          <div class="weg" data-weg="b">
+            <p class="wegtext">Die beiden Dateien id_ed25519 und id_ed25519.pub in den .ssh-Ordner kopieren, danach obigen Befehl für die Rechte ausführen — sonst verweigert OpenSSH den Schlüssel.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>New-Item -ItemType Directory -Force -Path $env:USERPROFILE\.ssh
+icacls $env:USERPROFILE\.ssh\id_ed25519 /inheritance:r /grant:r <span class="tok-s">&quot;$env:USERNAME:(R)&quot;</span></pre>
+            </div>
+          </div>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Nicht weitergeben</div><div class="txt">Die Datei ohne .pub ist der private Schlüssel. Sie verlässt den Rechner nie, kommt in kein Repository und wird nicht per Mail oder Chat verschickt.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ssh-keygen -l -f $env:USERPROFILE\.ssh\id_ed25519.pub</pre>
+            </div>
+            <p class="pr-soll">Soll: 256 SHA256:… ed25519 — der Fingerabdruck des Schlüssels.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Meldung „No such file&quot;: Der Schlüssel liegt nicht am Standardort. Ordnerinhalt anzeigen und Dateien ggf. dorthin verschieben:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>dir $env:USERPROFILE\.ssh</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 6 -->
+    <section class="step einmalig" data-schritt="s06">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 6">6</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>GitHub verbinden<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-gh" aria-label="Nachschlagen: GitHub CLI" title="Nachschlagen: GitHub CLI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Die CLI installieren, anmelden und den öffentlichen Schlüssel hinterlegen. Die Anmeldung richtet gleichzeitig die Git-Zugangsdaten ein.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget install --id GitHub.cli -e
+gh auth login
+gh ssh-key add $env:USERPROFILE\.ssh\id_ed25519.pub --title <span class="tok-s">&quot;Arbeitsrechner&quot;</span></pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Bei gh auth login: GitHub.com → SSH → vorhandenen Schlüssel wählen → im Browser bestätigen.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>gh auth status
+ssh -T git@github.com</pre>
+            </div>
+            <p class="pr-soll">Soll: Angemeldet als dein Konto, dazu eine Begrüßung von GitHub mit deinem Benutzernamen.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">„Permission denied (publickey)&quot;: Der Schlüssel ist noch nicht bei GitHub. Vorhandene Schlüssel prüfen und ggf. neu hinzufügen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>gh ssh-key list</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 7 -->
+    <section class="step einmalig stufenwechsel" data-schritt="s07">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 7">7</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Server-Kurznamen anlegen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-ssh" aria-label="Nachschlagen: OpenSSH &amp; Schlüssel" title="Nachschlagen: OpenSSH &amp; Schlüssel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Nur nötig, wenn ein eigener Server im Spiel ist. Datei ~/.ssh/config anlegen und pro Server einen Block eintragen.</p>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">~\.ssh\config</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>Host mein-server
+  HostName 203.0.113.10
+  User max
+  IdentityFile ~/.ssh/id_ed25519</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Danach genügt ssh mein-server statt der vollen Adresse. Öffnen mit: notepad $env:USERPROFILE\.ssh\config</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>ssh mein-server <span class="tok-s">&quot;echo verbunden&quot;</span></pre>
+            </div>
+            <p class="pr-soll">Soll: Das Wort „verbunden&quot; erscheint.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Datei fehlt oder ist leer? Anlegen und öffnen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>New-Item -ItemType File -Force -Path $env:USERPROFILE\.ssh\config
+notepad $env:USERPROFILE\.ssh\config</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="abschnitt einmalig">
+      <span class="abschnitt-nr">3</span>
+      <h2>Laufzeiten</h2>
+      <span class="abschnitt-anz">4 Schritte</span>
+    </div>
+
+    <!-- Schritt 8 -->
+    <section class="step einmalig" data-schritt="s08">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 8">8</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Node über fnm<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-fnm" aria-label="Nachschlagen: Node.js über fnm" title="Nachschlagen: Node.js über fnm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Versionsmanager statt fester Installation — sonst blockieren sich Projekte mit unterschiedlichen Node-Versionen gegenseitig.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget install --id Schniz.fnm -e
+fnm install --lts
+fnm default lts-latest</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Danach diese Zeile ans Ende von $PROFILE hängen, damit fnm beim Verzeichniswechsel automatisch umschaltet:
+
+        fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>node -v
+fnm list</pre>
+            </div>
+            <p class="pr-soll">Soll: Die LTS-Version, in der Liste als default markiert.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">„node wird nicht erkannt&quot;: Die Profil-Zeile fehlt oder das Terminal wurde nicht neu gestartet. Profil öffnen, Zeile prüfen, Terminal neu starten:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>notepad $PROFILE</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 9 -->
+    <section class="step einmalig" data-schritt="s09">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 9">9</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>pnpm aktivieren<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-pnpm" aria-label="Nachschlagen: pnpm" title="Nachschlagen: pnpm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Kommt über Corepack mit Node mit, muss nur eingeschaltet werden.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>corepack enable pnpm</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>pnpm -v</pre>
+            </div>
+            <p class="pr-soll">Soll: Versionsnummer ohne Fehler.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Fehler bei corepack: Node-Version zu alt oder fnm-Zeile fehlt. Node prüfen, danach erneut aktivieren:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>node -v
+corepack enable pnpm</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 10 -->
+    <section class="step einmalig" data-schritt="s10">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 10">10</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Python über uv<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-uv" aria-label="Nachschlagen: uv (Python)" title="Nachschlagen: uv (Python)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Nur nötig, wenn Python-Projekte anstehen. uv bringt Versionen, virtuelle Umgebungen und Pakete in einem Werkzeug mit.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget install --id astral-sh.uv -e
+uv python install 3.12</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>uv --version
+uv python list</pre>
+            </div>
+            <p class="pr-soll">Soll: Version plus Liste mit 3.12.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Ist bereits ein System-Python installiert, stört das nicht — uv verwaltet seine eigenen Versionen getrennt davon.</p>
+
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 11 -->
+    <section class="step einmalig stufenwechsel" data-schritt="s11">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 11">11</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Docker bereitstellen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-docker" aria-label="Nachschlagen: Docker" title="Nachschlagen: Docker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>WSL2 muss zuerst stehen. Nach der Docker-Installation einmal ab- und wieder anmelden.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>wsl --install
+winget install --id Docker.DockerDesktop -e</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Der wsl-Befehl verlangt in der Regel einen Neustart. Danach mit dem zweiten Befehl weitermachen.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>docker run --rm hello-world</pre>
+            </div>
+            <p class="pr-soll">Soll: Die Begrüßungsmeldung des Testcontainers.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">„Cannot connect to the Docker daemon&quot;: Docker Desktop läuft nicht. Starten, warten bis das Symbol grün ist, dann erneut prüfen. Bei WSL-Fehlern:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>wsl --update
+wsl --status</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="abschnitt einmalig">
+      <span class="abschnitt-nr">4</span>
+      <h2>Werkzeuge und Editor</h2>
+      <span class="abschnitt-anz">3 Schritte</span>
+    </div>
+
+    <!-- Schritt 12 -->
+    <section class="step einmalig" data-schritt="s12">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 12">12</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>VS Code einrichten<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-code" aria-label="Nachschlagen: VS Code" title="Nachschlagen: VS Code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Wähle, wie die Einstellungen auf den Rechner kommen.</p>
+        <div class="weiche" data-weiche="s12">
+          <div class="weiche-wahl" role="group" aria-label="Ausgangslage wählen">
+            <button data-weg="a" class="aktiv">Weg A · Einstellungen synchronisieren</button>
+            <button data-weg="b">Weg B · Frisch einrichten</button>
+          </div>
+          <div class="weg aktiv" data-weg="a">
+            <p class="wegtext">Nach dem Start: Zahnrad unten links → „Einstellungen synchronisieren aktivieren&quot; → mit GitHub anmelden. Erweiterungen, Tastenkürzel und Theme kommen automatisch mit. Empfohlener Weg bei einem Zweitrechner.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>winget install --id Microsoft.VisualStudioCode -e</pre>
+            </div>
+          </div>
+          <div class="weg" data-weg="b">
+            <p class="wegtext">Danach in den Einstellungen „Format On Save&quot; aktivieren und Prettier als Standardformatierer setzen.</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>winget install --id Microsoft.VisualStudioCode -e
+code --install-extension EditorConfig.EditorConfig
+code --install-extension esbenp.prettier-vscode
+code --install-extension dbaeumer.vscode-eslint</pre>
+            </div>
+          </div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>code --version</pre>
+            </div>
+            <p class="pr-soll">Soll: Version, Commit-Hash und Architektur.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">„code wird nicht erkannt&quot;: Der PATH-Eintrag fehlt. In VS Code die Befehlspalette öffnen (Ctrl+Shift+P) und „Shell Command: Install code command in PATH&quot; ausführen, danach Terminal neu starten.</p>
+
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 13 -->
+    <section class="step einmalig" data-schritt="s13">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 13">13</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Kommandozeilen-Helfer installieren<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-rg" aria-label="Nachschlagen: ripgrep" title="Nachschlagen: ripgrep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Sechs kleine Werkzeuge in einem Rutsch — Suche, Auswahl, JSON, Anzeige, Aufgaben.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>winget install --id BurntSushi.ripgrep.MSVC -e
+winget install --id junegunn.fzf -e
+winget install --id jqlang.jq -e
+winget install --id sharkdp.bat -e
+winget install --id eza-community.eza -e
+winget install --id Casey.Just -e</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>rg --version; fzf --version; jq --version; bat --version; eza --version; just --version</pre>
+            </div>
+            <p class="pr-soll">Soll: Sechs Versionszeilen ohne Fehler dazwischen.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Meldet eines der Werkzeuge nichts, fehlt der PATH-Eintrag im laufenden Terminal. Terminal neu starten und erneut prüfen. Hilft das nicht, einzeln nachinstallieren:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>winget install --id BurntSushi.ripgrep.MSVC -e --force</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 14 -->
+    <section class="step einmalig stufenwechsel" data-schritt="s14">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 14">14</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Einmalig pro Rechner</span>
+        <h2>Profil-Datei abschließen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-fzf" aria-label="Nachschlagen: fzf" title="Nachschlagen: fzf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Jetzt alles in $PROFILE zusammenführen: Tastenkürzel und Aliase. Öffnen mit notepad $PROFILE.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>Install-Module PSFzf -Scope CurrentUser -Force</pre>
+        </div>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">$PROFILE — ans Ende anhängen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression
+Import-Module PSFzf
+Set-PsFzfOption -PSReadlineChordProvider <span class="tok-s">&quot;Ctrl+t&quot;</span> -PSReadlineChordReverseHistory <span class="tok-s">&quot;Ctrl+r&quot;</span>
+Set-Alias -Name ll -Value eza
+function lg { eza -l --git --icons }</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Danach Terminal neu starten. Ctrl+R durchsucht ab jetzt den Befehlsverlauf, Ctrl+T die Dateien im aktuellen Ordner.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>Get-Content $PROFILE</pre>
+            </div>
+            <p class="pr-soll">Soll: Alle eingetragenen Zeilen. Danach Ctrl+R drücken — die Suchmaske muss erscheinen.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Fehler beim Start des Terminals? Die letzte eingefügte Zeile ist meist schuld. Profil öffnen, Zeile auskommentieren, Terminal neu starten:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>notepad $PROFILE</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="abschnitt wiederkehrend">
+      <span class="abschnitt-nr">5</span>
+      <h2>Je Projekt</h2>
+      <span class="abschnitt-anz">7 Schritte</span>
+    </div>
+
+    <!-- Schritt 15 -->
+    <section class="step wiederkehrend" data-schritt="p01">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 15">15</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Projekt anlegen oder klonen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-git" aria-label="Nachschlagen: Git" title="Nachschlagen: Git"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Beim Klonen die SSH-Adresse verwenden, nicht HTTPS — dann greift der eingerichtete Schlüssel.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>gh repo clone cloud7too9/MeinProjekt
+<span class="tok-c"># oder neu:</span>
+git init
+git branch -M main</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git remote -v</pre>
+            </div>
+            <p class="pr-soll">Soll: Eine Adresse mit git@github.com, nicht mit https://.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Steht dort https, die Adresse umstellen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git remote set-url origin git@github.com:cloud7too9/MeinProjekt.git</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 16 -->
+    <section class="step wiederkehrend" data-schritt="p02">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 16">16</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>.editorconfig ins Wurzelverzeichnis<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-editorconfig" aria-label="Nachschlagen: EditorConfig" title="Nachschlagen: EditorConfig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Gilt für alle Dateitypen und alle Editoren — auch dort, wo Prettier nicht greift.</p>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">.editorconfig</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git status</pre>
+            </div>
+            <p class="pr-soll">Soll: Die neue Datei taucht als unversionierte Änderung auf.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Nicht sichtbar? Sie liegt im falschen Ordner. Die Datei muss neben der .git-Ordnerstruktur liegen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>dir -Force</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 17 -->
+    <section class="step wiederkehrend" data-schritt="p03">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 17">17</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Node-Version festschreiben<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-fnm" aria-label="Nachschlagen: Node.js über fnm" title="Nachschlagen: Node.js über fnm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Damit alle, die das Repo klonen, dieselbe Version bekommen — und fnm beim Betreten automatisch umschaltet.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>node -v &gt; .nvmrc</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>Get-Content .nvmrc</pre>
+            </div>
+            <p class="pr-soll">Soll: Eine Versionszeile wie v20.11.1.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Enthält die Datei Sonderzeichen, hat PowerShell UTF-16 geschrieben. Neu erzeugen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>node -v | Out-File -Encoding ascii .nvmrc</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 18 -->
+    <section class="step wiederkehrend" data-schritt="p04">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 18">18</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Prettier und ESLint aufnehmen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-prettier" aria-label="Nachschlagen: Prettier &amp; ESLint" title="Nachschlagen: Prettier &amp; ESLint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Als Entwicklungsabhängigkeiten ins Projekt, damit die Version im Repo festgeschrieben ist.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>pnpm add -D prettier eslint</pre>
+        </div>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">.prettierrc</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>{
+  <span class="tok-s">&quot;semi&quot;</span>: true,
+  <span class="tok-s">&quot;singleQuote&quot;</span>: true,
+  <span class="tok-s">&quot;printWidth&quot;</span>: 100
+}</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>pnpm exec prettier --check .</pre>
+            </div>
+            <p class="pr-soll">Soll: „All matching files use Prettier code style!&quot; oder eine Liste abweichender Dateien.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Meldet es alle Dateien als abweichend, einmal komplett durchformatieren und den Stand committen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>pnpm exec prettier --write .</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 19 -->
+    <section class="step wiederkehrend" data-schritt="p05">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 19">19</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>justfile anlegen<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-just" aria-label="Nachschlagen: just" title="Nachschlagen: just"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Die wiederkehrenden Projektbefehle an einen Ort, versioniert neben dem Code.</p>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">justfile</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>dev:
+    pnpm run dev
+
+bauen:
+    pnpm run build
+
+pruefen:
+    pnpm exec eslint .
+    pnpm exec prettier --check .
+
+veroeffentlichen: bauen
+    netlify deploy --prod</pre>
+        </div>
+        <div class="callout info">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+          <div><div class="label">Hinweis</div><div class="txt">Anders als bei make sind Leerzeichen zur Einrückung erlaubt. Der Name hinter dem Doppelpunkt ist eine Abhängigkeit, die vorher läuft.</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>just --list</pre>
+            </div>
+            <p class="pr-soll">Soll: Alle Rezepte mit Namen.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">„No justfile found&quot;: Die Datei heißt exakt justfile, ohne Endung, und liegt im Wurzelverzeichnis:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>dir justfile</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 20 -->
+    <section class="step wiederkehrend" data-schritt="p06">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 20">20</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>CI-Workflow einrichten<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-actions" aria-label="Nachschlagen: GitHub Actions" title="Nachschlagen: GitHub Actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Datei .github/workflows/ci.yml anlegen. Läuft ab dem nächsten Push automatisch.</p>
+        <div class="codebox" data-typ="datei">
+          <div class="codebox-head"><span class="fname">.github/workflows/ci.yml</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build</pre>
+        </div>
+        <div class="callout gefahr">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+          <div><div class="label">Nicht weitergeben</div><div class="txt">Zugangsdaten niemals in die YAML schreiben. Immer als Secret hinterlegen: gh secret set NAME</div></div>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git push
+gh run list --limit 1</pre>
+            </div>
+            <p class="pr-soll">Soll: Der neueste Lauf steht auf completed / success.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">Bei failure die Ursache direkt im Terminal ansehen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>gh run view --log-failed</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schritt 21 -->
+    <section class="step wiederkehrend stufenwechsel" data-schritt="p07">
+      <div class="rail"><button class="step-num" type="button" aria-pressed="false" aria-label="Schritt 21">21</button></div>
+      <div class="step-body">
+        <span class="stufe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg> Pro Projekt</span>
+        <h2>Ersten Stand sichern<a class="infolink" href="../nachschlagen/werkzeugkasten.html#wz-git" aria-label="Nachschlagen: Git" title="Nachschlagen: Git"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></a></h2>
+        <p>Alles Eingerichtete in einen Commit und hochladen.</p>
+        <div class="codebox">
+          <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+          <pre>git add .
+git commit -m <span class="tok-s">&quot;Projektgrundlage eingerichtet&quot;</span>
+git push -u origin main</pre>
+        </div>
+        <div class="pruefblock">
+          <div class="pruefung">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Prüfen</div>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git log --oneline -1
+git status</pre>
+            </div>
+            <p class="pr-soll">Soll: Der Commit erscheint, und der Arbeitsbaum ist sauber.</p>
+          </div>
+          <div class="reparatur">
+            <div class="pr-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Stimmt nicht</div>
+            <p class="pr-soll">„src refspec main does not match any&quot;: Es gibt noch keinen Commit auf main. Branch umbenennen und erneut pushen:</p>
+            <div class="codebox">
+              <div class="codebox-head"><span class="fname">PowerShell</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
+              <pre>git branch -M main
+git push -u origin main</pre>
+            </div>
+          </div>
+        </div>
+        <div class="fotozone">
+          <div class="fotos"></div>
+          <button class="addfoto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Foto anfügen</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="checkliste">
+    <header>
+      <h2>Abschluss-Checkliste</h2>
+      <span class="fortschritt" id="chkStand">0 / 6</span>
+    </header>
+    <div class="check" data-check="paketverwaltung"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>winget --version</code> und <code>$PSVersionTable.PSVersion</code> melden Versionen, PowerShell 7 ist Standardprofil</span></div>
+    <div class="check" data-check="identitaet"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>git config --global --list</code> zeigt Name und Mail, <code>ssh -T git@github.com</code> grüßt mit deinem Benutzernamen</span></div>
+    <div class="check" data-check="laufzeiten"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>node -v</code>, <code>pnpm -v</code>, <code>uv --version</code> und <code>docker run hello-world</code> laufen durch</span></div>
+    <div class="check" data-check="editor"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl"><code>code .</code> öffnet ein Projekt, Format-on-Save greift</span></div>
+    <div class="check" data-check="profil"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Ein neues Terminal schaltet die Node-Version beim Verzeichniswechsel selbst um</span></div>
+    <div class="check" data-check="projekt"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="lbl">Ein Projekt steht mit <code>.editorconfig</code>, <code>.nvmrc</code>, <code>justfile</code> und grünem CI-Lauf</span></div>
+  </div>
+
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+  <p class="foot">Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
+
+<script src="../hefter.js"></script>
+</body>
+</html>

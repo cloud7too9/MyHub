@@ -1,7 +1,8 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-65b4159078";
+const VERSION = "hefter-48b7f26faa";
 const SHELL = [
+  "anleitungen/arbeitsplatz-einrichten.html",
   "anleitungen/coolify-einrichtung.html",
   "anleitungen/docker-einrichtung.html",
   "anleitungen/domain-einrichtung.html",
@@ -46,6 +47,7 @@ const SHELL = [
   "manifest-06-klammer.webmanifest",
   "manifest.webmanifest",
   "nachschlagen/schluesselverwaltung.html",
+  "nachschlagen/werkzeugkasten.html",
   "schriften/dm-sans-latin-ext.woff2",
   "schriften/dm-sans-latin.woff2",
   "schriften/jetbrains-mono-latin-ext.woff2",
