@@ -2,6 +2,9 @@
    HEFTER · Build-Skript  ·  Aufruf:  node bauen.mjs
    Ohne Abhängigkeiten (nur Node-Stdlib). Erzeugt:
 
+   0. Den Seitenrahmen jeder Seite zwischen den Markern
+      KOPF-START/KOPF-ENDE und ab FUSS-START — Kopf, App-Bar
+      und Fuß stehen überall gleich und werden nicht kopiert.
    1. REGISTER in hefter.js — aus den Seiten beider Sorten:
         <h1>                        → titel
         <span class="chip">         → kategorie
@@ -31,6 +34,92 @@ const SORTEN = [
   { ordner: "nachschlagen", art: "uebersicht" }
 ];
 const RANG = { anleitung: 0, uebersicht: 1 };
+
+const seitenDateien = ordner =>
+  readdirSync(join(WURZEL, ordner)).filter(f => f.endsWith(".html")).sort();
+
+/* ---------- 0. Seitenrahmen ----------
+   Kopf, App-Bar und Fuß sind auf jeder Seite dieselben 28 Zeilen. Von Hand
+   kopiert laufen sie beim ersten Nachziehen auseinander, und data-seite wie
+   data-basis sind genau die Attribute, die man beim Kopieren einer Vorlage
+   zu ändern vergisst. Also erzeugt das Skript sie zwischen Markern — dasselbe
+   Verfahren wie beim REGISTER in hefter.js.
+
+   Seitenspezifisch bleibt allein, was oberhalb von KOPF-START steht:
+   description, die hefter-Metas und der <title>. <meta charset> muss dort die
+   erste Zeile bleiben: davor darf kein Nicht-ASCII-Byte stehen, sonst rät der
+   Browser die Kodierung, wenn der Server kein charset mitschickt (python3
+   -m http.server tut das nicht). Der Fuß hat keinen Endmarker — er reicht
+   bis zum Dateiende. */
+const KOPF_START = "<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->";
+const KOPF_ENDE = "<!-- KOPF-ENDE -->";
+const FUSS_START = "<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->";
+
+const kopf = (basis, seite) => `${KOPF_START}
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<link rel="manifest" href="${basis}manifest.webmanifest">
+<link rel="icon" href="${basis}icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="${basis}icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="${basis}style.css">
+<script>
+try { document.documentElement.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel"; } catch {}
+</script>
+</head>
+<body data-seite="${seite}" data-basis="${basis}">
+
+<div class="appbar">
+  <a class="back" href="${basis}index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+    Register
+  </a>
+  <span class="spacer"></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</div>
+
+<div class="wrap">
+${KOPF_ENDE}`;
+
+/* Anleitungen speichern Fotos und Haken, Übersichten nur den Fortschritt —
+   der Satz im Fuß nennt deshalb je Sorte etwas anderes. */
+const FUSSTEXT = {
+  anleitung: "Fotos, Checkliste und Design werden lokal auf diesem Gerät gespeichert.",
+  uebersicht: "Design und Fortschritt werden lokal auf diesem Gerät gespeichert."
+};
+
+const fuss = (basis, art) => `${FUSS_START}
+  <p class="foot">${FUSSTEXT[art]}</p>
+</div>
+
+<script src="${basis}hefter.js"></script>
+</body>
+</html>
+`;
+
+/* Ersetzt wird mit einer Funktion statt mit einem String: $& und $1 im
+   erzeugten Markup würden sonst als Rückverweise gelesen. */
+function rahmenSetzen(html, datei, basis, seite, art) {
+  const kopfRe = /<!-- KOPF-START[\s\S]*?<!-- KOPF-ENDE -->/;
+  const fussRe = /<!-- FUSS-START[\s\S]*$/;
+  if (!kopfRe.test(html))
+    throw new Error(`${datei}: Marker KOPF-START … KOPF-ENDE fehlt — Rahmen kann nicht erzeugt werden`);
+  if (!fussRe.test(html))
+    throw new Error(`${datei}: Marker FUSS-START fehlt — Rahmen kann nicht erzeugt werden`);
+  return html.replace(kopfRe, () => kopf(basis, seite)).replace(fussRe, () => fuss(basis, art));
+}
+
+let rahmenGeaendert = 0;
+for (const { ordner, art } of SORTEN)
+  for (const f of seitenDateien(ordner)) {
+    const pfad = join(WURZEL, ordner, f);
+    const alt = readFileSync(pfad, "utf8");
+    const neu = rahmenSetzen(alt, f, "../", f.replace(/\.html$/, ""), art);
+    if (neu !== alt) { writeFileSync(pfad, neu); rahmenGeaendert++; }
+  }
+console.log(`Seitenrahmen: ${rahmenGeaendert} von ${SORTEN.reduce((n, s) => n + seitenDateien(s.ordner).length, 0)} Seiten neu geschrieben`);
 
 /* Checklisten-Fortschritt und Fotos werden über diese IDs zugeordnet.
    Ein Duplikat legt zwei Häkchen bzw. zwei Fotozonen still zusammen —
@@ -62,7 +151,7 @@ function codeboxTypenPruefen(html, datei) {
 }
 
 const register = SORTEN.flatMap(({ ordner, art }) =>
-  readdirSync(join(WURZEL, ordner)).filter(f => f.endsWith(".html")).sort().map(f => {
+  seitenDateien(ordner).map(f => {
     const h = readFileSync(join(WURZEL, ordner, f), "utf8");
     const greifen = (re, was) => {
       const m = h.match(re);

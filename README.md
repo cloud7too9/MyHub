@@ -53,7 +53,6 @@ hefter/
    - `<title>` und `<h1>` — der `<h1>` wird zum Register-Titel
    - `<span class="chip">` — wird zur Register-Kategorie
    - `<meta name="hefter-untertitel">` und `<meta name="hefter-stichworte">`
-   - `data-seite="…"` am `<body>` — eindeutige Seiten-ID für die Speicherung
    - `data-schritt="…"` an jeder `.fotozone`, `data-check="…"` an jedem
      Checklisten-Punkt — **stabile, beliebige IDs**; nie wiederverwenden,
      sonst wandern Fotos/Haken mit. Duplikate innerhalb einer Seite fängt
@@ -68,6 +67,37 @@ hefter/
 
 Das Register in `hefter.js` und die `sw.js` werden dabei vollständig aus den
 Seiten-Dateien beider Ordner erzeugt — nichts davon von Hand pflegen.
+
+### Der Seitenrahmen wird erzeugt
+
+Kopf, App-Bar und Fuß sind auf jeder Seite dieselben Zeilen. Sie stehen
+deshalb nicht in der Datei, sondern werden von `bauen.mjs` zwischen die
+Marker geschrieben:
+
+```html
+<head>
+<meta charset="UTF-8">                     ← muss erste Zeile im head bleiben
+<meta name="description" content="…">      ┐
+<meta name="hefter-untertitel" …>          │ das Einzige, was die Seite
+<meta name="hefter-stichworte" …>          │ selbst pflegt
+<title>… · Hefter</title>                  ┘
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+…                                          ← Rahmen, inklusive <body> und App-Bar
+<!-- KOPF-ENDE -->
+   … hier steht der Seiteninhalt …
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+```
+
+Der Fuß hat keinen Endmarker: er reicht bis zum Dateiende. `data-seite` und
+`data-basis` kommen aus Dateiname und Ordner — zwei Attribute weniger, die man
+beim Kopieren einer Vorlage zu ändern vergessen kann. Eine Änderung an der
+App-Bar ist damit ein Eingriff an einer Stelle statt an zwölf. Fehlt einer der
+Marker, bricht der Build mit einer klaren Meldung ab.
+
+**`<meta charset>` bleibt oben:** Vor der Kodierungsangabe darf kein
+Nicht-ASCII-Byte stehen, und Untertitel wie Beschreibung enthalten Umlaute.
+Schickt der Server kein `charset` mit — `python3 -m http.server` tut das nicht
+—, rät der Browser sonst.
 
 ## Build-Skript
 
