@@ -180,6 +180,7 @@ const KEY = {
   checks: id => "hefter:checks:" + id,
   schritte: id => "hefter:schritte:" + id,
   stufe: id => "hefter:stufe:" + id,
+  ansicht: "hefter:ansicht",
   weg: (seite, weiche) => "hefter:weg:" + seite + ":" + weiche,
   fotos: id => "hefter:fotos:" + id   /* nur noch für die Übernahme von Altbeständen */
 };
@@ -265,6 +266,87 @@ function iconAnwenden(id, speichern = true) {
     k.classList.toggle("aktiv", k.dataset.icon === id);
     k.setAttribute("aria-pressed", k.dataset.icon === id);
   });
+}
+
+/* ============================================================
+   ANSICHT  (Computer · iPad · iPhone)
+   Welche Ansicht gilt, entscheidet ansichtBestimmen() im Inline-
+   Script des Kopfes — dort und nur dort, weil die Regel vor dem
+   ersten Anstrich laufen muss (kopf() in bauen.mjs). Hier steht,
+   was danach kommt: die Wahl speichern, das Fenster im Blick
+   behalten, die Knöpfe der Einstellungsseite.
+   Die Ansicht steht als data-ansicht am <html>; Media Queries
+   liefern nur noch den Startwert, entscheiden aber nicht mehr
+   über die Darstellung.
+   ============================================================ */
+const WURZEL_HTML = document.documentElement;
+
+const ANSICHTEN = [
+  { id: "auto", name: "Automatisch", ikone: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>' },
+  { id: "computer", name: "Computer", ikone: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>' },
+  { id: "ipad", name: "iPad", ikone: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/>' },
+  { id: "iphone", name: "iPhone", ikone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>' }
+];
+
+/* Fällt das Kopf-Script aus (Inline-Script verboten), bleibt "computer" —
+   das ist die Darstellung des Stylesheets ohne jede Ansicht. */
+const ansichtBestimmen = wahl => window.ansichtBestimmen?.(wahl) || "computer";
+/* Roher String wie hefter:theme, nicht über merken() — das schriebe JSON,
+   und das Kopf-Script liest hier ohne JSON.parse. */
+const ansichtWahl = () => {
+  try { return localStorage.getItem(KEY.ansicht) || "auto"; } catch { return "auto"; }
+};
+const ansichtAktiv = () => WURZEL_HTML.dataset.ansicht || "computer";
+
+/* Rechnet die geltende Ansicht neu und meldet eine Änderung als
+   hefter:ansicht am document — daran hängen Leiste und Anzeige. Ein
+   Ereignis deckt alle Wege ab: Wahl in den Einstellungen, gedrehtes
+   iPad, verkleinertes Fenster. */
+function ansichtAnwenden() {
+  const alt = WURZEL_HTML.dataset.ansicht;
+  const neu = ansichtBestimmen(ansichtWahl());
+  WURZEL_HTML.dataset.ansicht = neu;
+  if (neu !== alt) document.dispatchEvent(new CustomEvent("hefter:ansicht", { detail: neu }));
+  ansichtKnoepfe();
+}
+
+function ansichtWaehlen(wahl) {
+  try { localStorage.setItem(KEY.ansicht, wahl); } catch {}
+  ansichtAnwenden();
+}
+
+/* Beschriftet die Knöpfe: am "Automatisch"-Knopf steht, was gerade daraus
+   wird. Und wenn der 640px-Boden eine Wahl überstimmt, steht das an der
+   gewählten — sonst sähe es aus, als hätte der Knopf nicht gegriffen. */
+function ansichtKnoepfe() {
+  const wahl = ansichtWahl();
+  const aktiv = ansichtAktiv();
+  const name = id => ANSICHTEN.find(a => a.id === id)?.name || id;
+  document.querySelectorAll("[data-ansichtwahl]").forEach(b => {
+    const ich = b.dataset.ansichtwahl;
+    b.classList.toggle("aktiv", ich === wahl);
+    b.setAttribute("aria-pressed", String(ich === wahl));
+    const dazu = b.querySelector(".dazu");
+    if (!dazu) return;
+    dazu.textContent =
+      ich === "auto" ? "zurzeit " + name(ansichtBestimmen("auto"))
+      : ich === wahl && ich !== aktiv ? "Fenster zu schmal — zurzeit " + name(aktiv)
+      : "";
+  });
+}
+
+function ansichtAufbauen() {
+  const ziel = document.getElementById("ansichtWahl");
+  if (!ziel) return;
+  ziel.innerHTML = ANSICHTEN.map(a => `
+    <button data-ansichtwahl="${a.id}">
+      <span class="ikone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${a.ikone}</svg></span>
+      <span class="name">${a.name}</span>
+      <span class="dazu"></span>
+    </button>`).join("");
+  ziel.querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", () => ansichtWaehlen(b.dataset.ansichtwahl)));
+  ansichtKnoepfe();
 }
 
 /* ============================================================
@@ -379,7 +461,6 @@ function zuletztMerken() {
    unter hefter:leiste und wird schon im <head> gelesen, damit die
    Leiste nicht in ihrer gemerkten Breite aufblitzt.
    ============================================================ */
-const WURZEL_HTML = document.documentElement;
 
 /* Nenner des Fortschritts: eine Anleitung zählt ihre Schritte, eine
    Übersicht ihre Haken. Ein entfernter Punkt kann in der Speicherung
@@ -400,7 +481,21 @@ function leisteAufbauen() {
   const feld = document.getElementById("leisteSuche");
   const leer = document.getElementById("leisteLeer");
   const schleier = document.querySelector("[data-schleier]");
-  const zustand = Object.assign({ schmal: false, zu: [] }, gelesen(KEY.leiste, {}));
+  const gespeichert = gelesen(KEY.leiste, {}) || {};
+  const zustand = Object.assign({ zu: [] }, gespeichert);
+  /* Ob der Nutzer die Breite je selbst gesetzt hat. Ohne diese Unterscheidung
+     ließe sich die Vorgabe je Ansicht nicht von einer Wahl trennen: ein
+     gespeichertes false sähe aus wie "nie angefasst". */
+  let breiteGewaehlt = "schmal" in gespeichert;
+  /* Vorgabe je Ansicht — auf dem iPad ist die Kürzelspalte der Normalzustand,
+     am Computer die breite Leiste. Dieselbe Regel steht im Kopf-Script,
+     damit die Leiste nicht in der falschen Breite aufblitzt. */
+  if (!breiteGewaehlt) zustand.schmal = ansichtAktiv() === "ipad";
+  /* Solange die Breite nicht selbst gesetzt wurde, wandert sie auch nicht in
+     den Speicher — sonst schriebe schon das Zuklappen eines Fachs die
+     Vorgabe fest, und der Wechsel auf das iPad fände eine "Wahl" vor. */
+  const zustandMerken = () =>
+    merken(KEY.leiste, breiteGewaehlt ? zustand : { zu: zustand.zu });
   let suchtext = "";
 
   /* Fächer in der Reihenfolge ihres ersten Auftretens im REGISTER —
@@ -459,12 +554,16 @@ function leisteAufbauen() {
   /* ---- Zustand ---- */
   const schmalSetzen = (an, speichern = true) => {
     zustand.schmal = an;
-    WURZEL_HTML.classList.toggle("schmal", an);
+    /* In der iPhone-Ansicht gibt es den Schmal-Zustand nicht — dort ist die
+       Leiste entweder ganz da oder ganz weg. Gemerkt wird die Wahl trotzdem:
+       sie gilt wieder, sobald man am Computer sitzt. Weil die Klasse hier
+       gar nicht erst gesetzt wird, braucht style.css kein !important dagegen. */
+    WURZEL_HTML.classList.toggle("schmal", an && ansichtAktiv() !== "iphone");
     const knopf = document.querySelector("[data-klapp]");
     if (knopf) knopf.setAttribute("aria-label", an ? "Leiste ausklappen" : "Leiste einklappen");
-    if (speichern) merken(KEY.leiste, zustand);
+    if (speichern) { breiteGewaehlt = true; zustandMerken(); }
   };
-  const istSchmalerSchirm = () => matchMedia("(max-width: 860px)").matches;
+  const istSchmalerSchirm = () => ansichtAktiv() === "iphone";
   const auszugSetzen = an => {
     WURZEL_HTML.classList.toggle("auf", an);
     const brenner = document.querySelector("[data-brenner]");
@@ -498,7 +597,7 @@ function leisteAufbauen() {
     const name = kopf.dataset.fach;
     const i = zustand.zu.indexOf(name);
     i === -1 ? zustand.zu.push(name) : zustand.zu.splice(i, 1);
-    merken(KEY.leiste, zustand);
+    zustandMerken();
     zeichnen();
   });
 
@@ -535,9 +634,19 @@ function leisteAufbauen() {
     }
   });
 
-  /* Vom Telefon auf den großen Schirm gedreht: der Auszug hat dort keine
-     Entsprechung und bliebe sonst als Schleier über der Seite liegen. */
-  addEventListener("resize", () => { if (!istSchmalerSchirm()) auszugSetzen(false); });
+  /* Gedrehtes iPad, verkleinertes Fenster: bei "Automatisch" kann sich damit
+     die Ansicht ändern, und der 640px-Boden greift auch bei fester Wahl. */
+  addEventListener("resize", ansichtAnwenden);
+
+  /* Was am Ansichtswechsel hängt. Der Auszug hat außerhalb der iPhone-Ansicht
+     keine Entsprechung und bliebe sonst als Schleier über der Seite liegen;
+     der Schmal-Zustand gilt nur, wo es ihn gibt, und bekommt seine Vorgabe
+     neu, solange die Breite nicht selbst gesetzt wurde. */
+  document.addEventListener("hefter:ansicht", () => {
+    if (!breiteGewaehlt) zustand.schmal = ansichtAktiv() === "ipad";
+    schmalSetzen(zustand.schmal, false);
+    if (!istSchmalerSchirm()) auszugSetzen(false);
+  });
 
   /* Brotkrume im Inhalts-Kopf */
   const krumen = document.querySelector("[data-krumen]");
@@ -1243,6 +1352,9 @@ themeLaden();
 leisteAufbauen();
 buehneAufbauen();
 zuletztMerken();
+/* Nach leisteAufbauen: die Leiste hängt sich dort an hefter:ansicht, und ein
+   Wechsel aus den Einstellungen heraus muss sie erreichen. */
+ansichtAufbauen();
 einstellungenAufbauen();
 /* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
    die iconAnwenden als aktiv markiert. */

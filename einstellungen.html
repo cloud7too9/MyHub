@@ -12,15 +12,53 @@
 <link rel="apple-touch-icon" href="icons/png/01-ringe-192.png">
 <link rel="stylesheet" href="style.css">
 <script>
-/* Theme und Leisten-Zustand vor dem ersten Anstrich setzen — sonst blitzen
-   helles Design und breite Leiste kurz auf. localStorage liest synchron,
-   deshalb geht das hier oben. "laedt" schaltet Übergänge bis zum ersten
-   Bild ab; hefter.js nimmt die Klasse wieder weg. */
+/* Theme, Ansicht und Leisten-Zustand vor dem ersten Anstrich setzen — sonst
+   blitzen helles Design, falsche Ansicht und breite Leiste kurz auf.
+   localStorage liest synchron, deshalb geht das hier oben. "laedt" schaltet
+   Übergänge bis zum ersten Bild ab; hefter.js nimmt die Klasse wieder weg.
+   Wer eine weitere Einstellung ergänzt, die das Layout vor dem ersten
+   Anstrich betrifft, ergänzt sie hier — nicht in hefter.js. */
+
+/* Welche Ansicht gilt, entscheidet diese eine Funktion: aus der Wahl des
+   Nutzers ("auto" oder eine der drei) wird die Ansicht, die wirklich
+   angezeigt wird. Sie steht hier und nicht in hefter.js, weil sie vor dem
+   ersten Anstrich laufen muss — hefter.js lädt erst am Dateiende. hefter.js
+   ruft dieselbe Funktion beim Ändern des Fensters: eine Regel, eine Stelle. */
+window.ansichtBestimmen = function (wahl) {
+  /* Die Breite allein verwechselt ein kleines Fenster am Rechner mit einem
+     Tablet, deshalb das Zeigegerät. Und die Höhe muss mit: ein quer
+     gehaltenes iPhone ist 844px breit und wäre sonst als iPad durchgegangen. */
+  var a = (wahl && wahl !== "auto") ? wahl
+        : matchMedia("(max-width: 700px), (max-height: 500px)").matches ? "iphone"
+        : matchMedia("(pointer: coarse)").matches ? "ipad" : "computer";
+  /* Boden unter jeder Wahl: unter 640px bliebe neben der festen Leiste kein
+     Inhalt mehr übrig. Wer auf dem Telefon "Computer" wählt, käme sonst an
+     die Einstellung nicht mehr heran, mit der er es zurücknimmt. Gespeichert
+     bleibt die Wahl — sie greift wieder, sobald das Fenster breit genug ist. */
+  return (a !== "iphone" && matchMedia("(max-width: 640px)").matches) ? "iphone" : a;
+};
+
+var d = document.documentElement;
+d.classList.add("laedt");
+/* Erst ohne Speicher bestimmen, dann der Blick hinein: wirft localStorage
+   (privater Modus), steht trotzdem eine Ansicht am <html>. Ohne sie griffe
+   keine der drei und das Telefon bekäme die Computer-Darstellung. */
+d.dataset.ansicht = ansichtBestimmen();
 try {
-  var d = document.documentElement;
   d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
-  d.classList.add("laedt");
-  if (JSON.parse(localStorage.getItem("hefter:leiste") || "{}").schmal) d.classList.add("schmal");
+  d.dataset.ansicht = ansichtBestimmen(localStorage.getItem("hefter:ansicht"));
+  var a = d.dataset.ansicht;
+  /* Auf dem iPhone gibt es den Schmal-Zustand nicht, auf dem iPad ist die
+     Kürzelspalte die Vorgabe — eine ausdrückliche Wahl sticht beides. Weil
+     die Klasse hier gar nicht erst gesetzt wird, wo es sie nicht gibt,
+     braucht die iPhone-Ansicht in style.css kein !important dagegen. */
+  var leiste = JSON.parse(localStorage.getItem("hefter:leiste") || "{}");
+  if (a !== "iphone" && (leiste.schmal ?? a === "ipad")) d.classList.add("schmal");
+  /* Abgeschaltete Bausteine je Ansicht. Gehört ebenfalls vor den ersten
+     Anstrich: sonst blitzen Fotozonen und Kästen auf und verschwinden wieder.
+     Nebenbei greift die Einstellung damit auch, wenn hefter.js gar nicht lädt. */
+  var aus = JSON.parse(localStorage.getItem("hefter:anzeige") || "{}")[a] || [];
+  for (var i = 0; i < aus.length; i++) d.classList.add("ohne-" + aus[i]);
 } catch {}
 </script>
 </head>
@@ -87,6 +125,12 @@ try {
       <button data-t="dunkel"><span class="probe"></span>Dunkel</button>
       <button data-t="hell"><span class="probe"></span>Hell</button>
     </div>
+  </section>
+
+  <section class="block">
+    <h2>Ansicht</h2>
+    <p class="sub">Bestimmt Leiste, Trefferflächen und Satzbreite. „Automatisch“ schätzt aus Bildschirmgröße und Zeigegerät — das lässt sich hier überstimmen. Ist das Fenster zu schmal für eine feste Leiste, gilt trotzdem die iPhone-Ansicht.</p>
+    <div class="ansichtwahl" id="ansichtWahl"></div>
   </section>
 
   <section class="block">

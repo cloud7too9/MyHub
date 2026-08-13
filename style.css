@@ -306,34 +306,72 @@ a { color: inherit; }
   opacity: 0; pointer-events: none; transition: opacity .22s;
 }
 
-/* --- Unter 860px: die Leiste wird zum Auszug --- */
-@media (max-width: 860px) {
-  /* !important, weil der Schmal-Zustand vom großen Bildschirm gemerkt
-     bleibt — auf dem Telefon gibt es ihn nicht, dort ist die Leiste
-     entweder ganz da oder ganz weg. */
-  .leiste { width: var(--leiste-breit) !important; transform: translateX(-100%); box-shadow: var(--shadow); }
-  :root.auf .leiste { transform: translateX(0); }
-  :root.auf .schleier { opacity: 1; pointer-events: auto; }
-  .inhalt { margin-left: 0 !important; }
-  .brenner { display: flex; }
-  .klapp { display: none; }
-  :root.schmal .wortmarke,
-  :root.schmal .e-text,
-  :root.schmal .f-text,
-  :root.schmal .fach-kopf .name,
-  :root.schmal .fach-kopf .anz,
-  :root.schmal .fach-kopf .pfeil,
-  :root.schmal .l-suche input { display: revert; }
-  :root.schmal .lupe { display: none; }
-  :root.schmal .l-kopf { justify-content: flex-start; padding: 0 10px; }
-  :root.schmal .l-marke { display: flex; }
-  :root.schmal .l-eintrag,
-  :root.schmal .f-btn { justify-content: flex-start; padding: 7px 8px; }
-  :root.schmal .fach-kopf { justify-content: flex-start; min-height: 36px; padding: 8px; }
-  :root.schmal .fach-kopf::after { display: none; }
-  :root.schmal .fach.zu .fach-inhalt { display: none; }
-  .blase { display: none; }
+/* --- Ansicht iPhone: die Leiste wird zum Auszug ---
+   Vorher hing das an @media (max-width: 860px) und brauchte dort zwei
+   !important gegen den vom großen Schirm gemerkten Schmal-Zustand. Den gibt
+   es hier gar nicht mehr: das Kopf-Script (kopf() in bauen.mjs) setzt die
+   Klasse in dieser Ansicht nicht, hefter.js ebenso wenig. Die Breite steht
+   trotzdem hier — geriete je ein .schmal herein, gewinnt diese Regel über
+   die Quellordnung, ohne dass es ein !important braucht. */
+:root[data-ansicht="iphone"] .leiste {
+  width: var(--leiste-breit); transform: translateX(-100%); box-shadow: var(--shadow);
 }
+:root[data-ansicht="iphone"].auf .leiste { transform: translateX(0); }
+:root[data-ansicht="iphone"].auf .schleier { opacity: 1; pointer-events: auto; }
+:root[data-ansicht="iphone"] .inhalt { margin-left: 0; }
+:root[data-ansicht="iphone"] .brenner { display: flex; }
+:root[data-ansicht="iphone"] .klapp { display: none; }
+:root[data-ansicht="iphone"] .blase { display: none; }
+
+/* --- Ansicht iPad: Kürzelspalte mit Titel ---
+   Auf dem Tablet gibt es kein Hover — die Sprechblase, die am Computer den
+   Titel neben die Kürzelspalte stellt, trägt hier nicht. Statt sie durch eine
+   Tipp-Geste zu ersetzen, steht der Titel einfach da: die Spalte wird breiter
+   und der Eintrag zweizeilig. Nichts blendet ein oder aus, kein Zeigegerät
+   nötig. Die Kürzelspalte ist in dieser Ansicht zugleich die Vorgabe (siehe
+   Kopf-Script), die breite Leiste bleibt einen Klick entfernt. */
+:root[data-ansicht="ipad"] { --leiste-schmal: 96px; }
+:root[data-ansicht="ipad"] .blase { display: none; }
+
+:root[data-ansicht="ipad"].schmal .l-eintrag,
+:root[data-ansicht="ipad"].schmal .f-btn {
+  flex-direction: column; gap: 4px; justify-content: center;
+  min-height: 64px; padding: 8px 4px; text-align: center;
+}
+:root[data-ansicht="ipad"].schmal .e-text,
+:root[data-ansicht="ipad"].schmal .f-text { display: block; width: 100%; }
+/* Zwei Zeilen, dann Auslassungspunkte. Keine feste Höhe: "Server-Erst-
+   Einrichtung" braucht beide Zeilen, "Git-SSD" kommt mit einer aus, und eine
+   Mindesthöhe ließe die kurzen Einträge auseinanderfallen. */
+:root[data-ansicht="ipad"].schmal .e-titel,
+:root[data-ansicht="ipad"].schmal .f-text {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  white-space: normal; overflow: hidden;
+  font-size: 11px; line-height: 1.25;
+  /* "Werkzeugkasten" passt in keine 88px. hyphens greift, weil am <html>
+     lang="de" steht, und macht daraus "Werkzeug-kasten". Kein
+     overflow-wrap daneben: wo der Browser keine Trennmuster hat, bräche es
+     ohne Strich mitten im Wort ("Werkzeugkas ten") und läse sich als zwei
+     Wörter — der Auslassungspunkt ist dort das ehrlichere Ende. */
+  hyphens: auto;
+}
+/* Die Zeile "Durchlaufen" passt nicht auch noch darunter; der Balken bleibt,
+   weil er als Einziges den Stand zeigt. */
+:root[data-ansicht="ipad"].schmal .e-unten { justify-content: center; }
+:root[data-ansicht="ipad"].schmal .e-unten .typ { display: none; }
+:root[data-ansicht="ipad"].schmal .mini { max-width: none; width: 100%; }
+:root[data-ansicht="ipad"].schmal .fach-kopf { min-height: 44px; }
+
+/* Getippt wird ungenauer als gezielt: was unter 44px liegt, zieht nach.
+   Der Knopf je Befehlszeile (.befehlbtn, 30×26) bleibt bewusst klein — die
+   Zeilen stehen 1.65em auseinander, größere Flächen überlappten einander und
+   träfen dann die Nachbarzeile. */
+:root[data-ansicht="ipad"] .infolink { width: 44px; height: 44px; margin: -13px 0 -13px 7px; }
+:root[data-ansicht="ipad"] .fs-reset { min-height: 44px; padding: 4px 14px; }
+:root[data-ansicht="ipad"] .copybtn { min-height: 44px; padding: 0 14px; }
+:root[data-ansicht="ipad"] .wz-klapp > summary { min-height: 48px; }
+:root[data-ansicht="ipad"] .sprungmarken a { min-height: 44px; }
+:root[data-ansicht="ipad"] .klapp { width: 44px; height: 44px; }
 
 .iconbtn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -1025,6 +1063,25 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .themewahl button[data-t="hell"] .probe { background: linear-gradient(90deg,#f4f6fa 60%,#00c2da 60%); }
 .themewahl button.aktiv { border-color: var(--accent); }
 
+/* Vier Knöpfe in der Form der Theme-Wahl. auto-fit statt fester Spalten:
+   auf dem Telefon stehen sie zu zweit, am Computer zu viert. */
+.ansichtwahl { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px; }
+.ansichtwahl button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  min-height: 92px; padding: 12px 14px; cursor: pointer;
+  background: var(--surface-2); color: var(--text);
+  border: 2px solid var(--border); border-radius: 13px; font: inherit;
+  transition: border-color .2s;
+}
+.ansichtwahl button .ikone { color: var(--text-muted); display: flex; }
+.ansichtwahl button .ikone svg { width: 20px; height: 20px; }
+.ansichtwahl button .name { font-weight: 600; }
+/* Steht immer im Fluss, auch leer — sonst spränge die Höhe der Knöpfe,
+   sobald der Hinweis erscheint oder verschwindet. */
+.ansichtwahl button .dazu { font-size: 12px; line-height: 1.35; color: var(--text-dim); text-align: left; min-height: 1.35em; }
+.ansichtwahl button.aktiv { border-color: var(--accent); }
+.ansichtwahl button.aktiv .ikone { color: var(--accent-ink); }
+
 .iconwahl { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
 .iconkarte {
   position: relative; cursor: pointer;
@@ -1077,14 +1134,16 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 @media (min-width: 420px) {
   .iconbtn .lbl { display: inline; }
 }
-@media (min-width: 720px) {
-  .step { grid-template-columns: 48px 1fr; gap: 20px; }
-  .step-num { width: 44px; height: 44px; font-size: 18px; }
-  .step:not(:last-of-type) .rail::after { top: 50px; }
-  .suche kbd { display: block; }
-  .editor-back { align-items: center; }
-  .editor { border-radius: 18px; }
-}
+/* Breiter Satz: hing an @media (min-width: 720px), gehört aber zur Ansicht —
+   auf dem iPad ist er auch quer richtig, in einem schmalen Fenster am Rechner
+   nicht. Der Foto-Editor wird damit zugleich vom Auszug von unten zum
+   mittigen Dialog. (Die Regel ".suche kbd" stand hier für eine Klasse, die es
+   im ganzen Repo nicht mehr gibt, und ist mit umgezogen: ersatzlos.) */
+:root:not([data-ansicht="iphone"]) .step { grid-template-columns: 48px 1fr; gap: 20px; }
+:root:not([data-ansicht="iphone"]) .step-num { width: 44px; height: 44px; font-size: 18px; }
+:root:not([data-ansicht="iphone"]) .step:not(:last-of-type) .rail::after { top: 50px; }
+:root:not([data-ansicht="iphone"]) .editor-back { align-items: center; }
+:root:not([data-ansicht="iphone"]) .editor { border-radius: 18px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
   /* animation fasst die Regel darüber nicht mit — die Karte erscheint dann
