@@ -12,6 +12,18 @@
 /* REGISTER-START */
 const REGISTER = [
   {
+    "id": "arbeitsplatz-einrichten",
+    "art": "anleitung",
+    "titel": "Arbeitsplatz einrichten",
+    "kuerzel": "AP",
+    "untertitel": "Windows · von Null bis arbeitsfähig, danach pro Projekt",
+    "kategorie": "Arbeitsplatz",
+    "datei": "anleitungen/arbeitsplatz-einrichten.html",
+    "stichworte": "arbeitsplatz windows powershell winget scoop terminal profil git identitaet ssh schluessel github gh cli node fnm pnpm uv python docker wsl vscode ripgrep fzf just editorconfig prettier eslint nvmrc ci workflow neuer rechner onboarding",
+    "schritte": 21,
+    "checks": 6
+  },
+  {
     "id": "werkzeugkasten",
     "art": "uebersicht",
     "titel": "Werkzeugkasten",

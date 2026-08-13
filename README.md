@@ -40,9 +40,10 @@ läuft über beide.
 
 ```
 hefter/
-├── index.html                  Register mit Suche (Strg+K bzw. /)
+├── index.html                  Startseite
 ├── einstellungen.html          Design-Wahl + App-Icon-Galerie
 ├── anleitungen/                Seitensorte "Anleitung"
+│   ├── arbeitsplatz-einrichten.html
 │   ├── hetzner-deploy.html
 │   ├── server-ersteinrichtung.html
 │   ├── docker-einrichtung.html
@@ -53,6 +54,7 @@ hefter/
 │   ├── git-ssd.html
 │   └── vscode-git-workflow.html
 ├── nachschlagen/               Seitensorte "Nachschlage-Übersicht"
+│   ├── werkzeugkasten.html
 │   └── schluesselverwaltung.html
 ├── style.css                   Design-Tokens, Themes, alle Bausteine
 ├── hefter.js                   gesamte App-Logik (REGISTER wird generiert)
@@ -175,6 +177,11 @@ node bauen.mjs
   mittlere Stufe und blendet einmalige **und** optionale Schritte aus; die
   Wahl wird je Seite gemerkt. `stufenwechsel` am letzten Schritt eines
   Abschnitts unterdrückt die Verbindungslinie.
+- **Abschnitte** (`div.abschnitt`) für lange Anleitungen: ab etwa zwanzig
+  Schritten sieht man an der Rail allein nicht mehr, wo ein Themenblock endet.
+  Die Zwischenüberschrift läuft in derselben Spaltenteilung wie ein Schritt.
+  Sie trägt die Stufe ihrer Schritte, damit der Filter ganze Abschnitte
+  mit ausblendet statt eine Überschrift ohne Inhalt stehenzulassen.
 - **A/B-Weiche** für Schritte, die je nach Ausgangslage anders laufen:
 
   ```html

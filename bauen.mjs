@@ -259,6 +259,7 @@ function weichenPruefen(html, datei) {
    Anlegen erzwungen statt vergessen. */
 const REIHENFOLGE = [
   /* Arbeitsplatz — der eigene Rechner, bevor irgendetwas anderes kommt */
+  "arbeitsplatz-einrichten",
   "werkzeugkasten",
   /* Git */
   "git-zugang-privat",

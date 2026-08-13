@@ -98,7 +98,7 @@ try {
 
     <div class="callout info">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
-      <div><div class="label">Wo die Befehle laufen</div><div class="txt">Der Haken merkt sich, was auf deinem Rechner schon steht. Die Befehle sind auf <b>Windows mit PowerShell 7</b> ausgelegt. Die Server-Werkzeuge am Ende von „Ausliefern“ laufen dagegen auf dem Linux-Host.</div></div>
+      <div><div class="label">Wo die Befehle laufen</div><div class="txt">Der Haken merkt sich, was auf deinem Rechner schon steht. Die Befehle sind auf <b>Windows mit PowerShell 7</b> ausgelegt — so, wie es die Anleitung <a href="../anleitungen/arbeitsplatz-einrichten.html">Arbeitsplatz einrichten</a> aufsetzt. Die Server-Werkzeuge am Ende von „Ausliefern“ laufen dagegen auf dem Linux-Host.</div></div>
     </div>
 
     <nav class="sprungmarken">
@@ -139,15 +139,15 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Identität setzen — steht in jedem Commit</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>git config --global user.name &quot;Vorname Nachname&quot;
-                git config --global user.email &quot;mail@beispiel.de&quot;</pre>
+git config --global user.email &quot;mail@beispiel.de&quot;</pre>
                 </div>
               </li>
               <li>
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Sinnvolle Grundeinstellungen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>git config --global init.defaultBranch main
-                git config --global pull.rebase true
-                git config --global core.autocrlf true</pre>
+git config --global pull.rebase true
+git config --global core.autocrlf true</pre>
                 </div>
                 <p class="wz-hinweis">autocrlf true verhindert, dass Windows-Zeilenenden als Änderung an jeder Datei auftauchen.</p>
               </li>
@@ -155,8 +155,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Erstes Repository anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>git init
-                git add .
-                git commit -m &quot;Erster Stand&quot;</pre>
+git add .
+git commit -m &quot;Erster Stand&quot;</pre>
                 </div>
               </li>
             </ol>
@@ -166,7 +166,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>git --version
-                git config --global --list</pre>
+git config --global --list</pre>
                 </div>
                 <p class="pr-soll">Versionsnummer plus deine Einträge für user.name und user.email.</p>
               </div>
@@ -206,8 +206,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Alltagsbefehle</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>gh repo clone nutzer/repo
-                gh pr create --fill
-                gh run watch</pre>
+gh pr create --fill
+gh run watch</pre>
                 </div>
               </li>
             </ol>
@@ -253,8 +253,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Erweiterungen per Befehl setzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>code --install-extension EditorConfig.EditorConfig
-                code --install-extension esbenp.prettier-vscode
-                code --install-extension dbaeumer.vscode-eslint</pre>
+code --install-extension esbenp.prettier-vscode
+code --install-extension dbaeumer.vscode-eslint</pre>
                 </div>
               </li>
               <li>
@@ -296,7 +296,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Beides installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>winget install --id Microsoft.WindowsTerminal -e
-                winget install --id Microsoft.PowerShell -e</pre>
+winget install --id Microsoft.PowerShell -e</pre>
                 </div>
               </li>
               <li>
@@ -307,7 +307,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Profil-Datei anlegen — hier landen später Aliase und Tastenkürzel</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>if (!(Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force }
-                code $PROFILE</pre>
+code $PROFILE</pre>
                 </div>
               </li>
             </ol>
@@ -353,7 +353,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Scoop dazu, für Kommandozeilen-Werkzeuge ohne Adminrechte</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-                Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression</pre>
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression</pre>
                 </div>
               </li>
             </ol>
@@ -363,7 +363,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>winget --version
-                scoop --version</pre>
+scoop --version</pre>
                 </div>
                 <p class="pr-soll">Beide melden eine Version. Scoop nennt zusätzlich den Bucket-Stand.</p>
               </div>
@@ -403,8 +403,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Aktuelle LTS-Version holen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>fnm install --lts
-                fnm use lts-latest
-                fnm default lts-latest</pre>
+fnm use lts-latest
+fnm default lts-latest</pre>
                 </div>
               </li>
               <li>
@@ -421,7 +421,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>node -v
-                fnm list</pre>
+fnm list</pre>
                 </div>
                 <p class="pr-soll">Die LTS-Version ist aktiv und als default markiert.</p>
               </div>
@@ -461,8 +461,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Alltag</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>pnpm install
-                pnpm add -D vite
-                pnpm run dev</pre>
+pnpm add -D vite
+pnpm run dev</pre>
                 </div>
               </li>
             </ol>
@@ -510,8 +510,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Projekt anlegen und Pakete hinzufügen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>uv init mein-projekt
-                cd mein-projekt
-                uv add requests</pre>
+cd mein-projekt
+uv add requests</pre>
                 </div>
               </li>
               <li>
@@ -527,7 +527,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>uv --version
-                uv python list</pre>
+uv python list</pre>
                 </div>
                 <p class="pr-soll">Version plus Liste der verfügbaren Python-Installationen.</p>
               </div>
@@ -572,9 +572,9 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Kurznamen in ~/.ssh/config anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>Host mein-server
-                  HostName 203.0.113.10
-                  User max
-                  IdentityFile ~/.ssh/id_ed25519</pre>
+  HostName 203.0.113.10
+  User max
+  IdentityFile ~/.ssh/id_ed25519</pre>
                 </div>
                 <p class="wz-hinweis">Danach genügt: ssh mein-server</p>
               </li>
@@ -598,7 +598,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>ssh mein-server &quot;echo verbunden&quot;
-                ssh -T git@github.com</pre>
+ssh -T git@github.com</pre>
                 </div>
                 <p class="pr-soll">&quot;verbunden&quot; und eine Begrüßung von GitHub mit deinem Benutzernamen.</p>
               </div>
@@ -638,24 +638,24 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Dienste als Datei beschreiben — compose.yaml</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>services:
-                  db:
-                    image: postgres:16
-                    environment:
-                      POSTGRES_PASSWORD: geheim
-                    ports:
-                      - &quot;5432:5432&quot;
-                    volumes:
-                      - dbdaten:/var/lib/postgresql/data
-                volumes:
-                  dbdaten:</pre>
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: geheim
+    ports:
+      - &quot;5432:5432&quot;
+    volumes:
+      - dbdaten:/var/lib/postgresql/data
+volumes:
+  dbdaten:</pre>
                 </div>
               </li>
               <li>
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Starten und stoppen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>docker compose up -d
-                docker compose logs -f
-                docker compose down</pre>
+docker compose logs -f
+docker compose down</pre>
                 </div>
               </li>
             </ol>
@@ -665,7 +665,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>docker run --rm hello-world
-                docker compose version</pre>
+docker compose version</pre>
                 </div>
                 <p class="pr-soll">Die Begrüßungsmeldung des Testcontainers und eine Compose-Version.</p>
               </div>
@@ -692,22 +692,22 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Datei .github/workflows/ci.yml anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>name: CI
-                on:
-                  push:
-                    branches: [main]
-                  pull_request:
-                jobs:
-                  bauen:
-                    runs-on: ubuntu-latest
-                    steps:
-                      - uses: actions/checkout@v4
-                      - uses: actions/setup-node@v4
-                        with:
-                          node-version: 20
-                          cache: pnpm
-                      - run: corepack enable
-                      - run: pnpm install --frozen-lockfile
-                      - run: pnpm run build</pre>
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build</pre>
                 </div>
               </li>
               <li>
@@ -720,7 +720,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Läufe vom Terminal aus verfolgen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>gh run list
-                gh run watch</pre>
+gh run watch</pre>
                 </div>
               </li>
             </ol>
@@ -730,7 +730,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>git push
-                gh run list --limit 1</pre>
+gh run list --limit 1</pre>
                 </div>
                 <p class="pr-soll">Der neueste Lauf steht auf completed / success.</p>
               </div>
@@ -763,14 +763,14 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Anmelden und Projekt verknüpfen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>netlify login
-                netlify init</pre>
+netlify init</pre>
                 </div>
               </li>
               <li>
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Erst Vorschau, dann echt</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>netlify deploy
-                netlify deploy --prod</pre>
+netlify deploy --prod</pre>
                 </div>
                 <p class="wz-hinweis">Der erste Befehl gibt eine Vorschau-URL zurück, ohne die Live-Seite anzufassen.</p>
               </li>
@@ -814,9 +814,9 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">/etc/caddy/Caddyfile schreiben</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>beispiel.de {
-                  reverse_proxy 127.0.0.1:8000
-                  encode gzip
-                }</pre>
+  reverse_proxy 127.0.0.1:8000
+  encode gzip
+}</pre>
                 </div>
               </li>
               <li>
@@ -865,24 +865,24 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">/etc/systemd/system/meindienst.service anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>[Unit]
-                Description=Meine Anwendung
-                After=network.target
+Description=Meine Anwendung
+After=network.target
 
-                [Service]
-                User=deploy
-                WorkingDirectory=/opt/meineapp
-                ExecStart=/opt/meineapp/.venv/bin/python app.py
-                Restart=always
+[Service]
+User=deploy
+WorkingDirectory=/opt/meineapp
+ExecStart=/opt/meineapp/.venv/bin/python app.py
+Restart=always
 
-                [Install]
-                WantedBy=multi-user.target</pre>
+[Install]
+WantedBy=multi-user.target</pre>
                 </div>
               </li>
               <li>
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Einlesen, aktivieren, starten</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>sudo systemctl daemon-reload
-                sudo systemctl enable --now meindienst</pre>
+sudo systemctl enable --now meindienst</pre>
                 </div>
               </li>
               <li>
@@ -898,7 +898,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>systemctl status meindienst
-                journalctl -u meindienst -n 50 -f</pre>
+journalctl -u meindienst -n 50 -f</pre>
                 </div>
                 <p class="pr-soll">Status active (running) und im Log keine wiederkehrenden Neustarts.</p>
               </div>
@@ -1178,8 +1178,8 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Suchen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>rg &quot;TODO&quot;
-                rg -i auftrag --glob &quot;*.js&quot;
-                rg -l &quot;useState&quot;</pre>
+rg -i auftrag --glob &quot;*.js&quot;
+rg -l &quot;useState&quot;</pre>
                 </div>
                 <p class="wz-hinweis">-i ignoriert Groß- und Kleinschreibung, -l zeigt nur die Dateinamen.</p>
               </li>
@@ -1234,7 +1234,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Tastenkürzel im Profil aktivieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>Import-Module PSFzf
-                Set-PsFzfOption -PSReadlineChordProvider &quot;Ctrl+t&quot; -PSReadlineChordReverseHistory &quot;Ctrl+r&quot;</pre>
+Set-PsFzfOption -PSReadlineChordProvider &quot;Ctrl+t&quot; -PSReadlineChordReverseHistory &quot;Ctrl+r&quot;</pre>
                 </div>
               </li>
               <li>
@@ -1282,17 +1282,17 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Datei &quot;justfile&quot; ins Projektwurzelverzeichnis</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>dev:
-                    pnpm run dev
+    pnpm run dev
 
-                bauen:
-                    pnpm run build
+bauen:
+    pnpm run build
 
-                pruefen:
-                    pnpm exec eslint .
-                    pnpm exec prettier --check .
+pruefen:
+    pnpm exec eslint .
+    pnpm exec prettier --check .
 
-                veroeffentlichen: bauen
-                    netlify deploy --prod</pre>
+veroeffentlichen: bauen
+    netlify deploy --prod</pre>
                 </div>
                 <p class="wz-hinweis">Einrückung mit Leerzeichen ist erlaubt, anders als bei make. Abhängigkeiten stehen hinter dem Doppelpunkt.</p>
               </li>
@@ -1300,7 +1300,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Benutzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>just --list
-                just dev</pre>
+just dev</pre>
                 </div>
               </li>
             </ol>
@@ -1336,21 +1336,21 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Installieren</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>winget install --id sharkdp.bat -e
-                winget install --id eza-community.eza -e</pre>
+winget install --id eza-community.eza -e</pre>
                 </div>
               </li>
               <li>
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Aliase im PowerShell-Profil</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>Set-Alias -Name ll -Value eza
-                function lg { eza -l --git --icons }</pre>
+function lg { eza -l --git --icons }</pre>
                 </div>
               </li>
               <li>
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Benutzen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>bat app.js
-                lg</pre>
+lg</pre>
                 </div>
               </li>
             </ol>
@@ -1360,7 +1360,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">Steht es?</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>bat --version
-                eza --version</pre>
+eza --version</pre>
                 </div>
                 <p class="pr-soll">Beide melden eine Version.</p>
               </div>
@@ -1393,10 +1393,10 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">.prettierrc anlegen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>{
-                  &quot;semi&quot;: true,
-                  &quot;singleQuote&quot;: true,
-                  &quot;printWidth&quot;: 100
-                }</pre>
+  &quot;semi&quot;: true,
+  &quot;singleQuote&quot;: true,
+  &quot;printWidth&quot;: 100
+}</pre>
                 </div>
               </li>
               <li>
@@ -1407,7 +1407,7 @@ try {
                 <div class="codebox">
                   <div class="codebox-head"><span class="fname">In die CI aufnehmen</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>pnpm exec prettier --check .
-                pnpm exec eslint .</pre>
+pnpm exec eslint .</pre>
                 </div>
               </li>
             </ol>
@@ -1444,16 +1444,16 @@ try {
                   <div class="codebox-head"><span class="fname">.editorconfig ins Projektwurzelverzeichnis</span><span class="spacer"></span><button class="copybtn">Kopieren</button></div>
                   <pre>root = true
 
-                [*]
-                charset = utf-8
-                end_of_line = lf
-                indent_style = space
-                indent_size = 2
-                insert_final_newline = true
-                trim_trailing_whitespace = true
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
 
-                [*.md]
-                trim_trailing_whitespace = false</pre>
+[*.md]
+trim_trailing_whitespace = false</pre>
                 </div>
               </li>
               <li>

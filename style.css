@@ -557,6 +557,32 @@ a { color: inherit; }
 }
 .fs-reset:hover { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
 
+/* ---------- Abschnitt einer langen Anleitung ----------
+   Ab etwa zwanzig Schritten trägt die Rail allein nicht mehr: man sieht
+   nicht, wo ein Themenblock endet und der nächste anfängt. Die
+   Zwischenüberschrift läuft in derselben Spaltenteilung wie ein Schritt,
+   damit die Nummernspalte durchgehend bleibt. */
+.abschnitt {
+  display: grid; grid-template-columns: 32px 1fr auto; gap: 12px;
+  align-items: center; margin: 8px 0 0; padding: 26px 0 6px;
+  border-top: 1px solid var(--border);
+}
+.abschnitt:first-child { border-top: none; padding-top: 6px; }
+.abschnitt-nr {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 24px;
+  font-family: "JetBrains Mono", monospace; font-size: 12px;
+  color: var(--text-dim);
+}
+.abschnitt > h2 {
+  font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.abschnitt-anz { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-dim); }
+/* Der Filter blendet ganze Abschnitte mit aus — sonst bliebe die
+   Überschrift eines leeren Blocks stehen. */
+body.nur-wiederkehrend .abschnitt.einmalig { display: none; }
+
 /* ---------- Schritt-Rail ---------- */
 .step { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 22px 0; }
 .step + .step { border-top: 1px solid var(--border); }
