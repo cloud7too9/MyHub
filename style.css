@@ -361,54 +361,65 @@ a { color: inherit; }
 .reg-kopf h1 { font-size: clamp(28px, 7.5vw, 42px); letter-spacing: -.02em; line-height: 1.1; }
 .reg-kopf p { color: var(--text-muted); margin-top: 8px; font-size: 16.5px; }
 
-.suche {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-  padding: 0 14px; min-height: 52px; margin-bottom: 26px;
-}
-.suche svg { width: 19px; height: 19px; color: var(--text-muted); flex: none; }
-.suche input {
-  flex: 1; min-width: 0; background: none; border: none; color: var(--text);
-  font: inherit; font-size: 16px; outline: none;
-}
-.suche input::placeholder { color: var(--text-muted); }
-/* Erst ab Tastatur-Breite sichtbar — auf dem Telefon gibt es kein Strg,
-   und der Hinweis kostete dort ein Fünftel des Suchfelds. */
-.suche kbd {
-  display: none;
-  flex: none; font-size: 11.5px; color: var(--text-muted);
+.reg-kopf kbd {
+  font-size: 11.5px; color: var(--text-muted);
   border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px;
   background: var(--surface-2);
 }
 
-.kategorie { margin-bottom: 26px; }
-.kategorie > h2 {
+/* ---------- Bühne (Startseite) ----------
+   Das Register steht in der Leiste; hier steht, wo man gerade ist.
+   Die Liste "Alle Seiten" bleibt trotzdem vollständig — unter 860px ist
+   die Leiste zugeklappt, und ohne sie liefe der Einstieg ins Leere. */
+.b-teil { margin-bottom: 30px; }
+.b-teil > h2 {
   font-size: 12.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
   color: var(--accent-ink); margin-bottom: 10px;
 }
-.eintrag {
-  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+.b-sub { color: var(--text-muted); font-size: 13.5px; margin: -6px 0 12px; }
+.b-fach { margin-bottom: 18px; }
+.b-fach > h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text-dim); margin: 0 0 8px 2px;
+}
+
+.b-eintrag, .b-weiter {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-  padding: 14px 16px; margin-bottom: 10px; min-height: 64px;
+  padding: 12px 14px; margin-bottom: 8px; min-height: 64px;
   text-decoration: none; transition: border-color .2s, transform .06s;
 }
-.eintrag:hover { border-color: var(--accent); }
-.eintrag:active { transform: scale(.99); }
-.eintrag .t { font-weight: 600; font-size: 16px; letter-spacing: -.01em; }
-.eintrag .u { color: var(--text-muted); font-size: 13.5px; margin-top: 2px; }
-.eintrag .pfeil { color: var(--text-muted); }
-.eintrag .pfeil svg { width: 18px; height: 18px; display: block; }
-.leer { color: var(--text-muted); text-align: center; padding: 32px 0; display: none; }
+.b-eintrag:hover, .b-weiter:hover { border-color: var(--accent); }
+.b-eintrag:active, .b-weiter:active { transform: scale(.99); }
+.b-text { min-width: 0; }
+.b-titel { display: block; font-weight: 600; font-size: 15.5px; letter-spacing: -.01em; }
+.b-unter {
+  display: block; color: var(--text-muted); font-size: 13px; margin-top: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.b-stand {
+  display: flex; align-items: center; gap: 10px; margin-top: 6px;
+  font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-dim);
+}
+.b-stand .balken { max-width: 140px; }
+.b-eintrag .pfeil, .b-weiter .pfeil { color: var(--text-muted); display: flex; }
+.b-eintrag .pfeil svg, .b-weiter .pfeil svg { width: 18px; height: 18px; display: block; }
+/* Fertig heißt: nichts mehr zu tun — die Karte tritt zurück, statt mit
+   einem vollen Balken um dieselbe Aufmerksamkeit zu werben wie eine
+   angefangene. */
+.b-eintrag.fertig .b-titel { color: var(--text-muted); }
+.b-eintrag.fertig .kuerzel { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); color: var(--accent-ink); }
 
-/* Nachschlage-Übersichten: eigener Block am Ende des Registers.
-   Abgesetzt statt eingereiht — sie sind keine Anleitung, die man
-   durchläuft, und sollen auch nicht so gesucht werden. */
-.kategorie.nachschlagen { border-top: 1px solid var(--border); padding-top: 20px; }
-.kategorie.nachschlagen > h2 { color: var(--text-muted); }
-.kategorie .kat-sub { color: var(--text-muted); font-size: 13px; margin: -4px 0 12px; }
-.eintrag.uebersicht { grid-template-columns: auto 1fr auto; }
-.eintrag .sorte-ico { display: flex; color: var(--text-muted); }
-.eintrag .sorte-ico svg { width: 20px; height: 20px; display: block; }
+.b-weiter {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+  padding: 16px; min-height: 76px;
+}
+.b-weiter .b-titel { font-size: 17px; }
+/* display:block, weil .balken sonst als inline-span ohne Höhe stünde — in
+   .b-stand und .schrittstand macht ihn erst der Flex-Container zum Kasten. */
+.b-weiter .balken { display: block; margin-top: 10px; }
 
 /* ---------- Anleitungs-Kopf ---------- */
 .chip {

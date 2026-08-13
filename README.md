@@ -23,6 +23,12 @@ Eingeklappter Zustand und zugeklappte Fächer werden gemerkt und schon im
 `<head>` gesetzt — die Leiste blitzt beim Laden nicht in der falschen Breite
 auf.
 
+Die **Startseite** (`index.html`) ist kein zweites Register mehr, sondern
+beantwortet „wo stehe ich": zuletzt geöffnete Seite, angefangene Seiten, und
+darunter alle Seiten nach Fächern mit ihrem Stand. Diese Liste bleibt
+vollständig — unter 860 px ist die Leiste zugeklappt, und ohne sie liefe der
+Einstieg sonst ins Leere.
+
 ## Zwei Seitensorten
 
 | Sorte | Ordner | wofür |
@@ -40,7 +46,7 @@ läuft über beide.
 
 ```
 hefter/
-├── index.html                  Startseite
+├── index.html                  Startseite: wo du stehst
 ├── einstellungen.html          Design-Wahl + App-Icon-Galerie
 ├── anleitungen/                Seitensorte "Anleitung"
 │   ├── arbeitsplatz-einrichten.html
@@ -255,6 +261,7 @@ aufgeschlagen. Codeboxen und Callouts sind dieselben wie in Anleitungen.
 | Stufenfilter je Seite        | `localStorage` `hefter:stufe:<seite>`|
 | Weichen-Wahl (Weg A/B)       | `localStorage` `hefter:weg:<seite>:<weiche>` |
 | Zustand der Seitenleiste     | `localStorage` `hefter:leiste` (eingeklappt, zugeklappte Fächer) |
+| Zuletzt geöffnete Seite      | `localStorage` `hefter:zuletzt` (speist „Weiterlesen" auf der Startseite) |
 
 Kein Server, keine Konten, keine Übertragung — Backup/Export auf ein zweites
 Gerät gibt es (noch) nicht.

@@ -176,6 +176,7 @@ const KEY = {
   theme: "hefter:theme",
   icon: "hefter:icon",
   leiste: "hefter:leiste",
+  zuletzt: "hefter:zuletzt",
   checks: id => "hefter:checks:" + id,
   schritte: id => "hefter:schritte:" + id,
   stufe: id => "hefter:stufe:" + id,
@@ -267,49 +268,108 @@ function iconAnwenden(id, speichern = true) {
 }
 
 /* ============================================================
-   REGISTER-SEITE  (Liste + Suche)
-   Zwei Sorten: Anleitungen nach Bereich gruppiert, darunter die
-   Nachschlage-Übersichten als eigener Block. Die Suche läuft über
-   beide — getrennt ist nur die Anzeige.
+   BÜHNE  (Startseite)
+   Das Register selbst steht in der Leiste — die Startseite
+   beantwortet stattdessen "wo stehe ich": zuletzt geöffnete
+   Seite, angefangene Seiten, und darunter alle Seiten mit ihrem
+   Stand. Diese Liste ist zugleich der vollständige Weg zu jeder
+   Seite: unter 860px ist die Leiste zugeklappt, und ohne sie
+   liefe der Einstieg sonst ins Leere.
    ============================================================ */
-function registerAufbauen() {
-  const ziel = document.getElementById("registerListe");
+function buehneAufbauen() {
+  const ziel = document.getElementById("buehne");
   if (!ziel) return;
   /* Das REGISTER enthält Klartext (Build löst Entities auf) — beim
      Rendern per innerHTML muss deshalb hier escaped werden. */
-  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const BUCH = '<span class="sorte-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg></span>';
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const PFEIL = '<span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>';
+
+  const einheit = e => e.art === "uebersicht" ? "eingerichtet" : "Schritten";
+
+  const stand = e => {
+    const fs = fortschritt(e);
+    if (!fs) return { text: e.untertitel, balken: "", angefangen: false, fertig: false };
+    return {
+      text: `${fs.erledigt} von ${fs.gesamt} ${einheit(e)}`,
+      balken: `<span class="balken"><i style="width:${Math.round(fs.erledigt / fs.gesamt * 100)}%"></i></span>`,
+      angefangen: fs.erledigt > 0 && fs.erledigt < fs.gesamt,
+      fertig: fs.erledigt === fs.gesamt,
+      offen: fs.gesamt - fs.erledigt
+    };
+  };
 
   const eintrag = e => {
-    const uebersicht = e.art === "uebersicht";
-    /* Die Übersichten stehen nicht unter ihrer Kategorie — die kommt
-       deshalb in die Unterzeile, sonst ginge sie ganz verloren. */
-    const unter = uebersicht ? e.kategorie + " · " + e.untertitel : e.untertitel;
-    const such = (e.titel + " " + e.untertitel + " " + e.kategorie + " " + e.stichworte).toLowerCase();
+    const s = stand(e);
     return `
-      <a class="eintrag${uebersicht ? " uebersicht" : ""}" href="${e.datei}" data-such="${esc(such)}">
-        ${uebersicht ? BUCH : ""}
-        <span><span class="t">${esc(e.titel)}</span><br><span class="u">${esc(unter)}</span></span>
-        <span class="pfeil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+      <a class="b-eintrag${s.fertig ? " fertig" : ""}" href="${e.datei}">
+        <span class="kuerzel" aria-hidden="true">${esc(e.kuerzel)}</span>
+        <span class="b-text">
+          <span class="b-titel">${esc(e.titel)}</span>
+          <span class="b-unter">${esc(e.untertitel)}</span>
+          <span class="b-stand">${esc(s.text)}${s.balken}</span>
+        </span>
+        ${PFEIL}
       </a>`;
   };
 
-  const anleitungen = REGISTER.filter(e => e.art !== "uebersicht");
-  const uebersichten = REGISTER.filter(e => e.art === "uebersicht");
-  const kategorien = [...new Set(anleitungen.map(e => e.kategorie))];
+  let html = "";
 
-  ziel.innerHTML = kategorien.map(kat => `
-    <section class="kategorie" data-kat="${esc(kat)}">
-      <h2>${esc(kat)}</h2>
-      ${anleitungen.filter(e => e.kategorie === kat).map(eintrag).join("")}
-    </section>`).join("")
-    + (uebersichten.length ? `
-    <section class="kategorie nachschlagen" data-kat="Nachschlagen">
-      <h2>Nachschlagen</h2>
-      <p class="kat-sub">Zum Nachschlagen statt zum Durchlaufen — Hintergrund und Handgriffe an einer Stelle.</p>
-      ${uebersichten.map(eintrag).join("")}
-    </section>` : "");
+  /* ---- Weiterlesen ---- */
+  const zuletzt = REGISTER.find(e => e.id === gelesen(KEY.zuletzt, null));
+  if (zuletzt) {
+    const s = stand(zuletzt);
+    html += `
+    <section class="b-teil">
+      <h2>Weiterlesen</h2>
+      <a class="b-weiter" href="${zuletzt.datei}">
+        <span class="kuerzel" aria-hidden="true">${esc(zuletzt.kuerzel)}</span>
+        <span class="b-text">
+          <span class="b-titel">${esc(zuletzt.titel)}</span>
+          <span class="b-unter">${esc(zuletzt.kategorie)} · ${esc(s.text)}</span>
+          ${s.balken}
+        </span>
+        ${PFEIL}
+      </a>
+    </section>`;
+  }
 
+  /* ---- Angefangen ---- */
+  const angefangen = REGISTER.filter(e => stand(e).angefangen && e.id !== zuletzt?.id);
+  if (angefangen.length) {
+    html += `
+    <section class="b-teil">
+      <h2>Angefangen</h2>
+      <p class="b-sub">Hier bist du stehengeblieben.</p>
+      ${angefangen.map(eintrag).join("")}
+    </section>`;
+  }
+
+  /* ---- Alle Seiten, nach Fächern ---- */
+  const faecher = [];
+  for (const e of REGISTER) {
+    let f = faecher.find(x => x.name === e.kategorie);
+    if (!f) faecher.push(f = { name: e.kategorie, seiten: [] });
+    f.seiten.push(e);
+  }
+  html += `
+    <section class="b-teil">
+      <h2>Alle Seiten</h2>
+      ${faecher.map(f => `
+      <div class="b-fach">
+        <h3>${esc(f.name)}</h3>
+        ${f.seiten.map(eintrag).join("")}
+      </div>`).join("")}
+    </section>`;
+
+  ziel.innerHTML = html;
+}
+
+/* Jede Seite meldet sich als zuletzt geöffnete — das speist "Weiterlesen"
+   auf der Startseite. Register und Einstellungen haben kein data-seite und
+   überschreiben den Stand deshalb nicht. */
+function zuletztMerken() {
+  const seite = document.body.dataset.seite;
+  if (seite) merken(KEY.zuletzt, seite);
 }
 
 /* ============================================================
@@ -1007,7 +1067,8 @@ function einstellungenAufbauen() {
    ============================================================ */
 themeLaden();
 leisteAufbauen();
-registerAufbauen();
+buehneAufbauen();
+zuletztMerken();
 einstellungenAufbauen();
 /* Nach einstellungenAufbauen: erst dann existieren die Icon-Karten,
    die iconAnwenden als aktiv markiert. */

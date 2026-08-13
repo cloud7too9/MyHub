@@ -1,6 +1,6 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-aa103fd4e3";
+const VERSION = "hefter-48b7f26faa";
 const SHELL = [
   "anleitungen/arbeitsplatz-einrichten.html",
   "anleitungen/coolify-einrichtung.html",
