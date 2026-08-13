@@ -934,6 +934,43 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
 .check.done .lbl { color: var(--text-muted); text-decoration: line-through; }
 .check .lbl { font-size: 15.5px; line-height: 1.5; padding-top: 3px; }
 
+/* ---------- Vorgang abschließen ----------
+   Der Knopf steht dort, wo man mit dem Vorgang fertig wird — unten rechts am
+   Ende des Container-Inhalts statt oben an der Haken-Box. Erzeugt wird er in
+   hefter.js (vorgaengeAktivieren), damit er nicht in 26 Containern von Hand
+   zu pflegen ist. Grundform ist .iconbtn; hier steht nur, was hinzukommt. */
+.abschluss {
+  display: flex; align-items: center; justify-content: flex-end;
+  flex-wrap: wrap; gap: 12px; margin-top: 16px;
+}
+/* Der Haken erscheint im abgeschlossenen Zustand, belegt seinen Platz aber
+   immer — sonst spränge die Breite des Knopfes beim Umschalten. */
+.abschlussbtn .haken { display: flex; }
+.abschlussbtn .haken svg { opacity: 0; transition: opacity .15s; }
+.abschlussbtn[aria-pressed="true"] .haken svg { opacity: 1; }
+
+/* Gesperrt in einer Folge: sichtbar, aber erkennbar nicht an der Reihe —
+   gestrichelt wie ein einmaliger Schritt. Kein disabled, sonst käme der
+   Klick nicht an, mit dem die Meldung erscheint. */
+.abschlussbtn.gesperrt {
+  background: transparent; border-style: dashed;
+  color: var(--text-dim); cursor: not-allowed;
+}
+.abschlussbtn.gesperrt:hover { border-color: var(--border); }
+.abschluss-hinweis {
+  font-size: 13px; color: var(--warning);
+  opacity: 0; transition: opacity .15s;
+}
+.abschluss-hinweis.sichtbar { opacity: 1; }
+
+/* Die abgeschlossene Karte rutscht ans Ende ihres Fachs — ohne ein Zeichen
+   am Zielort sähe es aus, als wäre sie verschwunden. */
+@keyframes karte-gesetzt {
+  from { opacity: .25; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.wz.gesetzt { animation: karte-gesetzt .35s ease; }
+
 .foot { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
 
 /* ---------- Foto-Editor ---------- */
@@ -1048,4 +1085,9 @@ body.nur-wiederkehrend .stufen-hinweis { display: block; }
   .editor-back { align-items: center; }
   .editor { border-radius: 18px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  /* animation fasst die Regel darüber nicht mit — die Karte erscheint dann
+     ohne Bewegung an ihrem neuen Platz. */
+  .wz.gesetzt { animation: none; }
+}

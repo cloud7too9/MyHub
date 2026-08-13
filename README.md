@@ -226,7 +226,9 @@ node bauen.mjs
 - Callouts: `info`, `sicher`/`achtung` (Gelb), `ergebnis` (Grün), `gefahr` (Rot).
 - Foto anfügen: Foto wählen → im 16:9-Feld schieben/zoomen → Übernehmen
   hängt den Ausschnitt unter den Schritt (1280×720 JPEG).
-- Abschluss-Checkliste mit Fortschrittszähler.
+- Abschluss-Checkliste mit Fortschrittszähler und dem Knopf **Vorgang
+  abgeschlossen** an ihrem Ende, der alle Punkte auf einmal setzt — siehe
+  unten.
 
 ## Bausteine einer Nachschlage-Übersicht
 
@@ -248,6 +250,43 @@ aufgeschlagen. Codeboxen und Callouts sind dieselben wie in Anleitungen.
   Springt ein Info-Symbol auf eine Karte, klappt sie von selbst auf.
   Der Prüfblock einer Karte hat nur den `.pruefung`-Zweig: der
   Reparaturweg sind die Einrichtungs-Schritte, die direkt darüber stehen.
+  Am Ende jeder Karte steht der Knopf **Vorgang abgeschlossen** — siehe
+  unten.
+
+## Vorgang abschließen
+
+Ein Container mit eigenem Haken beschreibt einen Vorgang: die Werkzeug-Karte
+einen einzurichtenden Posten, die Abschluss-Checkliste den Rest einer
+Anleitung. Sein Haken saß bisher allein oben an der Karte — also genau dort
+nicht, wo man mit dem Vorgang fertig wird.
+
+- **Der Knopf** steht unten rechts am Ende des Container-Inhalts, bei der
+  Karte unter dem Prüfblock: abgeschlossen ist der Vorgang erst, wenn auch
+  die Prüfung stimmt. Er sitzt im aufklappbaren Rumpf und ist damit nur im
+  aufgeklappten Zustand zu sehen. Ein Klick setzt alle Haken des Containers
+  (bei der Checkliste also alle Punkte auf einmal), ein zweiter öffnet den
+  Vorgang wieder.
+- **Abgeschlossenes sinkt** ans Ende seines Fachs, untereinander in der
+  ursprünglichen Reihenfolge — oben steht, was noch offen ist. Wer einen
+  Vorgang wieder öffnet, findet ihn an seinem alten Platz zwischen den
+  offenen wieder.
+- **Folge-Vorgänge**: Ein Fach, in dem eines auf dem anderen aufbaut, wird
+  mit `data-folge` ausgezeichnet:
+
+  ```html
+  <section class="thema" id="fundament" data-folge>
+  ```
+
+  Dann ist nur der erste noch offene Vorgang an der Reihe. Bei den übrigen
+  ist der Knopf ausgegraut sichtbar und meldet beim Antippen „Vorherigen
+  Schritt abschließen"; die Haken-Box daneben schaltet dann ebenso wenig,
+  sonst wäre die Reihenfolge mit einem Klick umgangen. Abgeschlossene sind
+  nie gesperrt — sonst gäbe es keinen Weg zurück. **Vorerst ist kein Fach
+  ausgezeichnet**: die Mechanik steht, die Auszeichnung kommt mit den
+  Inhalten.
+
+Der Knopf wird von `hefter.js` erzeugt und steht in keiner HTML-Datei. Ohne
+JavaScript fehlt er, die Karte bleibt lesbar und aufklappbar.
 
 ## Speicherung (alles lokal auf dem Gerät)
 

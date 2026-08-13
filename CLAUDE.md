@@ -69,8 +69,8 @@ steht (`<meta charset>` als erste Zeile im `<head>`, `description`, die
 ├── einstellungen.html          Design-Wahl + App-Icon-Galerie
 ├── anleitungen/*.html          Seitensorte "Anleitung"      (10 Seiten)
 ├── nachschlagen/*.html         Seitensorte "Übersicht"      (2 Seiten)
-├── style.css                   Tokens, Themes, alle Bausteine (~1050 Zeilen)
-├── hefter.js                   gesamte App-Logik (~1130 Zeilen, REGISTER generiert)
+├── style.css                   Tokens, Themes, alle Bausteine (~1090 Zeilen)
+├── hefter.js                   gesamte App-Logik (~1310 Zeilen, REGISTER generiert)
 ├── bauen.mjs                   Build-Skript (~445 Zeilen)
 ├── sw.js                       GENERIERT
 ├── manifest*.webmanifest       je App-Icon ein statisches Manifest
@@ -195,6 +195,34 @@ Thema. Kein Fortschritt, keine Rail. Die `wz`-Karte (`article.wz` mit
 steht schon, was fehlt noch"; aufgeklappt wird über `<details>`, also ohne
 JavaScript und ohne eigenen Zustandsspeicher.
 
+### Vorgang abschließen
+
+Ein **Container** ist ein Block mit eigenem Haken, der einen Vorgang
+beschreibt. Welche das sind, steht als Konstante in `hefter.js` und wird
+nicht aus dem Markup geraten:
+
+```js
+const VORGANG = ".wz, .checkliste";
+```
+
+Jeder bekommt am Ende seines Inhalts den Knopf „Vorgang abgeschlossen"
+(bei `.wz` in `.wz-inhalt`, also im `<details>`-Rumpf und damit nur
+aufgeklappt sichtbar; unter dem Prüfblock, weil der zum Vorgang gehört).
+**Der Knopf wird erzeugt** — `vorgaengeAktivieren()` in `hefter.js` —, er
+steht in keiner HTML-Datei, wie die Kopier-Knöpfe der Codeboxen auch.
+Gesetzt wird über `.click()` auf die Haken selbst, damit Speichern, Zähler
+und der Balken in der Leiste allein in `checklisteAktivieren` bleiben.
+
+Abgeschlossene Container sinken ans Ende ihrer Gruppe (das Elternelement,
+also die `<section class="thema">`), untereinander in der Ursprungsordnung
+aus `dataset.ordnung`. Ein Fach, in dem eines auf dem anderen aufbaut,
+bekommt `data-folge` an der Section: dann ist nur der erste noch offene
+Vorgang an der Reihe, die übrigen Knöpfe sind ausgegraut (`.gesperrt` +
+`aria-disabled`, **nicht** `disabled` — ein `disabled`-Knopf feuert keinen
+Klick, und die Meldung „Vorherigen Schritt abschließen" bliebe aus). Die
+Sperre gilt auch für die Haken-Box daneben. Fertige sind nie gesperrt.
+Ausgezeichnet ist derzeit kein Fach.
+
 ### Codeboxen
 
 Standard sind **Befehle**: `hefter.js` zerlegt das `<pre>` in Zeilen und
@@ -218,14 +246,18 @@ lesen ist.
 Eine Datei, keine Module, läuft auf jeder Seite. Aufbau von oben nach unten:
 generiertes `REGISTER`, `ICONS`, `BASIS`/`KEY`, Speicher-Helfer
 (`gelesen`/`merken`/`neueId`), dann je ein Block pro Thema — Theme, Icons,
-Bühne (Startseite), Leiste, Kopieren, Checkliste, Sprungziel, Schritte,
-Fotos, Stufenfilter, Weichen, Einstellungen, Start, Update-Fluss.
+Bühne (Startseite), Leiste, Kopieren, Checkliste, Vorgang abschließen,
+Sprungziel, Schritte, Fotos, Stufenfilter, Weichen, Einstellungen, Start,
+Update-Fluss.
 
 Jede Funktion prüft selbst, ob es auf dieser Seite etwas für sie zu tun gibt
 (`if (!ziel) return;`) — deshalb kann die Startsequenz am Dateiende alle
-Aktivierungen unbedingt aufrufen. Reihenfolge dort ist an einer Stelle
+Aktivierungen unbedingt aufrufen. Die Reihenfolge dort ist an zwei Stellen
 bedeutsam: `iconAnwenden` läuft **nach** `einstellungenAufbauen`, weil erst
-dann die Icon-Karten existieren. Ganz zum Schluss nimmt ein
+dann die Icon-Karten existieren, und `vorgaengeAktivieren` **nach**
+`checklisteAktivieren` (erst dann stehen die gespeicherten Haken) und
+**vor** `sprungzielAufklappen` (das Umsortieren verschiebt die Karten, ein
+vorher angesprungenes Ziel läge danach falsch). Ganz zum Schluss nimmt ein
 `requestAnimationFrame` die Klasse `laedt` vom `<html>` — bis dahin sind
 Übergänge aus, damit die gemerkte Leistenbreite nicht sichtbar einfährt.
 
@@ -237,6 +269,12 @@ dem ersten Anstrich betrifft, ergänzt sie **dort** (in `kopf()` in
 
 `localStorage` kann werfen (privater Modus, volles Kontingent) — Zugriffe
 laufen deshalb über `gelesen`/`merken` mit `try`/`catch`, nie direkt.
+
+Die Blöcke reden nur an einer Stelle miteinander: `checklisteAktivieren`
+feuert nach jeder Änderung `hefter:haken` am `document`, daran hängen
+Sortierung und Knopfzustände der Vorgänge. Ein Ereignis deckt alle Wege zum
+Haken ab — Klick auf die Box, Abschluss-Knopf, „zurücksetzen". Wer einen
+weiteren Weg ergänzt, ruft `aktualisieren()` und ist damit fertig.
 
 ## Speicherung
 
