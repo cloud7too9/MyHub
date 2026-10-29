@@ -617,6 +617,388 @@ function zuletztMerken() {
 }
 
 /* ============================================================
+   ZOOM  (zoom.html)
+   Der ganze Hefter im semantischen Zoom: Hefter → Fach → Seite
+   → Abschnitt bzw. Thema. Beim Hineinzoomen wird nichts größer,
+   sondern anders — jede Stufe zeigt eine andere Art von
+   Information. Ein Fach ist von weitem eine Reihe Plaketten mit
+   einem Füllstand, eine Seite ihr Fingerabdruck aus Perlen (eine
+   je Schritt), und erst ganz nah stehen die Schritte selbst.
+
+   Der Baum wird aus REGISTER und GLIEDERUNG berechnet, nirgends
+   gespeichert. Der Zustand ist der Hash (#/fach/seite/teil):
+   Deep Link, Zurück-Knopf und Brotkrume kosten damit nichts
+   extra. Blätter zoomen nicht weiter — ein Schritt, eine Karte,
+   ein Thema ohne Karten schlägt seine Seite an genau dieser
+   Stelle auf. Dort stehen Haken, Fotos und Kopier-Knöpfe; hier
+   wird nur gelesen, nie gesetzt. Ein zweiter Weg zum Haken liefe
+   beim ersten Nachziehen auseinander.
+   ============================================================ */
+
+/* Wie weit die Schichten beim Übergang wachsen bzw. schrumpfen. Hinein und
+   heraus nehmen dieselben zwei Zahlen mit vertauschten Rollen: der eine Weg
+   ist so das Spiegelbild des anderen, und es kann sich keine Asymmetrie
+   einschleichen — die fiele sofort unangenehm auf. */
+const ZOOM_GROSS = 1.4;
+const ZOOM_KLEIN = 0.62;
+const ZOOM_DAUER = 280;
+
+const zoomHref = pfad => "#/" + pfad.map(encodeURIComponent).join("/");
+
+function zoomAufbauen() {
+  const flaeche = document.getElementById("zoomflaeche");
+  /* gliederung.js bindet nur der Fuß von zoom.html ein (fuss() in bauen.mjs).
+     typeof, weil ein nie deklarierter Name sonst wirft. */
+  if (!flaeche || typeof GLIEDERUNG === "undefined") return;
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const PFEIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
+  const STUFEN = ["einmalig", "wiederkehrend", "optional"];
+
+  /* ---- Der Baum ----
+     Fächer in der Reihenfolge ihres ersten Auftretens wie in der Leiste,
+     darunter die Seiten in Leseordnung, darunter deren Gliederung. */
+  const teilKnoten = (t, e) => ({
+    art: t.art, schluessel: t.id, titel: t.titel, daten: t, seite: e,
+    kinder: (t.teile || []).map(u => teilKnoten(u, e))
+  });
+  const baum = { art: "hefter", schluessel: "", titel: "Hefter", kinder: [] };
+  for (const e of REGISTER) {
+    let fach = baum.kinder.find(f => f.titel === e.kategorie);
+    if (!fach) baum.kinder.push(fach = { art: "fach", schluessel: e.kategorie.toLowerCase(), titel: e.kategorie, kinder: [] });
+    const g = GLIEDERUNG[e.id] || { meta: [], teile: [] };
+    fach.kinder.push({ art: "seite", schluessel: e.id, titel: e.titel, daten: g, seite: e, kinder: g.teile.map(t => teilKnoten(t, e)) });
+  }
+
+  const blaetter = k => k.kinder.length ? k.kinder.flatMap(blaetter) : [k];
+
+  /* Wohin ein Knoten auf seiner Seite springt. Abschnitte tragen keine id,
+     sie schlagen ihren ersten Schritt auf. */
+  const stelle = k => {
+    const datei = BASIS + k.seite.datei;
+    if (k.art === "seite") return datei;
+    if (k.art === "abschnitt") return stelle(k.kinder[0]);
+    return datei + "#" + (k.art === "schritt" ? "schritt-" : "") + encodeURIComponent(k.schluessel);
+  };
+
+  /* ---- Stand ----
+     Je Zeichnen frisch gelesen: kommt man mit dem Zurück-Knopf aus einer
+     Seite, auf der man gerade abgehakt hat, holt der Browser die Seite aus
+     dem Verlauf — mit dem alten Stand, wenn er nicht neu gelesen würde. */
+  let gelesenJe = new Map();
+  const erledigtIn = schluessel => {
+    if (!gelesenJe.has(schluessel)) gelesenJe.set(schluessel, new Set(gelesen(schluessel, []) || []));
+    return gelesenJe.get(schluessel);
+  };
+  /* Gezählt wird, was die Gliederung heute kennt — eine ID, die in der
+     Speicherung von einem entfernten Schritt zurückblieb, zählt nicht mit. */
+  const stand = k => {
+    if (k.art === "schritt") return { erledigt: +erledigtIn(KEY.schritte(k.seite.id)).has(k.schluessel), gesamt: 1 };
+    if (k.art === "karte") return k.daten.check ? { erledigt: +erledigtIn(KEY.checks(k.seite.id)).has(k.daten.check), gesamt: 1 } : null;
+    let erledigt = 0, gesamt = 0;
+    for (const kind of k.kinder) {
+      const s = stand(kind);
+      if (s) { erledigt += s.erledigt; gesamt += s.gesamt; }
+    }
+    return gesamt ? { erledigt, gesamt } : null;
+  };
+  const fertig = k => { const s = stand(k); return !!s && s.erledigt === s.gesamt; };
+
+  const anzahl = (n, eins, viele) => `${n} ${n === 1 ? eins : viele}`;
+  const balken = s => `<span class="balken"><i style="width:${Math.round(s.erledigt / s.gesamt * 100)}%"></i></span>`;
+  /* Was gezählt wird, sagt die Einheit — Schritte, Karten oder beides. */
+  const einheit = k => {
+    const arten = new Set(blaetter(k).filter(stand).map(b => b.art));
+    return arten.size > 1 ? "erledigt" : arten.has("karte") ? "eingerichtet" : "Schritten";
+  };
+  const standZeile = k => {
+    const s = stand(k);
+    return s ? `<p class="z-stand">${s.erledigt} von ${s.gesamt} ${einheit(k)}${balken(s)}</p>` : "";
+  };
+  const zahl = k => {
+    const s = stand(k);
+    return `<span class="z-zahl">${s ? s.erledigt + " / " + s.gesamt : blaetter(k).length}</span>`;
+  };
+
+  /* Der Fingerabdruck einer Seite: eine Perle je Blatt, in Form und
+     Füllung wie die Schrittnummern — gestrichelt einmalig, umrandet
+     wiederkehrend, gepunktet optional, gefüllt erledigt. Von weitem sieht
+     man so Länge, Charakter und Stand einer Seite, ohne ein Wort zu lesen.
+     Die Art steht als data-art, nicht als Klasse: .thema ist schon die
+     Section einer Übersicht und gäbe jeder Perle deren Polster. */
+  const perlen = k => `<span class="z-perlen" aria-hidden="true">${blaetter(k).map(b =>
+    `<i data-art="${b.art}"${b.daten.stufe || stand(b)?.erledigt ? ` class="${[b.daten.stufe, stand(b)?.erledigt && "erledigt"].filter(Boolean).join(" ")}"` : ""}></i>`).join("")}</span>`;
+
+  /* ---- Eine Stufe zeichnen ----
+     Ein Renderer für alle Stufen: Pfad, Kopf, Kacheln. Was sich ändert, ist
+     der Inhalt der Kacheln, nicht ihr Ort — der Blick bleibt beim Übergang
+     dort, wo er war. */
+  const RASTER_TITEL = { fach: "Fächer", seite: "Seiten", abschnitt: "Abschnitte", schritt: "Schritte", thema: "Themen", karte: "Werkzeuge" };
+
+  const kachel = (k, pfad, i, zuletzt) => {
+    const blatt = !k.kinder.length;
+    const href = blatt ? stelle(k) : zoomHref([...pfad, k.schluessel]);
+    const s = stand(k);
+    const hierZuletzt = k.art === "fach" ? k.kinder.some(x => x.schluessel === zuletzt)
+                      : k.art === "seite" && k.schluessel === zuletzt;
+    const marke = hierZuletzt ? '<span class="z-marke">zuletzt</span>' : "";
+    let innen;
+    if (k.art === "fach") {
+      innen = `
+        <span class="z-k-kopf"><span class="z-k-titel">${esc(k.titel)}</span>${marke}</span>
+        <span class="z-plaketten" aria-hidden="true">${k.kinder.map(x =>
+          `<span class="kuerzel${fertig(x) ? " fertig" : ""}">${esc(x.seite.kuerzel)}</span>`).join("")}</span>
+        <span class="z-k-unter">${anzahl(k.kinder.length, "Seite", "Seiten")}</span>
+        ${s ? `<span class="z-k-stand">${s.erledigt} von ${s.gesamt} ${einheit(k)}${balken(s)}</span>` : ""}`;
+    } else if (k.art === "seite") {
+      innen = `
+        <span class="z-k-kopf"><span class="kuerzel" aria-hidden="true">${esc(k.seite.kuerzel)}</span><span class="z-k-titel">${esc(k.titel)}</span>${marke}</span>
+        <span class="z-k-unter">${esc(k.seite.untertitel)}</span>
+        <span class="z-k-fuss"><span class="typ">${k.seite.art === "uebersicht" ? "Nachschlagen" : "Durchlaufen"}</span>${perlen(k)}${zahl(k)}</span>`;
+    } else if (k.art === "abschnitt") {
+      innen = `
+        <span class="z-k-kopf"><span class="kuerzel" aria-hidden="true">${i + 1}</span><span class="z-k-titel">${esc(k.titel)}</span></span>
+        <span class="z-k-unter">${anzahl(k.kinder.length, "Schritt", "Schritte")} · ${esc(k.kinder[0].daten.label)}</span>
+        <span class="z-k-fuss">${perlen(k)}${zahl(k)}</span>`;
+    } else if (k.art === "schritt") {
+      innen = `
+        <span class="z-perle" aria-hidden="true">${k.daten.nr}</span>
+        <span class="z-k-text"><span class="z-k-titel">${esc(k.titel)}</span><span class="z-k-unter">${esc(k.daten.label)}${s.erledigt ? " · erledigt" : ""}</span></span>`;
+    } else if (k.art === "karte") {
+      innen = `
+        <span class="z-haken" aria-hidden="true">${HAKEN_ICON}</span>
+        <span class="z-k-text"><span class="z-k-titel">${esc(k.titel)}${k.daten.tag ? `<span class="wz-tag">${esc(k.daten.tag)}</span>` : ""}</span><span class="z-k-unter">${s?.erledigt ? "Eingerichtet · " : ""}${esc(k.daten.kurz || "")}</span></span>`;
+    } else if (!blatt) {
+      innen = `
+        <span class="z-k-titel">${esc(k.titel)}</span>
+        ${k.daten.kurz ? `<span class="z-k-unter">${esc(k.daten.kurz)}</span>` : ""}
+        <span class="z-k-fuss">${perlen(k)}${zahl(k)}</span>`;
+    } else {
+      innen = `<span class="z-k-text"><span class="z-k-titel">${esc(k.titel)}</span></span>`;
+    }
+    const klassen = ["z-kachel", "z-" + k.art, blatt && "z-blatt", k.daten?.stufe,
+                     s && s.erledigt === s.gesamt && "erledigt", hierZuletzt && "zuletzt"].filter(Boolean).join(" ");
+    return `<a class="${klassen}" href="${esc(href)}" data-schluessel="${esc(k.schluessel)}">${innen}${blatt ? `<span class="pfeil">${PFEIL}</span>` : ""}</a>`;
+  };
+
+  const steckbrief = zeilen => zeilen.length
+    ? `<dl class="z-steckbrief">${zeilen.map(([n, w]) => `<dt>${esc(n)}</dt><dd>${esc(w)}</dd>`).join("")}</dl>`
+    : "";
+
+  const aufschlagen = (k, was) =>
+    `<a class="iconbtn z-aufschlagen" href="${esc(stelle(k))}">${was} aufschlagen${PFEIL}</a>`;
+
+  /* Obere Stufen erklären, die unteren verweisen: der Hefter sagt, wie man
+     den Zoom liest, die Seite bringt ihren Vorspann mit, ein Abschnitt nur
+     noch seine Zahlen. */
+  const kopf = (k, kette) => {
+    const titel = `<h1 tabindex="-1">${esc(k.art === "hefter" ? "Dein Hefter" : k.titel)}</h1>`;
+    const kurz = text => text ? `<p class="z-kurz">${esc(text)}</p>` : "";
+    if (k.art === "hefter") {
+      const seiten = k.kinder.flatMap(f => f.kinder);
+      const jeArt = art => seiten.filter(x => x.seite.art === art).length;
+      const alle = blaetter(k);
+      return titel + kurz(`${anzahl(seiten.length, "Seite", "Seiten")} in ${anzahl(k.kinder.length, "Fach", "Fächern")}`) +
+        `<p class="z-text">Jede Stufe zeigt etwas anderes, nicht dasselbe größer: von weitem die Fächer mit ihrem Füllstand, näher jede Seite mit ihrem Fingerabdruck aus Perlen, ganz nah die Schritte selbst. Ein Schritt schlägt seine Seite an genau dieser Stelle auf.</p>` +
+        steckbrief([
+          ["Anleitungen", jeArt("anleitung")],
+          ["Übersichten", jeArt("uebersicht")],
+          ["Schritte", alle.filter(b => b.art === "schritt").length],
+          ["Werkzeuge", alle.filter(b => b.art === "karte").length]
+        ]) + standZeile(k);
+    }
+    if (k.art === "fach") {
+      const durch = k.kinder.filter(x => x.seite.art === "anleitung").length;
+      const nach = k.kinder.length - durch;
+      const teile = [durch && `${durch} zum Durchlaufen`, nach && `${nach} zum Nachschlagen`].filter(Boolean).join(", ");
+      return titel + kurz(`${anzahl(k.kinder.length, "Seite", "Seiten")} — ${teile}`) + standZeile(k);
+    }
+    if (k.art === "seite") {
+      const e = k.seite;
+      const zeilen = [];
+      if (e.art === "anleitung") {
+        const schritte = blaetter(k);
+        const jeStufe = STUFEN.map(st => [st, schritte.filter(b => b.daten.stufe === st).length]).filter(([, n]) => n);
+        zeilen.push(["Schritte", `${schritte.length} — ${jeStufe.map(([st, n]) => n + " " + st).join(" · ")}`]);
+        const abschnitte = k.kinder.filter(x => x.art === "abschnitt").length;
+        if (abschnitte) zeilen.push(["Abschnitte", abschnitte]);
+        /* Die Checkliste steht nicht in der Gliederung — sie ist kein Teil,
+           in den man hineinzoomt, sondern das Fazit der Seite. Ihr Stand
+           kommt deshalb wie in der Leiste aus der gespeicherten Liste. */
+        if (e.checks) zeilen.push(["Checkliste", `${Math.min(erledigtIn(KEY.checks(e.id)).size, e.checks)} von ${e.checks} Haken`]);
+      } else {
+        zeilen.push(["Themen", k.kinder.length]);
+        const karten = blaetter(k).filter(b => b.art === "karte").length;
+        if (karten) zeilen.push(["Werkzeuge", karten]);
+      }
+      return `<div class="z-marken"><span class="chip">${esc(e.kategorie)}</span>${e.art === "uebersicht" ? '<span class="sorte">Nachschlagen</span>' : ""}</div>` +
+        titel + kurz(e.untertitel) +
+        (k.daten.meta.length ? `<div class="meta">${k.daten.meta.map(m => `<span>${esc(m)}</span>`).join("")}</div>` : "") +
+        (k.daten.lead ? `<p class="z-text">${esc(k.daten.lead)}</p>` : "") +
+        steckbrief(zeilen) + standZeile(k) + aufschlagen(k, "Seite");
+    }
+    if (k.art === "abschnitt") {
+      const geschwister = kette[kette.length - 2].kinder;
+      return titel + kurz(`Abschnitt ${geschwister.indexOf(k) + 1} von ${geschwister.length} · ${anzahl(k.kinder.length, "Schritt", "Schritte")} · ${k.kinder[0].daten.label}`) +
+        standZeile(k) + aufschlagen(k, "Abschnitt");
+    }
+    return titel + kurz(k.daten.kurz || anzahl(k.kinder.length, "Werkzeug", "Werkzeuge")) + standZeile(k) + aufschlagen(k, "Thema");
+  };
+
+  const zeichnen = kette => {
+    const k = kette[kette.length - 1];
+    const pfad = kette.slice(1).map(x => x.schluessel);
+    const zuletzt = gelesen(KEY.zuletzt, null);
+    const pfadLeiste = `<nav class="z-pfad" aria-label="Zoompfad">${kette.map((x, i) =>
+      i === kette.length - 1
+        ? `<span aria-current="page">${esc(x.titel)}</span>`
+        : `<a href="${esc(zoomHref(pfad.slice(0, i)))}">${esc(x.titel)}</a>`
+    ).join('<span class="z-trenner" aria-hidden="true">/</span>')}</nav>`;
+    /* Schritte bleiben eine Folge statt eines Rasters: ihre Reihenfolge ist
+       die Anleitung, nebeneinander gelesen ginge sie verloren. */
+    const folge = k.kinder.every(x => x.art === "schritt");
+    const raster = k.kinder.length ? `
+      <h2 class="z-raster-titel">${RASTER_TITEL[k.kinder[0].art]}</h2>
+      <div class="z-raster${folge ? " z-folge" : ""}">${k.kinder.map((x, i) => kachel(x, pfad, i, zuletzt)).join("")}</div>` : "";
+    const hinweis = pfad.length ? '<p class="z-hinweis"><kbd>Esc</kbd> zoomt eine Stufe heraus</p>' : "";
+    return `${pfadLeiste}<header class="z-kopf">${kopf(k, kette)}</header>${raster}${hinweis}`;
+  };
+
+  /* ---- Pfad ----
+     Ein unbekannter Teil des Hashs schneidet ab: man landet auf der tiefsten
+     Stufe, die es noch gibt, statt auf einer leeren Seite. Blätter sind keine
+     Stufe, in sie wird nicht hineingezoomt. */
+  const pfadLesen = () => location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(s => {
+    try { return decodeURIComponent(s); } catch { return s; }
+  });
+  const aufloesen = teile => {
+    const kette = [baum];
+    for (const s of teile) {
+      const kind = kette[kette.length - 1].kinder.find(k => k.schluessel === s && k.kinder.length);
+      if (!kind) break;
+      kette.push(kind);
+    }
+    return kette;
+  };
+
+  /* ---- Übergang ----
+     Beide Schichten stehen für 280 ms übereinander: die alte, aus dem Fluss
+     genommen, wächst über den Rand und blendet aus; die neue kommt aus der
+     Kachel, in die man getippt hat. Heraus ist dasselbe rückwärts, mit der
+     Kachel, aus der man kam, als Mittelpunkt. Die neue Schicht steht schon,
+     bevor sich etwas bewegt — der Übergang wartet nie auf Daten. */
+  let pfad = null;
+  let schicht = null;
+  let laufend = [];
+  const scrollJePfad = new Map();
+  const krumen = document.querySelector("[data-krumen]");
+
+  const kachelIn = (el, schluessel) =>
+    [...el.querySelectorAll(".z-raster [data-schluessel]")].find(a => a.dataset.schluessel === schluessel);
+  const istVorne = (a, b) => a.length < b.length && a.every((s, i) => s === b[i]);
+
+  function aufraeumen() {
+    for (const a of laufend) a.cancel();
+    laufend = [];
+    flaeche.querySelectorAll(".z-schicht.alt").forEach(s => s.remove());
+    flaeche.classList.remove("z-laeuft");
+    flaeche.style.minHeight = "";
+    if (schicht) schicht.style.transformOrigin = "";
+  }
+
+  function zeigen(animiert) {
+    aufraeumen();
+    gelesenJe = new Map();
+    const kette = aufloesen(pfadLesen());
+    const neuPfad = kette.slice(1).map(k => k.schluessel);
+    /* Ersetzen statt anhängen: der Zurück-Knopf soll nicht auf den
+       kaputten Hash zurückführen, aus dem man gerade herausgeholt wurde. */
+    if (pfadLesen().join("/") !== neuPfad.join("/")) history.replaceState(null, "", zoomHref(neuPfad));
+
+    const alt = schicht;
+    const altPfad = pfad;
+    const neu = document.createElement("div");
+    neu.className = "z-schicht";
+    neu.innerHTML = zeichnen(kette);
+    schicht = neu;
+    pfad = neuPfad;
+
+    const titel = kette[kette.length - 1].titel;
+    document.title = (neuPfad.length ? titel + " · " : "") + "Zoom · Hefter";
+    if (krumen) krumen.innerHTML = ["Zoom", ...kette.slice(1).map(k => k.titel)].map(esc).join(" <b>/</b> ");
+
+    if (!alt || !animiert || altPfad.join("/") === neuPfad.join("/")) {
+      flaeche.replaceChildren(neu);
+      return;
+    }
+
+    const richtung = istVorne(altPfad, neuPfad) ? "hinein" : istVorne(neuPfad, altPfad) ? "heraus" : "sprung";
+    scrollJePfad.set(altPfad.join("/"), scrollY);
+    const vorher = scrollY;
+    const altHoehe = alt.offsetHeight;
+
+    flaeche.classList.add("z-laeuft");
+    alt.classList.add("alt");
+    flaeche.appendChild(neu);
+    /* Heraus landet dort, wo man die Stufe verlassen hat; hinein beginnt
+       oben. Die alte Schicht wird um genau die Strecke verschoben, die die
+       Seite scrollt — auf dem Schirm steht sie damit still, bis sie
+       ausblendet. */
+    scrollTo(0, richtung === "heraus" ? scrollJePfad.get(neuPfad.join("/")) ?? 0 : 0);
+    const versatz = scrollY - vorher;
+    alt.style.top = versatz + "px";
+    flaeche.style.minHeight = Math.max(neu.offsetHeight, versatz + altHoehe) + "px";
+
+    const anker = richtung === "hinein" ? kachelIn(alt, neuPfad[altPfad.length])
+                : richtung === "heraus" ? kachelIn(neu, altPfad[neuPfad.length]) : null;
+    /* Bei reduzierter Bewegung und bei Sprüngen quer durch den Baum bleibt
+       ein reines Überblenden — ein Zoom ohne Kachel, aus der er kommt,
+       hätte keinen Mittelpunkt. */
+    const bewegt = !!anker && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let skalen = [1, 1, 1, 1];
+    if (bewegt) {
+      const r = anker.getBoundingClientRect();
+      const x = r.left + r.width / 2, y = r.top + r.height / 2;
+      for (const s of [alt, neu]) {
+        const b = s.getBoundingClientRect();
+        s.style.transformOrigin = `${x - b.left}px ${y - b.top}px`;
+      }
+      skalen = richtung === "hinein" ? [1, ZOOM_GROSS, ZOOM_KLEIN, 1] : [1, ZOOM_KLEIN, ZOOM_GROSS, 1];
+    }
+    const [a0, a1, n0, n1] = skalen;
+    const takt = { duration: ZOOM_DAUER, easing: "cubic-bezier(.22,.61,.36,1)", fill: "both" };
+    const lauf = laufend = [
+      alt.animate([{ transform: `scale(${a0})`, opacity: 1 }, { transform: `scale(${a1})`, opacity: 0 }], takt),
+      neu.animate([{ transform: `scale(${n0})`, opacity: 0 }, { transform: `scale(${n1})`, opacity: 1 }], takt)
+    ];
+    /* Nur aufräumen, wenn inzwischen kein neuer Übergang begonnen hat — der
+       hätte seine eigenen Animationen, und die würden sonst mit abgebrochen. */
+    Promise.all(lauf.map(a => a.finished)).then(() => { if (laufend === lauf) aufraeumen(); }, () => {});
+
+    /* Fokus dorthin, wo man jetzt liest: hinein auf die neue Überschrift,
+       heraus auf die Kachel, aus der man kam — mit der Tastatur geht es
+       dann an derselben Stelle weiter. */
+    const fokus = richtung === "heraus" && anker ? anker : neu.querySelector("h1");
+    fokus?.focus({ preventScroll: true });
+  }
+
+  addEventListener("hashchange", () => zeigen(true));
+  /* Aus dem Verlauf zurück (bfcache) und Haken aus einem anderen Tab: neu
+     zeichnen, ohne Übergang — der Ort hat sich nicht geändert, nur der Stand. */
+  addEventListener("pageshow", e => { if (e.persisted) zeigen(false); });
+  addEventListener("storage", () => zeigen(false));
+  /* Esc zoomt heraus. Was die Leiste mit Esc schließt, hat sie per
+     preventDefault als erledigt markiert — sonst schlösse ein Druck den
+     Auszug und zoomte zugleich heraus. */
+  addEventListener("keydown", e => {
+    if (e.key !== "Escape" || e.defaultPrevented || !pfad?.length) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+    location.hash = zoomHref(pfad.slice(0, -1));
+  });
+
+  zeigen(false);
+}
+
+/* ============================================================
    SEITENLEISTE  (Register auf jeder Seite)
    Fächer sind die Kategorien, in der Reihenfolge, die bauen.mjs
    festlegt. Der Zustand — eingeklappt, welche Fächer zu — liegt
@@ -790,9 +1172,11 @@ function leisteAufbauen() {
       feld?.focus(); feld?.select();
       return;
     }
+    /* Was die Leiste mit Esc erledigt, meldet sie per preventDefault — der
+       Zoom zoomt sonst mit demselben Druck noch eine Stufe heraus. */
     if (e.key === "Escape") {
-      if (WURZEL_HTML.classList.contains("auf")) auszugSetzen(false);
-      else if (document.activeElement === feld && feld.value) { feld.value = ""; suchtext = ""; zeichnen(); }
+      if (WURZEL_HTML.classList.contains("auf")) { auszugSetzen(false); e.preventDefault(); }
+      else if (document.activeElement === feld && feld.value) { feld.value = ""; suchtext = ""; zeichnen(); e.preventDefault(); }
     }
   });
 
@@ -1179,6 +1563,8 @@ function vorgaengeAktivieren() {
 function sprungzielAufklappen() {
   const oeffnen = () => {
     if (!location.hash) return;
+    const schritt = /^#schritt-(.+)$/.exec(location.hash);
+    if (schritt) { schrittAnspringen(decodeURIComponent(schritt[1])); return; }
     /* Ein Hash muss kein gültiger Selektor sein — querySelector wirft dann. */
     let ziel = null;
     try { ziel = document.querySelector(location.hash); } catch { return; }
@@ -1192,6 +1578,23 @@ function sprungzielAufklappen() {
   };
   addEventListener("hashchange", oeffnen);
   oeffnen();
+}
+
+/* Schritte tragen keine id, sondern data-schritt — eine id daneben müsste an
+   96 Stellen von Hand mitgepflegt werden. Der Zoom springt deshalb über
+   #schritt-<data-schritt>, und weil das kein Element-Ziel ist, greift weder
+   der Sprung des Browsers noch :target. Beides wird hier nachgeholt. */
+function schrittAnspringen(id) {
+  const ziel = [...document.querySelectorAll(".step[data-schritt]")].find(s => s.dataset.schritt === id);
+  if (!ziel) return;
+  /* Ein vom Stufenfilter ausgeblendeter Schritt hat keine Lage, der Sprung
+     liefe ins Leere. Aufgehoben wird über den Knopf selbst, damit
+     Speicherung und Hinweiszeile mitgehen. */
+  if (!ziel.getClientRects().length)
+    document.querySelector('.stufenfilter [data-filter="alle"]')?.click();
+  document.querySelectorAll(".step.angesprungen").forEach(s => s.classList.remove("angesprungen"));
+  ziel.classList.add("angesprungen");
+  ziel.scrollIntoView({ block: "start" });
 }
 
 /* ============================================================
@@ -1540,6 +1943,10 @@ function einstellungenAufbauen() {
 themeLaden();
 leisteAufbauen();
 buehneAufbauen();
+/* Nach leisteAufbauen, aus zwei Gründen: die Leiste füllt die Brotkrume, der
+   Zoom überschreibt sie mit seinem Pfad; und ihr Esc-Horcher muss vor dem
+   des Zooms hängen, damit er einen Druck als erledigt markieren kann. */
+zoomAufbauen();
 zuletztMerken();
 /* Nach leisteAufbauen: die Leiste hängt sich dort an hefter:ansicht, und ein
    Wechsel aus den Einstellungen heraus muss sie erreichen. */

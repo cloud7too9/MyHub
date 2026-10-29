@@ -27,7 +27,7 @@ node bauen.mjs
 ```
 
 **Vor jedem Commit.** Das Skript schreibt in Dateien, die im Repo liegen
-(`hefter.js`, `sw.js`, den Rahmen jeder Seite). Wer es vergisst, committet
+(`hefter.js`, `gliederung.js`, `sw.js`, den Rahmen jeder Seite). Wer es vergisst, committet
 einen Stand, in dem Register, Precache-Liste und Service-Worker-Version nicht
 zum Inhalt passen — im Browser fällt das nicht auf, es wird nur nichts
 aktualisiert. Der Lauf ist idempotent: bei unverändertem Inhalt schreibt er
@@ -36,9 +36,10 @@ nichts und `git status` bleibt sauber.
 Erwartete Ausgabe:
 
 ```
-Seitenrahmen: 0 von 14 Seiten neu geschrieben
+Seitenrahmen: 0 von 15 Seiten neu geschrieben
 Register: 10 Anleitungen, 2 Übersichten übernommen
-Service Worker: 51 Dateien im Precache · hefter-xxxxxxxxxx
+Gliederung: 96 Schritte in 5 Abschnitten, 11 Themen, 25 Karten
+Service Worker: 53 Dateien im Precache · hefter-xxxxxxxxxx
 ```
 
 Ablauf immer: **ändern → `node bauen.mjs` → committen → pushen.**
@@ -49,12 +50,13 @@ Ablauf immer: **ändern → `node bauen.mjs` → committen → pushen.**
 |---|---|---|
 | `sw.js` (komplett) | `bauen.mjs` | Verzeichnis-Scan + SHA-256 über alle Inhalte |
 | `hefter.js` zwischen `/* REGISTER-START */` … `/* REGISTER-ENDE */` | `bauen.mjs` | Metadaten aller Seiten |
+| `gliederung.js` (komplett) | `bauen.mjs` | Abschnitte, Schritte, Themen, Karten aller Seiten — für den Zoom |
 | jede Seite zwischen `<!-- KOPF-START … -->` … `<!-- KOPF-ENDE -->` | `bauen.mjs` | `kopf()` in `bauen.mjs` |
 | jede Seite ab `<!-- FUSS-START … -->` bis Dateiende | `bauen.mjs` | `fuss()` in `bauen.mjs` |
 
 Eine Änderung an App-Bar, Seitenleiste, Kopf-Script oder Fuß gehört deshalb
 in `bauen.mjs` (Funktionen `kopf` / `fuss` / `FUSSTEXT`) — **nicht** in die
-14 HTML-Dateien. Ein Edit dort ist beim nächsten Build weg.
+15 HTML-Dateien. Ein Edit dort ist beim nächsten Build weg.
 
 Von Hand gepflegt wird an einer Seite nur, was **oberhalb** von `KOPF-START`
 steht (`<meta charset>` als erste Zeile im `<head>`, `description`, die
@@ -66,12 +68,14 @@ steht (`<meta charset>` als erste Zeile im `<head>`, `description`, die
 ```
 /
 ├── index.html                  Startseite ("wo stehe ich") — Inhalt kommt aus hefter.js (#buehne)
+├── zoom.html                   der ganze Hefter im semantischen Zoom — Inhalt aus hefter.js (#zoomflaeche)
 ├── einstellungen.html          Design-Wahl + App-Icon-Galerie
 ├── anleitungen/*.html          Seitensorte "Anleitung"      (10 Seiten)
 ├── nachschlagen/*.html         Seitensorte "Übersicht"      (2 Seiten)
-├── style.css                   Tokens, Themes, alle Bausteine (~1090 Zeilen)
-├── hefter.js                   gesamte App-Logik (~1310 Zeilen, REGISTER generiert)
-├── bauen.mjs                   Build-Skript (~445 Zeilen)
+├── style.css                   Tokens, Themes, alle Bausteine (~1390 Zeilen)
+├── hefter.js                   gesamte App-Logik (~2020 Zeilen, REGISTER generiert)
+├── bauen.mjs                   Build-Skript (~700 Zeilen)
+├── gliederung.js               GENERIERT — nur zoom.html lädt sie
 ├── sw.js                       GENERIERT
 ├── manifest*.webmanifest       je App-Icon ein statisches Manifest
 ├── schriften/                  DM Sans + JetBrains Mono (woff2, selbst gehostet)
@@ -138,11 +142,16 @@ Datei und Ursache im Klartext:
 | Seite fehlt in `REIHENFOLGE` / `REIHENFOLGE` nennt eine Seite, die es nicht gibt | Seite rutscht stumm an den Anfang |
 | Marker `KOPF-START`/`KOPF-ENDE`/`FUSS-START` fehlt | Rahmen kann nicht erzeugt werden |
 | `<h1>`, `.chip` oder eines der `hefter-*`-Metas fehlt | Registereintrag unvollständig |
+| Schritt oder Thema ohne `<h2>`, Karte ohne `.wz-name` | im Zoom eine Kachel ohne Titel |
+| Schritt vor dem ersten `div.abschnitt` · Abschnitt ohne Schritte · zwei Abschnitte mit gleichem Schlüssel | im Zoom stünden ungleiche Kacheln nebeneinander bzw. eine führte ins Leere |
+| `.abschnitt-anz` nennt eine andere Zahl als gezählt | Seite und Zoom-Kachel nennen verschiedene Zahlen |
+| Gliederung findet weniger Schritte als der Zähler | im Zoom fehlt ein Schritt, ohne dass es jemand merkt |
 
 **Die Zähler im Kopf sind Handarbeit**: `<span class="fs-zahl" data-fs-zahl>0 / 4</span>`
 und `<b id="chkStand">0 / 7</b>` müssen zur tatsächlichen Zahl von `.step`
-bzw. `.check` passen. Wer einen Schritt hinzufügt, zieht die Zahl nach — der
-Build erinnert daran.
+bzw. `.check` passen, ebenso `<span class="abschnitt-anz">3 Schritte</span>`
+zu den Schritten seines Abschnitts. Wer einen Schritt hinzufügt, zieht die
+Zahl nach — der Build erinnert daran.
 
 Neue Prüfungen gehören in dasselbe Muster: eine kleine Funktion, die wirft,
 plus ein Kommentar darüber, **was im Browser stumm bliebe**, wenn es sie
@@ -284,7 +293,7 @@ lesen ist.
 Eine Datei, keine Module, läuft auf jeder Seite. Aufbau von oben nach unten:
 generiertes `REGISTER`, `ICONS`, `BASIS`/`KEY`, Speicher-Helfer
 (`gelesen`/`merken`/`neueId`), dann je ein Block pro Thema — Theme, Icons,
-Ansicht, Anzeige je Baustein, Reparaturzweig, Bühne (Startseite), Leiste,
+Ansicht, Anzeige je Baustein, Reparaturzweig, Bühne (Startseite), Zoom, Leiste,
 Kopieren, Checkliste, Vorgang abschließen, Sprungziel, Schritte, Fotos,
 Stufenfilter, Weichen, Einstellungen, Start, Update-Fluss.
 
@@ -298,8 +307,11 @@ Auszug) und `anzeigeAnwenden()`.
 
 Jede Funktion prüft selbst, ob es auf dieser Seite etwas für sie zu tun gibt
 (`if (!ziel) return;`) — deshalb kann die Startsequenz am Dateiende alle
-Aktivierungen unbedingt aufrufen. Die Reihenfolge dort ist an vier Stellen
-bedeutsam: `iconAnwenden` läuft **nach** `einstellungenAufbauen`, weil erst
+Aktivierungen unbedingt aufrufen. Die Reihenfolge dort ist an fünf Stellen
+bedeutsam: `zoomAufbauen` läuft **nach** `leisteAufbauen` — die Leiste füllt
+die Brotkrume, die der Zoom mit seinem Pfad überschreibt, und ihr
+Esc-Horcher muss zuerst hängen, damit er einen Druck per `preventDefault`
+als erledigt markieren kann; `iconAnwenden` läuft **nach** `einstellungenAufbauen`, weil erst
 dann die Icon-Karten existieren; `vorgaengeAktivieren` **nach**
 `checklisteAktivieren` (erst dann stehen die gespeicherten Haken) und
 **vor** `sprungzielAufklappen` (das Umsortieren verschiebt die Karten, ein
@@ -327,6 +339,48 @@ feuert nach jeder Änderung `hefter:haken` am `document`, daran hängen
 Sortierung und Knopfzustände der Vorgänge. Ein Ereignis deckt alle Wege zum
 Haken ab — Klick auf die Box, Abschluss-Knopf, „zurücksetzen". Wer einen
 weiteren Weg ergänzt, ruft `aktualisieren()` und ist damit fertig.
+
+## Zoom (zoom.html)
+
+Der ganze Hefter als **semantischer Zoom** — nach den Regeln der
+Wissensmatrix (`cloud7too9/Segmantischer_zoom`): beim Hineinzoomen wird nichts
+größer, sondern anders. Vier Stufen, berechnet aus `REGISTER` und
+`GLIEDERUNG`, nirgends gespeichert:
+
+| Stufe | Kopf | Kacheln |
+|---|---|---|
+| Hefter | Zahlen, Gesamtstand, Leseanleitung | Fächer: Kürzel-Plaketten + Füllstand |
+| Fach | Seiten nach Sorte, Stand | Seiten: Untertitel + Fingerabdruck (eine Perle je Blatt) |
+| Seite | Chip, Meta-Zeile, Vorspann, Steckbrief, „Seite aufschlagen" | Abschnitte · Schritte · Themen |
+| Abschnitt / Thema | Zahlen, Stand, „… aufschlagen" | Schritte · Werkzeug-Karten |
+
+**Blätter zoomen nicht weiter**, sie schlagen die Seite an ihrer Stelle auf:
+ein Schritt über `#schritt-<data-schritt>`, eine Karte oder ein Thema über
+seine `id`. Den Schrittsprung löst `schrittAnspringen()` auf der Zielseite
+auf (Filter aufheben, wenn er den Schritt versteckt; `.angesprungen` statt
+`:target`). Der Zoom **liest nur** — Haken setzt man auf der Seite, sonst
+gäbe es einen zweiten Pfad dorthin.
+
+- **Der Zustand ist der Hash** (`#/server/docker-einrichtung`) — Deep Link,
+  Zurück-Knopf und Brotkrume ohne Zusatzarbeit. Ein unbekannter Teil schneidet
+  ab (`replaceState`), Blätter sind keine Stufe.
+- **Ein Renderer** (`zeichnen`) für alle Stufen; nur der Inhalt der Kacheln
+  ändert sich je Art.
+- **Übergang** über die Web Animations API, nur `transform` und `opacity`,
+  280 ms: hinein wächst die alte Schicht um die angetippte Kachel und die neue
+  kommt aus ihr; heraus ist dasselbe mit vertauschten Rollen
+  (`ZOOM_GROSS`/`ZOOM_KLEIN`). Bei `prefers-reduced-motion` und bei Sprüngen
+  quer durch den Baum nur Überblenden. Die neue Schicht steht, bevor sich
+  etwas bewegt.
+- **Stand je Zeichnen frisch** — auch bei `pageshow` aus dem bfcache und bei
+  `storage` aus einem anderen Tab, sonst stünde nach dem Zurück-Knopf der
+  alte Stand da.
+
+Die Gliederung liest `bauen.mjs` beim Bauen aus den Seiten (Abschnitte mit
+ihren Schritten, Themen mit ihren Karten, Meta-Zeile, Vorspann) und schreibt
+sie nach `gliederung.js` — eine eigene Datei, weil nur zoom.html sie braucht;
+`fuss()` bindet sie dort vor `hefter.js` ein. Abschnitte haben keine id, ihr
+Pfad-Schlüssel kommt aus dem Titel (`schluesselAus`).
 
 ## Speicherung
 
@@ -445,6 +499,8 @@ Server.
   sie ignoriert die Wahl in den Einstellungen.
 - Neuer Baustein in `BAUSTEINE` ergänzt, aber keine `ohne-…`-Regel in
   `style.css` → der Schalter steht da und tut nichts.
+- Im Zoom eine Klasse vergeben, die die Seiten schon benutzen (`.thema` an
+  einer Perle) → sie erbt deren Regeln. Dort `z-`-Präfix oder `data-art`.
 
 ## Offene Punkte
 

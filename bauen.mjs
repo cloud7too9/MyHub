@@ -12,7 +12,9 @@
         meta hefter-stichworte      → stichworte
         Dateiname                   → id
         Ordner                      → art
-   2. sw.js — Precache-Liste per Verzeichnis-Scan und VERSION
+   2. gliederung.js — Abschnitte, Schritte, Themen und Karten
+      jeder Seite für den Zoom (zoom.html).
+   3. sw.js — Precache-Liste per Verzeichnis-Scan und VERSION
       als Hash über alle Inhalte. Jede Änderung ergibt damit
       automatisch eine neue Version; Vergessen unmöglich.
    ============================================================ */
@@ -138,6 +140,13 @@ try {
   <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
 
   <div class="l-fuss">
+    <a class="f-btn" href="${basis}zoom.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5"/></svg>
+      </span>
+      <span class="f-text">Zoom</span>
+      <span class="blase">Zoom</span>
+    </a>
     <a class="f-btn" href="${basis}einstellungen.html">
       <span class="kuerzel" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
@@ -165,19 +174,25 @@ try {
 ${KOPF_ENDE}`;
 
 /* Anleitungen speichern Fotos und Haken, Übersichten nur den Fortschritt —
-   der Satz im Fuß nennt deshalb je Sorte etwas anderes. */
+   der Satz im Fuß nennt deshalb je Sorte etwas anderes. Der Zoom liest den
+   Stand nur und sagt das auch: wer dort einen Haken sucht, findet ihn auf
+   der Seite selbst. */
 const FUSSTEXT = {
   anleitung: "Fotos, Schritte und Checkliste werden lokal auf diesem Gerät gespeichert.",
   uebersicht: "Haken und Design werden lokal auf diesem Gerät gespeichert.",
   register: "Alles bleibt auf diesem Gerät — kein Server, keine Konten, keine Übertragung.",
-  einstellungen: "Gespeichert wird lokal auf diesem Gerät."
+  einstellungen: "Gespeichert wird lokal auf diesem Gerät.",
+  zoom: "Der Zoom zeigt den Stand dieses Geräts — abgehakt wird auf den Seiten selbst."
 };
 
+/* gliederung.js braucht nur der Zoom. hefter.js lädt auf jeder Seite, die
+   Gliederung aller Seiten dort hineinzuschreiben hieße, sie überall
+   mitzuschleppen. Vor hefter.js, weil der Zoom-Block sie beim Start liest. */
 const fuss = (basis, art) => `${FUSS_START}
   <p class="foot">${FUSSTEXT[art]}</p>
 </div><!-- .wrap -->
 </div><!-- .inhalt -->
-
+${art === "zoom" ? `\n<script src="${basis}gliederung.js"></script>` : ""}
 <script src="${basis}hefter.js"></script>
 </body>
 </html>
@@ -195,10 +210,11 @@ function rahmenSetzen(html, datei, basis, seite, art) {
   return html.replace(kopfRe, () => kopf(basis, seite)).replace(fussRe, () => fuss(basis, art));
 }
 
-/* Register und Einstellungen stehen nicht im REGISTER, tragen aber denselben
-   Rahmen — die Leiste gehört auf jede Seite. */
+/* Register, Zoom und Einstellungen stehen nicht im REGISTER, tragen aber
+   denselben Rahmen — die Leiste gehört auf jede Seite. */
 const RAHMENSEITEN = [
   { rel: "index.html", basis: "", seite: "", art: "register" },
+  { rel: "zoom.html", basis: "", seite: "", art: "zoom" },
   { rel: "einstellungen.html", basis: "", seite: "", art: "einstellungen" },
   ...SORTEN.flatMap(({ ordner, art }) => seitenDateien(ordner).map(f => ({
     rel: ordner + "/" + f, basis: "../", seite: f.replace(/\.html$/, ""), art
@@ -333,6 +349,133 @@ function weichenPruefen(html, datei) {
   }
 }
 
+/* ---------- Gliederung für den Zoom ----------
+   Der Zoom zeigt je Seite ihre Teile: Abschnitte und Schritte einer
+   Anleitung, Themen und Werkzeug-Karten einer Übersicht. Gelesen wird das
+   hier beim Bauen statt im Browser aus jeder Seite — der Übergang wartet
+   damit nie auf Daten, und was dabei schiefgehen kann, bricht hier ab,
+   statt im Zoom stumm zu fehlen. */
+
+/* Klartext aus einem Markup-Schnipsel. Escaped wird erst beim Rendern,
+   wie beim REGISTER. */
+const klartext = s => entitaetenAufloesen(s.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim());
+
+/* Abschnitte tragen keine id — ihr Schlüssel im Zoom-Pfad kommt aus dem
+   Titel. Umlaute ausgeschrieben, sonst stünde der Pfad prozent-kodiert in
+   der Adresszeile. */
+const schluesselAus = s => s.toLowerCase()
+  .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+  .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+const STUFEN = ["einmalig", "wiederkehrend", "optional"];
+
+/* Kopf einer Seite: die Meta-Zeile und der Vorspann. Die äußeren <span>s
+   der Meta-Zeile tragen keine Klasse, die inneren schon (class="mono") —
+   daran wird zerlegt, statt Klammern zu zählen. */
+function kopfGliedern(h) {
+  const meta = h.match(/<div class="meta">([\s\S]*?)<\/div>/);
+  const lead = h.match(/<p class="lead">([\s\S]*?)<\/p>/);
+  return {
+    meta: meta ? meta[1].split("<span>").slice(1).map(klartext).filter(Boolean) : [],
+    lead: lead ? klartext(lead[1]) : undefined
+  };
+}
+
+/* Abschnitte und Schritte in Dokumentreihenfolge: ein Schritt gehört zum
+   Abschnitt, der zuletzt vor ihm stand. */
+function anleitungGliedern(h, f) {
+  const teile = [];
+  let abschnitt = null;
+  let nr = 0;
+  const muster = /<div class="abschnitt(?: ([^"]*))?">([\s\S]*?)<\/div>|<section class="step([^"]*)" data-schritt="([^"]+)">([\s\S]*?)<\/section>/g;
+  for (const [, aKlassen, aRumpf, sKlassen, id, rumpf] of h.matchAll(muster)) {
+    if (aRumpf !== undefined) {
+      const titel = klartext((aRumpf.match(/<h2>([\s\S]*?)<\/h2>/) || [, ""])[1]);
+      const anz = aRumpf.match(/<span class="abschnitt-anz">\s*(\d+)/);
+      abschnitt = { art: "abschnitt", id: schluesselAus(titel), titel, stufe: (aKlassen || "").trim(), teile: [], anz: anz && Number(anz[1]) };
+      teile.push(abschnitt);
+      continue;
+    }
+    nr++;
+    const ueberschrift = rumpf.match(/<h2>([\s\S]*?)<\/h2>/);
+    if (!ueberschrift)
+      throw new Error(`${f}: Schritt "${id}" ohne <h2> — im Zoom stünde eine Kachel ohne Titel`);
+    const schritt = {
+      art: "schritt", id, nr,
+      titel: klartext(ueberschrift[1].replace(/<a class="infolink"[\s\S]*?<\/a>/g, "")),
+      stufe: STUFEN.find(s => sKlassen.split(/\s+/).includes(s)) || "",
+      label: klartext((rumpf.match(/<span class="stufe">([\s\S]*?)<\/span>/) || [, ""])[1])
+    };
+    (abschnitt ? abschnitt.teile : teile).push(schritt);
+  }
+
+  const abschnitte = teile.filter(t => t.art === "abschnitt");
+  if (!abschnitte.length) return teile;
+  /* Ein Schritt vor dem ersten Abschnitt stünde im Zoom gleichrangig neben
+     den Abschnitten — eine Ebene, deren Kacheln nicht dieselbe Art sind. */
+  const davor = teile.length - abschnitte.length;
+  if (davor)
+    throw new Error(`${f}: ${davor} Schritt(e) vor dem ersten Abschnitt — im Zoom stünden sie neben den Abschnitten statt darin`);
+  const schluessel = abschnitte.map(a => a.id);
+  const doppelt = [...new Set(schluessel.filter((s, i) => schluessel.indexOf(s) !== i))];
+  if (doppelt.length)
+    throw new Error(`${f}: zwei Abschnitte ergeben denselben Zoom-Schlüssel — ${doppelt.join(", ")}`);
+  for (const a of abschnitte) {
+    if (!a.teile.length)
+      throw new Error(`${f}: Abschnitt "${a.titel}" ohne Schritte — im Zoom eine Kachel, die ins Leere führt`);
+    /* Die Zahl neben der Zwischenüberschrift ist Handarbeit wie die Zähler
+       im Kopf. Der Zoom zählt selbst — stimmten beide nicht überein, nennte
+       die Seite eine andere Zahl als ihre Kachel. */
+    if (a.anz !== null && a.anz !== a.teile.length)
+      throw new Error(`${f}: Abschnitt "${a.titel}" nennt ${a.anz} Schritte, gezählt sind ${a.teile.length}`);
+    delete a.anz;
+  }
+  return teile;
+}
+
+/* Themen, darin die Werkzeug-Karten. Ein Thema ohne Karten ist im Zoom ein
+   Blatt: es schlägt die Seite an seiner Stelle auf. */
+function uebersichtGliedern(h, f) {
+  return [...h.matchAll(/<section class="thema" id="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)].map(([, id, rumpf]) => {
+    const ueberschrift = rumpf.match(/<h2>([\s\S]*?)<\/h2>/);
+    if (!ueberschrift)
+      throw new Error(`${f}: Thema "${id}" ohne <h2> — im Zoom stünde eine Kachel ohne Titel`);
+    const sub = rumpf.match(/<p class="thema-sub">([\s\S]*?)<\/p>/);
+    const karten = [...rumpf.matchAll(/<article class="wz" id="([^"]+)">([\s\S]*?)<\/article>/g)].map(([, kid, k]) => {
+      const kopf = (k.match(/<summary>([\s\S]*?)<\/summary>/) || [, ""])[1];
+      const tag = kopf.match(/<span class="wz-tag">([\s\S]*?)<\/span>/);
+      const name = kopf.replace(/<span class="wz-tag">[\s\S]*?<\/span>/, "").match(/<span class="wz-name">([\s\S]*?)<\/span>/);
+      if (!name)
+        throw new Error(`${f}: Karte "${kid}" ohne .wz-name — im Zoom stünde eine Kachel ohne Titel`);
+      const zweck = kopf.match(/<span class="wz-zweck">([\s\S]*?)<\/span>/);
+      return {
+        art: "karte", id: kid,
+        check: k.match(/data-check="([^"]+)"/)?.[1],
+        titel: klartext(name[1]),
+        tag: tag ? klartext(tag[1]) : undefined,
+        kurz: zweck ? klartext(zweck[1]) : undefined
+      };
+    });
+    return {
+      art: "thema", id,
+      titel: klartext(ueberschrift[1].replace(/<span class="thema-anz">[\s\S]*?<\/span>/, "")),
+      kurz: sub ? klartext(sub[1]) : undefined,
+      ...(karten.length ? { teile: karten } : {})
+    };
+  });
+}
+
+/* Ein Blatt je Zeile, Behälter aufgeklappt — ein Diff der erzeugten Datei
+   bleibt so lesbar: ein neuer Schritt ist eine neue Zeile. */
+function gliederungSchreiben(wert, einzug) {
+  if (Array.isArray(wert))
+    return "[\n" + wert.map(w => einzug + "  " + gliederungSchreiben(w, einzug + "  ")).join(",\n") + "\n" + einzug + "]";
+  if (!wert?.teile) return JSON.stringify(wert);
+  const { teile, ...rest } = wert;
+  const kopf = JSON.stringify(rest).slice(0, -1);
+  return kopf + (kopf.length > 1 ? "," : "") + '"teile":' + gliederungSchreiben(teile, einzug) + "}";
+}
+
 /* Die Leseordnung. Alphabetisch sortiert stand die Server-Erst-Einrichtung
    als letzte der Server-Seiten, obwohl die anderen drei sie voraussetzen.
    Diese Liste bestimmt beides: die Ordnung innerhalb eines Fachs und — über
@@ -359,6 +502,7 @@ const REIHENFOLGE = [
   "hetzner-deploy"
 ];
 
+const gliederungen = new Map();
 const register = SORTEN.flatMap(({ ordner, art }) =>
   seitenDateien(ordner).map(f => {
     const h = readFileSync(join(WURZEL, ordner, f), "utf8");
@@ -378,6 +522,16 @@ const register = SORTEN.flatMap(({ ordner, art }) =>
     zaehlerPruefen(h, f, "Schritt-Zähler", /data-fs-zahl>\s*0\s*\/\s*(\d+)\s*</, /<section class="step[ "]/g);
     schrittIdsPruefen(h, f);
     weichenPruefen(h, f);
+    const gliederung = {
+      ...kopfGliedern(h),
+      teile: art === "anleitung" ? anleitungGliedern(h, f) : uebersichtGliedern(h, f)
+    };
+    /* Zählt das Muster der Gliederung anders als der Zähler darunter, fehlte
+       im Zoom ein Schritt, ohne dass es jemand merkt. */
+    const gegliedert = gliederung.teile.flatMap(t => t.art === "abschnitt" ? t.teile : [t]).filter(t => t.art === "schritt").length;
+    if (gegliedert !== zaehlen(/class="step[ "]/g))
+      throw new Error(`${f}: die Gliederung für den Zoom findet ${gegliedert} von ${zaehlen(/class="step[ "]/g)} Schritten`);
+    gliederungen.set(f.replace(/\.html$/, ""), gliederung);
     return {
       id: f.replace(/\.html$/, ""),
       art,
@@ -458,7 +612,24 @@ writeFileSync(join(WURZEL, "hefter.js"), js);
 const jeArt = art => register.filter(e => e.art === art).length;
 console.log(`Register: ${jeArt("anleitung")} Anleitungen, ${jeArt("uebersicht")} Übersichten übernommen`);
 
-/* ---------- 2. Precache-Liste per Scan ---------- */
+/* ---------- 2. Gliederung für den Zoom ----------
+   Vor dem Scan geschrieben: sie gehört in den Precache und in den Hash der
+   Version wie jede andere Datei. In REGISTER-Reihenfolge, damit der Zoom
+   nicht noch einmal sortieren muss. */
+const gliederungDatei = `/* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
+   Die Gliederung jeder Seite für den Zoom (zoom.html): Abschnitte und
+   Schritte der Anleitungen, Themen und Werkzeug-Karten der Übersichten.
+   Geladen wird sie nur dort — siehe fuss() in bauen.mjs. */
+const GLIEDERUNG = {
+${register.map(e => `  ${JSON.stringify(e.id)}: ${gliederungSchreiben(gliederungen.get(e.id), "  ")}`).join(",\n")}
+};
+`;
+writeFileSync(join(WURZEL, "gliederung.js"), gliederungDatei);
+const alleTeile = [...gliederungen.values()].flatMap(g => g.teile.flatMap(t => [t, ...(t.teile || [])]));
+const jeTeil = art => alleTeile.filter(t => t.art === art).length;
+console.log(`Gliederung: ${jeTeil("schritt")} Schritte in ${jeTeil("abschnitt")} Abschnitten, ${jeTeil("thema")} Themen, ${jeTeil("karte")} Karten`);
+
+/* ---------- 3. Precache-Liste per Scan ---------- */
 const ENDUNGEN = /\.(html|css|js|webmanifest|svg|png|woff2)$/;
 const AUSSCHLUSS = new Set(["sw.js", "bauen.mjs"]);
 
@@ -481,12 +652,12 @@ function sammeln(ordner) {
 }
 const shell = sammeln(WURZEL);
 
-/* ---------- 3. Version = Hash über alle Inhalte ---------- */
+/* ---------- 4. Version = Hash über alle Inhalte ---------- */
 const hash = createHash("sha256");
 for (const p of shell) hash.update(p).update(readFileSync(join(WURZEL, p)));
 const version = "hefter-" + hash.digest("hex").slice(0, 10);
 
-/* ---------- 4. sw.js schreiben ---------- */
+/* ---------- 5. sw.js schreiben ---------- */
 const sw = `/* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
 const VERSION = ${JSON.stringify(version)};

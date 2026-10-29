@@ -459,6 +459,173 @@ a { color: inherit; }
    .b-stand und .schrittstand macht ihn erst der Flex-Container zum Kasten. */
 .b-weiter .balken { display: block; margin-top: 10px; }
 
+/* ============================================================
+   ZOOM  (zoom.html)
+   Ein Renderer für jede Stufe: Pfad, Kopf, Kacheln. Von Stufe zu
+   Stufe ändert sich, was in den Kacheln steht, nicht wo sie
+   stehen — der Blick bleibt beim Übergang an derselben Stelle.
+   Bewegt wird ausschließlich über transform und opacity, die
+   Animation selbst fährt hefter.js.
+   ============================================================ */
+.zoomflaeche { position: relative; }
+/* Nur während des Übergangs: dauerhaft schnitte das die Fokusringe der
+   Kacheln am Rand ab. clip statt hidden, weil hidden einen eigenen
+   Scroll-Container aufmachte. */
+.zoomflaeche.z-laeuft { overflow: clip; }
+.z-schicht.alt { position: absolute; left: 0; right: 0; pointer-events: none; }
+.z-laeuft .z-schicht { will-change: transform, opacity; }
+.z-ohne-js { color: var(--text-muted); }
+
+.z-pfad {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; margin: 2px 0 12px;
+  font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--text-dim);
+}
+.z-pfad a { display: inline-flex; align-items: center; min-height: 32px; color: var(--text-dim); text-decoration: none; }
+.z-pfad a:hover { color: var(--accent-ink); }
+.z-pfad [aria-current] { color: var(--text-muted); }
+.z-trenner { color: var(--border); }
+
+.z-kopf { padding-bottom: 24px; }
+.z-marken { margin-bottom: 12px; }
+.z-kopf h1 { font-size: clamp(28px, 7.5vw, 42px); letter-spacing: -.02em; line-height: 1.1; }
+/* Den Fokus bekommt die Überschrift nur, damit ein Screenreader die neue
+   Stufe ansagt — ein Ring darum wäre Lärm. */
+.z-kopf h1:focus { outline: none; }
+.z-kurz { color: var(--text-muted); margin-top: 8px; font-size: 16.5px; }
+.z-kopf .meta { margin-top: 12px; }
+.z-text { margin-top: 14px; color: var(--text-muted); font-size: 15px; max-width: 66ch; }
+.z-steckbrief {
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 18px; margin-top: 16px;
+  padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  font-size: 13.5px;
+}
+.z-steckbrief dt { color: var(--text-dim); }
+.z-steckbrief dd { color: var(--text); font-family: "JetBrains Mono", monospace; font-size: 12.5px; }
+.z-stand {
+  display: flex; align-items: center; gap: 12px; margin-top: 14px;
+  font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text-muted);
+}
+.z-stand .balken { max-width: 220px; }
+.z-aufschlagen { margin-top: 16px; }
+
+.z-raster-titel {
+  font-size: 12.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--accent-ink); margin-bottom: 10px;
+}
+.z-raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+:root[data-ansicht="iphone"] .z-raster { grid-template-columns: minmax(0, 1fr); }
+
+.z-kachel {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0; min-height: 64px;
+  padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  text-decoration: none; transition: border-color .2s, background .2s;
+}
+.z-kachel:hover { border-color: var(--accent); }
+.z-k-kopf { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.z-k-titel { font-weight: 600; font-size: 15.5px; letter-spacing: -.01em; line-height: 1.3; }
+.z-k-unter { color: var(--text-muted); font-size: 13px; line-height: 1.45; }
+.z-k-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.z-k-fuss, .z-k-stand {
+  display: flex; align-items: center; gap: 10px; margin-top: auto; padding-top: 4px;
+  font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-dim);
+}
+.z-k-fuss .typ { flex: none; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; }
+.z-zahl { flex: none; margin-left: auto; }
+/* Fertig tritt zurück, wie auf der Startseite — das Offene soll ins Auge
+   fallen, nicht das Erledigte. */
+.z-kachel.erledigt .z-k-titel { color: var(--text-muted); }
+/* Der Weg zur zuletzt geöffneten Seite ist auf jeder Stufe zu sehen:
+   "wo stehe ich" beantwortet der Zoom so nebenbei mit. */
+.z-kachel.zuletzt {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.z-kachel.zuletzt:hover { border-color: var(--accent); }
+.z-marke {
+  flex: none; margin-left: auto; padding: 1px 7px; border-radius: 999px;
+  font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--accent-ink); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* Fach: von weitem eine Reihe Plaketten — die fertigen Seiten darin
+   so ausgezeichnet wie in der Leiste. */
+.z-plaketten { display: flex; flex-wrap: wrap; gap: 6px; }
+.z-kachel .kuerzel.fertig { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); color: var(--accent-ink); }
+.z-abschnitt.wiederkehrend .kuerzel { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); color: var(--accent-ink); }
+
+/* Seite und Abschnitt: der Fingerabdruck. Dieselbe Formsprache wie die
+   Schrittnummern — gestrichelt, umrandet, gepunktet, gefüllt. */
+.z-perlen { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; }
+.z-perlen i {
+  width: 8px; height: 8px; border-radius: 3px;
+  border: 1px solid var(--border); background: var(--surface-2);
+}
+.z-perlen i.einmalig { border-style: dashed; }
+.z-perlen i.wiederkehrend {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.z-perlen i.optional { border-style: dotted; background: none; }
+.z-perlen i[data-art="karte"] { border-radius: 50%; }
+.z-perlen i[data-art="thema"] { background: none; }
+.z-perlen i.erledigt { background: var(--accent); border: 1px solid var(--accent); }
+
+/* Blätter: eine Zeile, rechts der Pfeil — sie zoomen nicht weiter,
+   sondern schlagen die Seite auf. */
+.z-blatt { flex-direction: row; align-items: center; gap: 12px; }
+.z-blatt .pfeil { flex: none; margin-left: auto; display: flex; color: var(--text-muted); }
+.z-blatt .pfeil svg { width: 18px; height: 18px; display: block; }
+
+/* Schritte als Folge statt Raster, mit Perlen wie an der Rail. */
+.z-raster.z-folge { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.z-folge .z-kachel {
+  border-width: 0 0 1px; border-radius: 0; background: none;
+  min-height: 60px; padding: 12px 6px;
+}
+.z-folge .z-kachel:last-child { border-bottom: none; }
+.z-folge .z-kachel:hover { border-color: var(--border); background: var(--surface); }
+.z-perle {
+  position: relative; flex: none; width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 14px;
+  color: var(--accent-ink); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.z-schritt.einmalig .z-perle { color: var(--text-muted); background: var(--surface-2); border: 1px dashed var(--border); }
+.z-schritt.wiederkehrend .z-perle {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.z-schritt.optional .z-perle { color: var(--text-muted); background: none; border: 1px dotted var(--border); }
+/* Erledigt: gefüllt mit Haken statt Zahl, wie an der Rail der Seite. */
+.z-schritt.erledigt .z-perle { background: var(--accent); border: 1px solid var(--accent); color: transparent; }
+.z-schritt.erledigt .z-perle::after {
+  content: ""; position: absolute; left: 50%; top: 46%;
+  width: 6px; height: 11px; margin: -7px 0 0 -3px;
+  border: solid var(--bg); border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+/* Karte: die Haken-Box der Werkzeug-Karte, nur zum Ansehen. */
+.z-haken {
+  flex: none; width: 24px; height: 24px; border-radius: 7px;
+  border: 2px solid var(--border); background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+}
+.z-haken svg { width: 15px; height: 15px; color: var(--bg); opacity: 0; }
+.z-karte.erledigt .z-haken { background: var(--accent); border-color: var(--accent); }
+.z-karte.erledigt .z-haken svg { opacity: 1; }
+
+.z-hinweis { margin-top: 26px; color: var(--text-dim); font-size: 12px; }
+.z-hinweis kbd {
+  font-size: 11px; color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; background: var(--surface-2);
+}
+/* Esc gibt es nur mit Tastatur — auf iPad und iPhone zoomt die Brotkrume
+   oder der Zurück-Wisch heraus. */
+:root:not([data-ansicht="computer"]) .z-hinweis { display: none; }
+:root:not([data-ansicht="computer"]) .z-pfad a { min-height: 44px; }
+
 /* ---------- Anleitungs-Kopf ---------- */
 .chip {
   display: inline-block; padding: 4px 11px; border-radius: 999px;
@@ -633,7 +800,9 @@ a { color: inherit; }
 body.nur-wiederkehrend .abschnitt.einmalig { display: none; }
 
 /* ---------- Schritt-Rail ---------- */
-.step { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 22px 0; }
+/* scroll-margin wie bei .thema: der Zoom springt einzelne Schritte an, und
+   die klebende App-Bar läge sonst über der Überschrift. */
+.step { position: relative; display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 22px 0; scroll-margin-top: 56px; }
 .step + .step { border-top: 1px solid var(--border); }
 .rail { position: relative; }
 /* Die Schrittnummer ist zugleich der Haken: ein Klick markiert den Schritt
@@ -749,6 +918,10 @@ body.nur-wiederkehrend .abschnitt.einmalig { display: none; }
 /* Der Text tritt zurück, verschwindet aber nicht — man liest später nach,
    was man getan hat. */
 .step.erledigt .step-body > h2 { color: var(--text-muted); }
+/* Aus dem Zoom angesprungen — das Gegenstück zu .thema:target, das hier
+   nicht greift, weil ein Schritt über data-schritt statt über eine id
+   angesprungen wird. Steht nach "erledigt", damit es auch dort sticht. */
+.step.angesprungen .step-body > h2 { color: var(--accent-ink); }
 
 /* Letzter Schritt eines Abschnitts: keine Linie ins Nichts */
 .step.stufenwechsel .rail::after { display: none; }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dunkel">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Der ganze Hefter im semantischen Zoom — Fächer, Seiten, Abschnitte und Schritte, jede Stufe mit ihrer eigenen Information.">
+<title>Zoom · Hefter</title>
+<!-- KOPF-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060709">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/01-ringe.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/png/01-ringe-192.png">
+<link rel="stylesheet" href="style.css">
+<script>
+/* Theme, Ansicht und Leisten-Zustand vor dem ersten Anstrich setzen — sonst
+   blitzen helles Design, falsche Ansicht und breite Leiste kurz auf.
+   localStorage liest synchron, deshalb geht das hier oben. "laedt" schaltet
+   Übergänge bis zum ersten Bild ab; hefter.js nimmt die Klasse wieder weg.
+   Wer eine weitere Einstellung ergänzt, die das Layout vor dem ersten
+   Anstrich betrifft, ergänzt sie hier — nicht in hefter.js. */
+
+/* Welche Ansicht gilt, entscheidet diese eine Funktion: aus der Wahl des
+   Nutzers ("auto" oder eine der drei) wird die Ansicht, die wirklich
+   angezeigt wird. Sie steht hier und nicht in hefter.js, weil sie vor dem
+   ersten Anstrich laufen muss — hefter.js lädt erst am Dateiende. hefter.js
+   ruft dieselbe Funktion beim Ändern des Fensters: eine Regel, eine Stelle. */
+window.ansichtBestimmen = function (wahl) {
+  /* Die Breite allein verwechselt ein kleines Fenster am Rechner mit einem
+     Tablet, deshalb das Zeigegerät. Und die Höhe muss mit: ein quer
+     gehaltenes iPhone ist 844px breit und wäre sonst als iPad durchgegangen. */
+  var a = (wahl && wahl !== "auto") ? wahl
+        : matchMedia("(max-width: 700px), (max-height: 500px)").matches ? "iphone"
+        : matchMedia("(pointer: coarse)").matches ? "ipad" : "computer";
+  /* Boden unter jeder Wahl: unter 640px bliebe neben der festen Leiste kein
+     Inhalt mehr übrig. Wer auf dem Telefon "Computer" wählt, käme sonst an
+     die Einstellung nicht mehr heran, mit der er es zurücknimmt. Gespeichert
+     bleibt die Wahl — sie greift wieder, sobald das Fenster breit genug ist. */
+  return (a !== "iphone" && matchMedia("(max-width: 640px)").matches) ? "iphone" : a;
+};
+
+var d = document.documentElement;
+d.classList.add("laedt");
+/* Erst ohne Speicher bestimmen, dann der Blick hinein: wirft localStorage
+   (privater Modus), steht trotzdem eine Ansicht am <html>. Ohne sie griffe
+   keine der drei und das Telefon bekäme die Computer-Darstellung. */
+d.dataset.ansicht = ansichtBestimmen();
+try {
+  d.dataset.theme = localStorage.getItem("hefter:theme") || "dunkel";
+  d.dataset.ansicht = ansichtBestimmen(localStorage.getItem("hefter:ansicht"));
+  var a = d.dataset.ansicht;
+  /* Auf dem iPhone gibt es den Schmal-Zustand nicht, auf dem iPad ist die
+     Kürzelspalte die Vorgabe — eine ausdrückliche Wahl sticht beides. Weil
+     die Klasse hier gar nicht erst gesetzt wird, wo es sie nicht gibt,
+     braucht die iPhone-Ansicht in style.css kein !important dagegen. */
+  var leiste = JSON.parse(localStorage.getItem("hefter:leiste") || "{}");
+  if (a !== "iphone" && (leiste.schmal ?? a === "ipad")) d.classList.add("schmal");
+  /* Abgeschaltete Bausteine je Ansicht. Gehört ebenfalls vor den ersten
+     Anstrich: sonst blitzen Fotozonen und Kästen auf und verschwinden wieder.
+     Nebenbei greift die Einstellung damit auch, wenn hefter.js gar nicht lädt. */
+  var aus = JSON.parse(localStorage.getItem("hefter:anzeige") || "{}")[a] || [];
+  for (var i = 0; i < aus.length; i++) d.classList.add("ohne-" + aus[i]);
+} catch {}
+</script>
+</head>
+<body data-basis="">
+
+<div class="schleier" data-schleier></div>
+
+<nav class="leiste" aria-label="Register">
+  <div class="l-kopf">
+    <a class="l-marke" href="index.html">
+      <span class="logo"><img data-appicon src="icons/01-ringe.svg" alt=""></span>
+      <span class="wortmarke"><b>Hefter</b><small>Register</small></span>
+    </a>
+    <button class="klapp" data-klapp aria-label="Leiste einklappen" title="Strg+B">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <div class="l-suche">
+    <input id="leisteSuche" type="search" placeholder="Seite suchen" autocomplete="off" aria-label="Seite suchen">
+    <button class="lupe" data-lupe aria-label="Suchen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+  </div>
+
+  <div class="l-register" id="leisteRegister"></div>
+  <p class="l-leer" id="leisteLeer">Keine Seite gefunden.</p>
+
+  <div class="l-fuss">
+    <a class="f-btn" href="zoom.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5"/></svg>
+      </span>
+      <span class="f-text">Zoom</span>
+      <span class="blase">Zoom</span>
+    </a>
+    <a class="f-btn" href="einstellungen.html">
+      <span class="kuerzel" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09c0 .68.4 1.3 1.03 1.56a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c.26.63.88 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+      </span>
+      <span class="f-text">Einstellungen</span>
+      <span class="blase">Einstellungen</span>
+    </a>
+  </div>
+</nav>
+
+<div class="inhalt">
+
+<header class="i-kopf">
+  <button class="brenner" data-brenner aria-label="Register öffnen" aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <span class="krumen" data-krumen></span>
+  <button class="iconbtn" data-themebtn aria-label="Design wechseln — aktuell Dunkel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <span class="lbl">Dunkel</span>
+  </button>
+</header>
+
+<div class="wrap">
+<!-- KOPF-ENDE -->
+
+  <div class="zoomflaeche" id="zoomflaeche">
+    <p class="z-ohne-js">Der Zoom wird mit JavaScript aufgebaut. Zurück zur <a href="index.html">Startseite</a>.</p>
+  </div>
+
+<!-- FUSS-START · erzeugt von bauen.mjs — nicht von Hand ändern -->
+  <p class="foot">Der Zoom zeigt den Stand dieses Geräts — abgehakt wird auf den Seiten selbst.</p>
+</div><!-- .wrap -->
+</div><!-- .inhalt -->
+
+<script src="gliederung.js"></script>
+<script src="hefter.js"></script>
+</body>
+</html>

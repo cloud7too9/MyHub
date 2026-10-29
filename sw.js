@@ -1,6 +1,6 @@
 /* GENERIERT von bauen.mjs — nicht von Hand bearbeiten.
    Nach jeder Inhaltsänderung:  node bauen.mjs  */
-const VERSION = "hefter-a63a7c3bea";
+const VERSION = "hefter-67171b8e8b";
 const SHELL = [
   "anleitungen/arbeitsplatz-einrichten.html",
   "anleitungen/coolify-einrichtung.html",
@@ -13,6 +13,7 @@ const SHELL = [
   "anleitungen/vscode-git-workflow.html",
   "anleitungen/vscode-remote-ssh.html",
   "einstellungen.html",
+  "gliederung.js",
   "hefter.js",
   "icons/01-ringe.svg",
   "icons/02-register.svg",
@@ -52,7 +53,8 @@ const SHELL = [
   "schriften/dm-sans-latin.woff2",
   "schriften/jetbrains-mono-latin-ext.woff2",
   "schriften/jetbrains-mono-latin.woff2",
-  "style.css"
+  "style.css",
+  "zoom.html"
 ];
 
 self.addEventListener("install", e => {

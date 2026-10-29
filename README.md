@@ -23,6 +23,37 @@ Eingeklappter Zustand und zugeklappte Fächer werden gemerkt und schon im
 `<head>` gesetzt — die Leiste blitzt beim Laden nicht in der falschen Breite
 auf.
 
+## Zoom: der ganze Hefter auf einen Blick
+
+`zoom.html` (in der Leiste unten, über den Einstellungen) zeigt den Hefter als
+**semantischen Zoom**. Beim Hineinzoomen wird nichts größer, sondern anders:
+jede Stufe zeigt eine andere Art von Information.
+
+| Stufe | was eine Kachel dort ist |
+|---|---|
+| **Hefter** | ein Fach — die Kürzel seiner Seiten und ein Füllstand |
+| **Fach** | eine Seite — Untertitel und ihr **Fingerabdruck**: eine Perle je Schritt bzw. Karte, in der Form der Schrittnummern (gestrichelt einmalig, umrandet wiederkehrend, gepunktet optional, gefüllt erledigt) |
+| **Seite** | ein Abschnitt, Thema oder Schritt; darüber der Steckbrief der Seite mit Vorspann, Meta-Zeile und Stand |
+| **Abschnitt / Thema** | die Schritte als Folge, die Werkzeug-Karten mit ihrem Haken |
+
+Ganz unten zoomt nichts mehr: ein **Schritt schlägt seine Seite an genau
+dieser Stelle auf** (`…/docker-einrichtung.html#schritt-compose`), eine Karte
+oder ein Thema ebenso. Versteckt der Stufenfilter den Schritt, wird er dafür
+aufgehoben. Der Zoom liest den Stand nur, abgehakt wird auf der Seite.
+
+Der Ort steht im Hash (`zoom.html#/server/docker-einrichtung`): Deep Links,
+Zurück-Knopf und Brotkrume funktionieren damit von selbst. `Esc` zoomt eine
+Stufe heraus. Die Kachel der zuletzt geöffneten Seite und ihr Fach sind auf
+jeder Stufe markiert. Der Übergang dauert 280 ms und bewegt nur
+`transform` und `opacity`: Die neue Stufe kommt aus der angetippten Kachel,
+heraus läuft es spiegelbildlich. Bei reduzierter Bewegung wird nur
+übergeblendet.
+
+Die Regeln dahinter stammen aus der Wissensmatrix
+(`cloud7too9/Segmantischer_zoom`): Zoomstufe = Abstraktionsstufe, der Baum
+wird berechnet statt gespeichert, ein Renderer für alle Stufen, der Übergang
+wartet nie auf Daten.
+
 ## Drei Ansichten: Computer, iPad, iPhone
 
 Das Layout hängt nicht an einer Breiten-Schwelle, sondern an einer benannten
@@ -114,6 +145,7 @@ läuft über beide.
 ```
 hefter/
 ├── index.html                  Startseite: wo du stehst
+├── zoom.html                   der ganze Hefter im semantischen Zoom
 ├── einstellungen.html          Design-Wahl + App-Icon-Galerie
 ├── anleitungen/                Seitensorte "Anleitung"
 │   ├── arbeitsplatz-einrichten.html
@@ -132,6 +164,7 @@ hefter/
 ├── style.css                   Design-Tokens, Themes, alle Bausteine
 ├── hefter.js                   gesamte App-Logik (REGISTER wird generiert)
 ├── bauen.mjs                   Build-Skript — siehe unten
+├── gliederung.js               GENERIERT — Gliederung aller Seiten für den Zoom
 ├── sw.js                       GENERIERT — nie von Hand bearbeiten
 ├── manifest.webmanifest        Standard-Manifest (Icon 01)
 ├── manifest-XX-….webmanifest   je Icon ein statisches Manifest
@@ -224,6 +257,12 @@ node bauen.mjs
   | unbekannte Callout-Art (`info · sicher · achtung · ergebnis · gefahr`) | die Box nimmt still den Akzent als Farbe und hört auf die falsche Anzeige-Einstellung |
   | `.reparatur` ohne `.pr-kopf` | eingeklappt gibt es keinen Griff mehr, mit dem der Zweig aufgeht |
   | `data-haken-balken` fehlt, obwohl alle Schritte `einmalig` sind — oder steht da, obwohl nicht | eine Seite wechselt mit einem neuen Schritt stumm ihren Charakter, und der Balken bleibt falsch |
+  | Schritt oder Thema ohne `<h2>`, Karte ohne `.wz-name` | im Zoom eine Kachel ohne Titel |
+  | Schritt vor dem ersten Abschnitt, Abschnitt ohne Schritte | im Zoom stünden ungleiche Kacheln nebeneinander bzw. eine führte ins Leere |
+  | `.abschnitt-anz` nennt eine andere Zahl als gezählt | Seite und Zoom-Kachel nennen verschiedene Zahlen |
+- Liest die Gliederung jeder Seite (Abschnitte, Schritte, Themen, Karten,
+  Meta-Zeile, Vorspann) und schreibt sie nach `gliederung.js`. Die Datei lädt
+  nur `zoom.html`; im `REGISTER` stünde sie auf jeder Seite.
 - Scannt alle Projektdateien und erzeugt die Precache-Liste der `sw.js`.
 - Setzt die Service-Worker-`VERSION` als SHA-256-Hash über alle Inhalte —
   jede Änderung ergibt automatisch eine neue Version.
